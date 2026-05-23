@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/router.dart';
 import '../../data/quote.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
-import '../editor/editor_screen.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/fab.dart';
@@ -14,14 +15,10 @@ import '../widgets/quote_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/tag_row.dart';
 import '../widgets/top_bar.dart';
-import 'search_screen.dart';
 
 /// 金库主屏 —— 对应 screens.jsx 的 `LibraryScreen`.
 class LibraryScreen extends ConsumerWidget {
-  const LibraryScreen({this.onOpenDisplay, super.key});
-
-  /// 点击"今日金句"卡跳转到屏保展示页。
-  final VoidCallback? onOpenDisplay;
+  const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,7 +80,7 @@ class LibraryScreen extends ConsumerWidget {
                           source: today.tag,
                           date: _fmtDate(today.createdAt),
                           variant: QuoteCardVariant.featured,
-                          onTap: onOpenDisplay,
+                          onTap: () => context.go(FolioRoutes.display),
                         ),
 
                         const SizedBox(height: 12),
@@ -127,30 +124,12 @@ class LibraryScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openEditor(BuildContext context) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext _) => const EditorScreen(),
-      ),
-    );
-  }
+  void _openEditor(BuildContext context) => context.push(FolioRoutes.editorNew);
 
-  Future<void> _openEditExisting(BuildContext context, Quote q) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext _) => EditorScreen(editing: q),
-      ),
-    );
-  }
+  void _openEditExisting(BuildContext context, Quote q) =>
+      context.push('${FolioRoutes.editorNew}/${q.id}');
 
-  Future<void> _openSearch(BuildContext context) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext _) => const SearchScreen(),
-        fullscreenDialog: true,
-      ),
-    );
-  }
+  void _openSearch(BuildContext context) => context.push(FolioRoutes.search);
 
   Future<void> _confirmDelete(
     BuildContext context,

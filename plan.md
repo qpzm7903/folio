@@ -21,7 +21,7 @@
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
-- [ ] L13 · go_router 路由 + Web 深链
+- [x] L13 · go_router 路由 + Web 深链 — v0.10.0 (StatefulShellRoute + URL 深链)
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
 - [x] L16 · 完整测试覆盖 (单元 + Widget + 集成) — v0.9.0 (test_harness + 屏级 widget 测试框架到位; 剩余屏后续 PATCH 持续覆盖)
@@ -46,6 +46,31 @@
 ---
 
 ## 版本日志
+
+### v0.10.0 — go_router 路由 + Web 深链 (L13)
+
+把原本 IndexedStack + Navigator.push 的导航层替换成 go_router。
+Web 用户终于能 bookmark `/library` `/search` `/tags` `/editor/:id`
+等具体屏的 URL, 桌面端复制 URL 共享也有意义。
+
+- 加 `go_router ^14.6.2` 依赖
+- `lib/core/router.dart` 新建:
+  - `StatefulShellRoute.indexedStack` 包 4 个底栏 branch
+    (`/library` / `/display` / `/widgets` / `/settings`),
+    每个 branch 自己的 navigator stack, 切回去时保留状态
+  - 顶层 `_ShellScaffold` 提供共享 `XJKBottomNav`, 二次点击当前 tab
+    会回到该 branch 的根
+  - 子路由 `/editor` (新建) / `/editor/:id` (编辑, 通过 path 参数
+    解析 id 并从 quotesProvider 找回 Quote) / `/search` / `/tags`
+- `lib/app.dart` 改 `MaterialApp.router` + `routerConfig`, 移除原
+  `RootShell`
+- LibraryScreen / SearchScreen / SettingsScreen 各处 Navigator.push
+  改 `context.push(FolioRoutes.editorNew)` / `context.go(...)`
+- `LibraryScreen.onOpenDisplay` 回调移除, 直接 `context.go('/display')`
+- BottomSheet / AlertDialog 的 `Navigator.of(ctx).pop(...)` 保留
+  (那些是 native modal navigator, 跟 GoRouter 无关)
+
+完成长期项 L13。
 
 ### v0.9.1 — 重构 PATCH (QuotesNotifier _ready future, mutate 排队等加载)
 

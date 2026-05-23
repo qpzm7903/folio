@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/router.dart';
 import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
-import '../tags/tags_screen.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/option_picker.dart';
 import '../widgets/setting_row.dart';
@@ -26,7 +27,7 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   /// footer 上的版本标签 —— 跟 pubspec 同步, 手动维护 (每个 MINOR 改一次)。
-  static const String _versionLabel = 'v 0.9';
+  static const String _versionLabel = 'v 0.10';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -208,11 +209,7 @@ class _TagsSection extends StatelessWidget {
             SettingRow(
               label: '标签管理',
               sub: '重命名 / 取下整组标签',
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext _) => const TagsScreen(),
-                ),
-              ),
+              onTap: () => context.push(FolioRoutes.tags),
             ),
           ],
         ),

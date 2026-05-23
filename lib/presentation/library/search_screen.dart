@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/logger.dart';
+import '../../core/router.dart';
 import '../../data/quote.dart';
 import '../../theme/tokens.dart';
-import '../editor/editor_screen.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/max_width_body.dart';
@@ -291,12 +292,8 @@ class _SearchResults extends ConsumerWidget {
     );
   }
 
-  Future<void> _openEditor(BuildContext context, Quote q) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (BuildContext _) => EditorScreen(editing: q),
-      ),
-    );
+  void _openEditor(BuildContext context, Quote q) {
+    context.push('${FolioRoutes.editorNew}/${q.id}');
   }
 
   Future<void> _confirmDelete(
