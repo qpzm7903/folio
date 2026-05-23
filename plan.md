@@ -46,6 +46,27 @@
 
 ## 版本日志
 
+### v0.1.4 — 重构 PATCH (display Timer + Quote codec)
+
+让 v0.1.x 这个 MINOR 拿到一次"重构优化"PATCH, 之后才能开 v0.2.0 新功能。
+
+- `lib/domain/rotation_controller.dart` 新增 —— 把 display 的
+  `NoRepeatShuffle + Timer.periodic + cadence/itemCount 同步` 整组逻辑
+  从 `_DisplayScreenState` 抽出来。原版用 4 个互相耦合的私有字段
+  (_shuffler / _autoTimer / _lastLength / _lastCadenceMin) 在 build()
+  里管 Timer 副作用; 现在变成一个明确生命周期的 controller, 拥有
+  `advance / reconfigure / dispose` 三个语义清楚的方法。
+- 用户手动 advance 也会重置 cadence —— 之前是 bug-ish 行为
+  (用户刚切完可能马上又被自动切走)。
+- `lib/data/quote_codec.dart` 新增 —— 把 File / SharedPreferences
+  两个 [QuoteRepository] 子类里重复的 `jsonEncode/jsonDecode + 异常处理`
+  抽到一个静态类。后续切 drift 时只用替换这一处。
+- 新增测试: `test/rotation_controller_test.dart` 用 `fake_async`
+  虚拟时钟驱动, 覆盖自动 tick / 手动 advance 重置 / reconfigure /
+  dispose 四个分支; `test/quote_codec_test.dart` 覆盖往返编解码 +
+  坏 JSON 兜底 + 空数组。
+- 总 Dart 行数仍在 10000 限制下。
+
 ### v0.1.3 — 修 analyze 报错与警告
 
 format 阻塞解开后 `flutter analyze` 暴露 3 个 error + 6 个 info, 全部清掉:

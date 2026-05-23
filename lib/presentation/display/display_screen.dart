@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/quote.dart';
 import '../../data/settings_repository.dart';
-import '../../domain/shuffle.dart';
+import '../../domain/rotation_controller.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/xjk_icon.dart';
@@ -27,49 +25,41 @@ class DisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _DisplayScreenState extends ConsumerState<DisplayScreen> {
-  NoRepeatShuffle? _shuffler;
+  RotationController? _rotation;
   int _fadeKey = 0;
   bool _withPhoto = false;
-  Timer? _autoTimer;
-  int _lastLength = 0;
-  int _lastCadenceMin = 30;
 
   @override
   void dispose() {
-    _autoTimer?.cancel();
+    _rotation?.dispose();
     super.dispose();
   }
 
-  void _ensureShuffler(int length, int cadenceMin) {
-    if (_shuffler == null || length != _lastLength) {
-      _shuffler = NoRepeatShuffle(itemCount: length);
-      _lastLength = length;
+  /// 把"按句子数 + 配置频率"算出当前应有的 controller; 第一次创建, 后续 reconfigure。
+  /// 在 build() 里调用安全, 因为 reconfigure 内部只在真正变化时才重起 timer,
+  /// 不会因为每帧 rebuild 而疯狂 cancel/start。
+  void _syncRotation(int itemCount, int cadenceMin) {
+    final Duration cadence = Duration(minutes: cadenceMin.clamp(1, 60 * 24));
+    if (_rotation == null) {
+      _rotation = RotationController(
+        itemCount: itemCount,
+        cadence: cadence,
+        onAdvance: _onTick,
+      );
+      return;
     }
-    if (cadenceMin != _lastCadenceMin) {
-      _lastCadenceMin = cadenceMin;
-      _restartAutoTimer(cadenceMin);
-    } else {
-      _autoTimer ??= _makeTimer(cadenceMin);
-    }
+    _rotation!.reconfigure(newItemCount: itemCount, newCadence: cadence);
   }
 
-  Timer _makeTimer(int cadenceMin) {
-    return Timer.periodic(
-      Duration(minutes: cadenceMin.clamp(1, 60 * 24)),
-      (_) => _advance(),
-    );
+  /// Timer 回调 —— 仅刷新 fade key, shuffle 的 next 已经在 controller 里做了。
+  void _onTick() {
+    if (!mounted) return;
+    setState(() => _fadeKey++);
   }
 
-  void _restartAutoTimer(int cadenceMin) {
-    _autoTimer?.cancel();
-    _autoTimer = _makeTimer(cadenceMin);
-  }
-
+  /// 用户点 shuffle: 委托给 [RotationController.advance], 它会 invoke [_onTick] 重画。
   void _advance() {
-    setState(() {
-      _shuffler?.next();
-      _fadeKey++;
-    });
+    _rotation?.advance();
   }
 
   @override
@@ -87,8 +77,8 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
         if (quotes.isEmpty) {
           return _displayEmpty(context);
         }
-        _ensureShuffler(quotes.length, settings.cadenceMinutes);
-        final Quote current = quotes[_shuffler!.currentIndex];
+        _syncRotation(quotes.length, settings.cadenceMinutes);
+        final Quote current = quotes[_rotation!.currentIndex];
         final Color textColor = _withPhoto ? const Color(0xFFF7F8ED) : t.fg1;
         final Color subColor = _withPhoto
             ? const Color(0xFFF7F8ED).withValues(alpha: 0.7)
