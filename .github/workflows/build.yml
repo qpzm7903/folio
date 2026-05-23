@@ -18,20 +18,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
-
-      - name: Fetch bundled fonts
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=android,web .
-
-      - name: Pub get
-        run: flutter pub get
+          platforms: android,web
 
       - name: Format (apply only)
         # CI 上 Dart 版本可能跟开发者本地不一致, 强制门控会死循环;
@@ -57,19 +46,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
-
-      - name: Fetch bundled fonts
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=android,web .
-
-      - name: Pub get
-        run: flutter pub get
+          platforms: android,web
 
       - name: Build APK (release)
         run: flutter build apk --release --no-tree-shake-icons
@@ -88,20 +67,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
-
-      - name: Fetch bundled fonts
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=android,web .
-
-      - name: Pub get
-        run: flutter pub get
+          platforms: android,web
 
       - name: Build web (release)
         run: flutter build web --release --base-href "/folio/"
@@ -131,22 +99,12 @@ jobs:
           sudo apt-get install -y clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libstdc++-12-dev
 
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
+          platforms: linux
 
       - name: Enable Linux desktop
         run: flutter config --enable-linux-desktop
-
-      - name: Fetch bundled fonts
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=linux .
-
-      - name: Pub get
-        run: flutter pub get
 
       - name: Build Linux (release)
         run: flutter build linux --release
@@ -171,24 +129,12 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
+          platforms: windows
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
-
-      - name: Fetch bundled fonts
-        shell: bash
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=windows .
-
-      - name: Pub get
-        run: flutter pub get
 
       - name: Build Windows (release)
         run: flutter build windows --release
@@ -213,27 +159,16 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
+      - uses: ./.github/actions/flutter-setup
         with:
-          channel: stable
-          cache: true
+          platforms: macos
 
       - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
 
-      - name: Fetch bundled fonts
-        run: bash tool/fetch_fonts.sh
-
-      - name: Materialize platform folders
-        run: flutter create --org app --project-name folio --platforms=macos .
-
-      - name: Pub get
-        run: flutter pub get
-
       - name: Build macOS (release, unsigned)
         # 不签名: GitHub Actions 上没有开发者证书; 用户首次打开需 ctrl+click 通过。
-        # 上架 Mac App Store 是 L08 / L09 后续工作。
+        # 上架 Mac App Store 是 L08 后续工作。
         run: flutter build macos --release
 
       - name: Zip macOS .app

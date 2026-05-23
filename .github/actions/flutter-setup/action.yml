@@ -1,0 +1,35 @@
+name: "Flutter setup (folio)"
+description: |
+  共用的 Flutter 工具链准备步骤 —— 装 Flutter SDK / 拉本地字体 /
+  materialize 平台目录 / pub get。
+  调用方负责: actions/checkout, 平台特定 toolchain (apt / java / Xcode 已预装),
+  以及具体 build 命令。
+
+inputs:
+  platforms:
+    description: "传给 flutter create 的 --platforms (逗号分隔)"
+    required: true
+  flutter-channel:
+    description: "subosito/flutter-action 的 channel"
+    required: false
+    default: "stable"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: ${{ inputs.flutter-channel }}
+        cache: true
+
+    - name: Fetch bundled fonts
+      shell: bash
+      run: bash tool/fetch_fonts.sh
+
+    - name: Materialize platform folders
+      shell: bash
+      run: flutter create --org app --project-name folio --platforms=${{ inputs.platforms }} .
+
+    - name: Pub get
+      shell: bash
+      run: flutter pub get

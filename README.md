@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.4.1** — fetch_fonts.sh 兼容 macOS runner 默认 bash 3.2.
+最新版本: **v0.4.2** — workflow 抽 composite action, 5 个 build job 共用 setup.
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图

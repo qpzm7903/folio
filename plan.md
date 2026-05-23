@@ -25,7 +25,7 @@
 - [ ] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web)
 - [ ] L15 · 国际化 (中文为主，预留 en 框架)
 - [ ] L16 · 完整测试覆盖 (单元 + Widget + 集成)
-- [~] L17 · 多平台 CI 产物 — v0.4.0 实现 Android + Web + Linux + Windows + macOS;
+- [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
   iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
 
 ---
@@ -46,6 +46,22 @@
 ---
 
 ## 版本日志
+
+### v0.4.2 — 重构 PATCH (workflow 共用 composite action)
+
+让 v0.4.x 拿到重构 PATCH, 解锁下一轮 v0.5.0 新功能。
+
+5 个 build job 都有同样的 4 步 setup (flutter-action / fetch_fonts /
+flutter create / pub get), 抽到 `.github/actions/flutter-setup/action.yml`
+composite action。
+
+收益:
+- 每个 job 这 4 行 → 1 行 `uses: ./.github/actions/flutter-setup`
+- 改 setup 流程 (如更换 Flutter channel、字体策略) 只动一处
+- 平台特定步骤 (Linux apt / Android setup-java / desktop enable)
+  保留在 job 里, 因为它们不通用
+
+不动业务行为。
 
 ### v0.4.1 — fetch_fonts.sh 兼容 bash 3.2
 
