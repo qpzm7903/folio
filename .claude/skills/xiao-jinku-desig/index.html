@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<title>小金库 Design System</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--paper-100); color: var(--fg-1); position: relative; }
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background-image: url('assets/paper-grain.svg');
+  background-size: 240px 240px;
+  opacity: 0.25;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 80px 32px 100px; position: relative; }
+
+.brand-row { display: flex; align-items: center; gap: 20px; margin-bottom: 40px; }
+.brand-row img { width: 80px; height: 80px; }
+.brand-row .h { display: flex; flex-direction: column; gap: 4px; }
+.brand-row h1 { font-family: var(--serif-display); font-size: 36px; font-weight: 600; margin: 0; letter-spacing: -0.02em; }
+.brand-row .sub { font-family: var(--serif-italic); font-style: italic; font-size: 14px; color: var(--fg-3); }
+
+.intro {
+  font-family: var(--serif-display);
+  font-size: 22px;
+  line-height: 1.75;
+  color: var(--fg-2);
+  max-width: 720px;
+  margin-bottom: 56px;
+  text-wrap: pretty;
+}
+.intro em { font-family: var(--serif-italic); color: var(--fg-1); }
+
+.section-h {
+  font-family: var(--sans-ui);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin: 40px 0 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-h::after {
+  content: ""; flex: 1; height: 1px; background: var(--border-1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.card {
+  display: flex; flex-direction: column;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-1);
+  border-radius: 14px;
+  padding: 22px 22px 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms var(--ease-paper), box-shadow 200ms;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+.card .label {
+  font-family: var(--sans-ui); font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--fg-3); margin-bottom: 8px;
+}
+.card .ttl {
+  font-family: var(--serif-display); font-size: 19px; font-weight: 500;
+  color: var(--fg-1); margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.card .desc {
+  font-family: var(--serif-italic); font-style: italic;
+  font-size: 13px; color: var(--fg-3); margin-bottom: 14px;
+  line-height: 1.5;
+}
+.card .more {
+  margin-top: auto;
+  font-family: var(--sans-ui); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent);
+}
+
+.card.dark {
+  background: var(--ink-900);
+  color: var(--paper-50);
+  border-color: var(--ink-900);
+}
+.card.dark .label { color: rgba(244,234,213,0.5); }
+.card.dark .ttl { color: var(--paper-50); }
+.card.dark .desc { color: rgba(244,234,213,0.65); }
+.card.dark .more { color: var(--bamboo-500); }
+
+footer {
+  margin-top: 80px;
+  text-align: center;
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+</style>
+</head>
+<body data-screen-label="Design system home">
+<div class="wrap">
+
+  <div class="brand-row">
+    <img src="assets/logo-seal.svg" alt="小金库">
+    <div class="h">
+      <h1>小金库 Design System</h1>
+      <div class="sub">a quiet folio · est. 2026</div>
+    </div>
+  </div>
+
+  <div class="intro">
+    小金库 是一个收藏 <em>金句</em> 的小工具。把那些值得记住的句子放进来，让它们在你不经意的时刻——主屏、屏保、桌面——再一次出现。
+    The system carries two parallel themes: <em>Tea Paper</em> for daytime and <em>Forest Night</em> for evenings. They share spacing, type, and component vocabulary.
+  </div>
+
+  <div class="section-h">UI Kits</div>
+  <div class="grid">
+    <a class="card dark" href="ui_kits/android-app/index.html">
+      <div class="label">PROTOTYPE · ANDROID</div>
+      <div class="ttl">App click-thru</div>
+      <div class="desc">Library, editor, screensaver, settings — both themes side by side. Click +, write a line, drop it into the screensaver.</div>
+      <div class="more">Open kit →</div>
+    </a>
+    <a class="card" href="ui_kits/android-widgets/index.html">
+      <div class="label">PROTOTYPE · WIDGETS</div>
+      <div class="ttl">Home-screen widgets</div>
+      <div class="desc">Three sizes (small / medium / large) in both themes — first as a catalog, then placed on a faux Android home screen.</div>
+      <div class="more">Open kit →</div>
+    </a>
+  </div>
+
+  <div class="section-h">Foundations</div>
+  <div class="grid">
+    <a class="card" href="README.md">
+      <div class="label">REFERENCE</div>
+      <div class="ttl">README.md</div>
+      <div class="desc">Product context, content fundamentals, visual foundations, iconography, font/icon substitution flags.</div>
+      <div class="more">Read →</div>
+    </a>
+    <a class="card" href="colors_and_type.css">
+      <div class="label">TOKENS</div>
+      <div class="ttl">colors_and_type.css</div>
+      <div class="desc">All CSS custom properties — both Paper and Night palettes, type scale, spacing, radii, shadows, motion.</div>
+      <div class="more">View tokens →</div>
+    </a>
+    <a class="card" href="SKILL.md">
+      <div class="label">AGENT</div>
+      <div class="ttl">SKILL.md</div>
+      <div class="desc">Claude Code agent-skill manifest. Drop this folder into a skills directory to expand the brand on demand.</div>
+      <div class="more">View →</div>
+    </a>
+  </div>
+
+  <div class="section-h">Design System tab</div>
+  <div class="intro" style="font-size: 15px; max-width: 640px; color: var(--fg-3);">
+    Open the <strong style="color: var(--fg-1); font-weight: 500;">Design System</strong> tab in this project to see all registered cards — type specimens, color swatches, spacing, shadows, buttons, quote cards, tags, inputs, logo lockups, and Lucide icon subset.
+  </div>
+
+  <footer>v 0.1 · invented from scratch · iterate with me</footer>
+</div>
+</body>
+</html>

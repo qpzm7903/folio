@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  
+  <rect x="2" y="2" width="76" height="76" rx="14" fill="#7ba05b"></rect>
+  <rect x="6" y="6" width="68" height="68" rx="10" fill="none" stroke="#4a6b35" stroke-width="1.5" opacity="0.35"></rect>
+  <text x="40" y="56" font-size="44" text-anchor="middle" font-family="Noto Serif SC, Songti SC, Georgia, serif" font-weight="600" fill="#f7f8ed">金</text>
+</svg>
