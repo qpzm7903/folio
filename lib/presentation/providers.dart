@@ -131,6 +131,24 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     );
   }
 
+  /// 把所有用 [oldTag] 的句子改成 [newTag]; 句子本身不动。
+  /// `newTag` trim 后为空 → 等价于 [removeTag] (从这些句子上"取下"标签)。
+  Future<void> renameTag(String oldTag, String newTag) async {
+    final String from = oldTag.trim();
+    final String to = newTag.trim();
+    if (from.isEmpty || from == to) return;
+    await _mutate(
+      log: 'renamed tag "$from" → "$to"',
+      transform: (List<Quote> cur) => <Quote>[
+        for (final Quote q in cur)
+          if (q.tag == from) q.copyWith(tag: to) else q,
+      ],
+    );
+  }
+
+  /// 从所有句子上取下这个标签 (清空 tag 字段, 句子保留)。
+  Future<void> removeTag(String tag) => renameTag(tag, '');
+
   Future<void> remove(String id) async {
     await _mutate(
       log: 'removed quote id=$id',
@@ -175,6 +193,30 @@ final Provider<List<String>> tagsProvider = Provider<List<String>>((Ref ref) {
   }
   return <String>['全部', ...set];
 });
+
+/// 派生: 每个非空标签的句数 (用于标签管理屏)。
+/// 按句数倒序排, 最大的在前。
+final Provider<List<TagCount>> tagCountsProvider = Provider<List<TagCount>>((
+  Ref ref,
+) {
+  final AsyncValue<List<Quote>> async = ref.watch(quotesProvider);
+  final List<Quote> data = async.value ?? const <Quote>[];
+  final Map<String, int> counts = <String, int>{};
+  for (final Quote q in data) {
+    final String tag = q.tag.trim();
+    if (tag.isEmpty) continue;
+    counts[tag] = (counts[tag] ?? 0) + 1;
+  }
+  final List<TagCount> result = <TagCount>[
+    for (final MapEntry<String, int> e in counts.entries)
+      (tag: e.key, count: e.value),
+  ];
+  result.sort((TagCount a, TagCount b) => b.count.compareTo(a.count));
+  return result;
+});
+
+/// (tag, count) 的轻量 record。
+typedef TagCount = ({String tag, int count});
 
 /// 当前选中的标签 (默认全部)。
 final StateProvider<String> activeTagProvider = StateProvider<String>(

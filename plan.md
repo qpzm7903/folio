@@ -19,7 +19,7 @@
 - [ ] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式
 - [ ] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
-- [ ] L11 · 全文搜索 + 标签管理 + 智能分组
+- [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
 - [ ] L13 · go_router 路由 + Web 深链
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
@@ -46,6 +46,25 @@
 ---
 
 ## 版本日志
+
+### v0.6.0 — 标签管理屏 (L11 收尾)
+
+L11 在 v0.2.0 完成了全文搜索, 这一刀补上标签管理。
+
+- `lib/presentation/tags/tags_screen.dart` 新建: 列出 quotes 里出现过
+  的所有标签 + 每个的句数 (派生 provider `tagCountsProvider`, 按句数
+  倒序), tap 进入重命名 BottomSheet。"按句数倒序"就是 plan 里说的
+  "智能分组" 第一刀: 大组靠前, 小尾巴靠后。
+- `_TagEditSheet`: 改名 input + "改好"按钮 + "从所有句子上取下" 红色
+  TextButton (复用 [showConfirmDeleteDialog], message 改成 "从所有句子
+  上取下「xxx」？")。
+- `QuotesNotifier` 加 `renameTag(old, new)` / `removeTag(tag)`,
+  内部都走 `_mutate` helper。`renameTag` 同名 / 空 oldTag 是 no-op。
+- Settings 屏新增"标签"区段一行入口 → push TagsScreen。
+- 测试 `test/rename_tag_test.dart`: 用 fake QuoteRepository + 真实
+  ProviderContainer 覆盖 rename / remove / no-op 三个分支。
+
+完成长期项 L11。
 
 ### v0.5.1 — 重构 PATCH (showOptionPicker generic helper)
 

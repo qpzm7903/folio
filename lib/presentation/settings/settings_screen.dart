@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../tags/tags_screen.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/option_picker.dart';
 import '../widgets/setting_row.dart';
@@ -78,6 +79,16 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+                _sectionLabel(context, '标签'),
+                SettingsGroup(
+                  children: <Widget>[
+                    SettingRow(
+                      label: '标签管理',
+                      sub: '重命名 / 取下整组标签',
+                      onTap: () => _openTags(context),
+                    ),
+                  ],
+                ),
                 _sectionLabel(context, '导入与导出'),
                 SettingsGroup(
                   children: <Widget>[
@@ -134,6 +145,12 @@ class SettingsScreen extends ConsumerWidget {
           color: t.fg1,
         ),
       ),
+    );
+  }
+
+  Future<void> _openTags(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (BuildContext _) => const TagsScreen()),
     );
   }
 
