@@ -15,6 +15,9 @@ class WidgetSyncService {
   static const String _kAndroidProvider =
       'app.folio.widget.QuoteWidgetProvider';
 
+  /// iOS WidgetKit 端 widget extension 的 kind, 跟 Swift QuoteWidget.kind 保持一致。
+  static const String _kIosWidgetKind = 'QuoteWidget';
+
   bool get _supported => PlatformCapabilities.supportsHomeWidget;
 
   /// 配置 widget 数据来源 —— main() 启动时调一次。
@@ -36,7 +39,7 @@ class WidgetSyncService {
       await HomeWidget.saveWidgetData<String>('todayTag', today?.tag ?? '');
       await HomeWidget.updateWidget(
         androidName: _kAndroidProvider,
-        // iOSName 留给 L08
+        iOSName: _kIosWidgetKind,
       );
       AppLogger.instance.debug(
         'widget synced, todayQuote.len=${today?.text.length ?? 0}',

@@ -16,7 +16,7 @@
 - [x] L05 · 自托管 Noto Serif SC + EB Garamond 字体 (禁止 Google Fonts CDN) — v0.1.0 (CI 拉取, `assets/fonts/`)
 - [x] L06 · 本地化日志系统 (`getApplicationSupportDirectory()` 落盘) — v0.1.0
 - [x] L07 · Android 桌面小组件 (小/中/大三尺寸) — v0.11.0 (Dart home_widget 同步 + native RemoteViews/AppWidgetProvider 模板, CI 自动注入)
-- [ ] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式
+- [x] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式 — v0.12.0 (Dart home_widget iOSName + SwiftUI/WidgetKit 模板; IPA 签名需要用户提供 Apple Developer 证书, CI 暂不构建 iOS)
 - [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
@@ -46,6 +46,34 @@
 ---
 
 ## 版本日志
+
+### v0.12.0 — iOS 桌面小组件 (L08)
+
+L08 落地 (与 L07 镜像)。
+
+- **Dart side** (`lib/data/widget_sync_service.dart`): 加 `iOSName:
+  'QuoteWidget'` 给 `HomeWidget.updateWidget`, 让 iOS WidgetKit timeline
+  能 reload。
+- **Swift template** (`docs/ios_widget/Swift/`):
+  - `QuoteEntry.swift` —— TimelineEntry, 从 App Group
+    `group.app.folio` 共享 UserDefaults 读 `todayQuote` / `todayTag`,
+    key 跟 Dart 端写入一致。
+  - `QuoteProvider.swift` —— TimelineProvider, 30 分钟兜底刷新 (跟
+    Android `updatePeriodMillis="1800000"` 同步)。
+  - `QuoteWidget.swift` —— `StaticConfiguration` + 三个 family
+    (`.systemSmall` / `.systemMedium` / `.systemLarge`) SwiftUI view,
+    严格翻译 skill `ui_kits/android-widgets/widgets.jsx` 的小/中/大三
+    种视觉, 大尺寸 leaf-700 → dark-quote-bg 渐变。
+  - `QuoteWidgetBundle.swift` —— `@main` 入口。
+  - `Colors.swift` —— XJK token 翻译到 SwiftUI `Color(hex:)`,
+    跟 `lib/theme/tokens.dart` 同步。
+  - `Info.plist.fragment` —— 关键 `NSExtensionPointIdentifier =
+    com.apple.widgetkit-extension`。
+- **Caveat**: iOS Widget Extension 必须在 Xcode 里新建 target,
+  IPA 还要 Apple Developer 证书。CI 暂不构建 iOS。`docs/ios_widget/
+  README.md` 给出完整启用步骤。
+
+完成 L08 的代码框架; IPA 是 caveat 项 (用户证书才能签)。
 
 ### v0.11.1 — 重构 PATCH (PlatformCapabilities + WidgetSyncBridge)
 
