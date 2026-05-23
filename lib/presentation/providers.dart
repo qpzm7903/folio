@@ -70,10 +70,17 @@ final StateNotifierProvider<SettingsNotifier, AppSettings> settingsProvider =
 
 class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   QuotesNotifier(this._repo) : super(const AsyncValue<List<Quote>>.loading()) {
-    unawaited(_load());
+    _ready = _load();
   }
 
   final QuoteRepository _repo;
+
+  /// 首次 `_load()` 的 future。所有 mutate 操作在执行前 `await _ready`,
+  /// 让用户在金库加载完之前的快点击不会因为 state == loading 而被静默丢弃。
+  late final Future<void> _ready;
+
+  /// 等首次加载完成。其他 widget / 测试 想在调用 mutate 前显式同步状态时用。
+  Future<void> ensureLoaded() => _ready;
 
   Future<void> _load() async {
     try {
@@ -122,6 +129,8 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   }
 
   Future<void> update(String id, String text, String tag) async {
+    // 先等首次加载完成, 避免 loading 期间用空 state 误判 not-found
+    await _ready;
     final List<Quote> current = state.value ?? const <Quote>[];
     final int idx = current.indexWhere((Quote q) => q.id == id);
     if (idx < 0) {
@@ -170,11 +179,15 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   }
 
   /// 共用的"读 current → 算 next → 落盘 + 写状态 + 记日志"流程。
-  /// 把 4 个 mutate 方法里重复的样板压成一行 transform。
+  /// 把所有 mutate 方法里重复的样板压成一行 transform。
+  ///
+  /// 关键: 先 `await _ready` 让首次加载完成, 防止 loading 期的并发 mutate
+  /// 操作丢失数据。
   Future<void> _mutate({
     required String log,
     required List<Quote> Function(List<Quote>) transform,
   }) async {
+    await _ready;
     final List<Quote> current = state.value ?? const <Quote>[];
     final List<Quote> next = transform(current);
     state = AsyncValue<List<Quote>>.data(next);

@@ -12,15 +12,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// 内存版 QuoteRepository —— widget 测试用, 不动文件 / prefs。
 class FakeQuoteRepository implements QuoteRepository {
-  FakeQuoteRepository([List<Quote>? seed])
+  FakeQuoteRepository([List<Quote>? seed, this.loadDelay = Duration.zero])
     : _data = List<Quote>.of(seed ?? <Quote>[]);
+
   List<Quote> _data;
+
+  /// 模拟"金库正在加载中"的延时, 让测试可以验证 mutate 调用在 _ready
+  /// 阻塞期间被排队 (v0.9.1)。默认 0, 不延时。
+  final Duration loadDelay;
 
   /// 当前持久化的快照, 测试断言用。
   List<Quote> get snapshot => List<Quote>.unmodifiable(_data);
 
   @override
-  Future<List<Quote>> loadAll() async => List<Quote>.of(_data);
+  Future<List<Quote>> loadAll() async {
+    if (loadDelay > Duration.zero) {
+      await Future<void>.delayed(loadDelay);
+    }
+    return List<Quote>.of(_data);
+  }
 
   @override
   Future<void> saveAll(List<Quote> quotes) async {

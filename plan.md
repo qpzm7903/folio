@@ -47,6 +47,27 @@
 
 ## 版本日志
 
+### v0.9.1 — 重构 PATCH (QuotesNotifier _ready future, mutate 排队等加载)
+
+让 v0.9.x 拿到重构 PATCH; 顺手修一个 v0.9.0 widget 测试暴露的真 bug。
+
+**Bug**: `QuotesNotifier` 构造时 `unawaited(_load())`, 而 mutate 方法
+(add / addMany / update / remove / renameTag) 直接读 `state.value`。
+loading 期间用户快速点击会拿到空 list, `update` 报 "not found,
+ignoring" 静默丢操作。
+
+**Fix**:
+- 把 `_load()` 的 future 保存为 `_ready` 字段
+- `_mutate({log, transform})` 内部 `await _ready` 让所有 mutate 排队
+  等加载完
+- `update(id, ...)` 在自己 indexWhere 之前也 await _ready
+- 暴露 `ensureLoaded()` 公开方法供 widget / 测试显式同步
+
+**测试**: 新增 `test/quotes_ready_race_test.dart`, 用
+`FakeQuoteRepository.loadDelay = 80ms` 模拟"金库加载中", 在 _load
+完成前立刻 add / update, 验证最终数据正确 (v0.9.0 的实现会丢数据,
+v0.9.1 正确排队)。FakeQuoteRepository 加 loadDelay 字段。
+
 ### v0.9.0 — Widget 测试框架 + 屏级测试 (L16)
 
 之前 widget test 只覆盖 confirm_delete / option_picker 两个组件,
