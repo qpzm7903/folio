@@ -20,7 +20,7 @@
 - [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
-- [x] L12 · drift 持久化迁移 (替换 JSON 文件存储) — v0.13.0 (native 走 drift + sqlite3, 一次性 JSON → SQLite 迁移; Web 仍走 SharedPreferences)
+- [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储) — v0.13.0 引入 drift, v0.13.4 因 #5 native SIGSEGV 临时切除回 SharedPreferences, 等真因定位再恢复
 - [x] L13 · go_router 路由 + Web 深链 — v0.10.0 (StatefulShellRoute + URL 深链)
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
@@ -46,6 +46,36 @@
 ---
 
 ## 版本日志
+
+### v0.13.4 — bypass drift, native 走 prefs (Issue #5)
+
+用户反馈 v0.13.2 APK 仍闪退 (Issue #5)。我 v0.13.1 装的
+`runZonedGuarded` + `FlutterError.onError` + `_BootstrapErrorApp`
+只能兜 **Dart 层** 异常; 用户机型上 `libsqlite3.so` 加载触发
+**native SIGSEGV**, Dart try/catch 在进程被内核 kill 之前根本
+不会执行 → 我的 in-memory fallback 永远到不了。
+
+**根治**: 完全 bypass drift native 调用, 让所有平台都走
+`_PrefsQuoteRepository` (跟 web 一致, v0.12.x 之前的 native 也是
+存到文件, prefs 同性质):
+
+- `lib/data/quote_repository.dart`: 去掉 conditional import +
+  `drift_impl.buildDriftQuoteRepository()` 调用; native 端启动时
+  若 `${getApplicationSupportDirectory()}/quotes.json` 存在 + prefs
+  无 quotes 数据 → 一次性导入 + rename 备份 (`migrate-<ts>`),
+  不丢 v0.12.x 用户数据。
+- 删除 `lib/data/drift/` + `drift_quote_repository_io.dart` +
+  `drift_quote_repository_stub.dart` + `test/drift_quotes_database_test.dart`。
+- `pubspec.yaml`: 移除 `drift` / `sqlite3_flutter_libs` /
+  `drift_dev` / `build_runner` 4 个 dep (sqlite3 native libs
+  不再进 APK, 体积减少 ~10 MB)。CI flutter-setup 的 build_runner
+  step 自动 no-op (它本来就 `grep drift_dev` 才跑)。
+
+**长期规划影响**: L12 状态从 [x] 打回 [ ], 长期规划 16/17。
+等收集到 #5 用户机型/Android 版本信息, 定位是 sqlite3_flutter_libs
+的 commit 问题还是更深的兼容性问题, 再规划 v0.14+ 重新引入。
+
+不动 UI, 无新增 skill 参考。
 
 ### v0.13.3 — 修 #3 #4 (4 个子问题)
 
@@ -156,29 +186,7 @@ field, `$2` 是空字符串 → 5 个平台产物落地都叫 `folio--<platform>
 
 完成 L12。**长期规划 17 项全部 [x]**, 终止条件之一满足。
 
-### v0.12.1 — 重构 PATCH (Bootstrap helper)
-
-让 v0.12.x 拿到重构 PATCH。
-
-`main.dart` 原本把"ensureInitialized → logger init → intl 数据 →
-SharedPreferences → QuoteRepository → ProviderScope overrides → runApp"
-塞在一个函数里。集成测试或者将来的多入口 (e.g. CLI tool, 单独
-benchmark) 没法复用前 5 步。
-
-抽到 `lib/core/bootstrap.dart`:
-- `Bootstrap.initialize()` 返回 `List<Override>`, 调用方负责拼
-  `ProviderScope` + `runApp`
-- 注释里写明顺序为什么重要 (logger 必须先于 intl/prefs 起来,
-  否则中间报错没人记)
-- main.dart 缩成 4 行: bootstrap → runApp
-
-新增 `test/bootstrap_test.dart`: 验证返回 overrides 含
-sharedPreferencesProvider + quoteRepositoryProvider, 且多次
-initialize 幂等不互相破坏。
-
-不动业务行为。
-
-### 早期版本汇总 (v0.1.0 ~ v0.12.0)
+### 早期版本汇总 (v0.1.0 ~ v0.12.1)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -283,3 +291,9 @@ family) / QuoteWidgetBundle, 严格翻译 skill widgets.jsx 三尺寸视觉,
 App Group `group.app.folio` 跨 app/extension 共享 UserDefaults。
 Caveat: iOS Widget Extension 须 Xcode 新建 target + Apple Developer
 证书签名, CI 暂不构建 iOS。
+
+**v0.12.1** 重构 PATCH: `main.dart` 的 "ensureInitialized → logger →
+intl 数据 → SharedPreferences → QuoteRepository → ProviderScope
+overrides → runApp" 抽到 `lib/core/bootstrap.dart` 的 `Bootstrap.
+initialize()`, 返回 `List<Override>` 给 main 自己拼 ProviderScope,
+让集成测试 / 未来多入口能复用前 5 步; main.dart 缩成 4 行。
