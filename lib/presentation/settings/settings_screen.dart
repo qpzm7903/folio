@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/tokens.dart';
 import '../../data/settings_repository.dart';
+import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/setting_row.dart';
 import '../widgets/top_bar.dart';
+import 'export_import_sheets.dart';
 
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`.
 class SettingsScreen extends ConsumerWidget {
@@ -86,6 +87,21 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              _sectionLabel(context, '导入与导出'),
+              SettingsGroup(
+                children: <Widget>[
+                  SettingRow(
+                    label: '导出金库',
+                    sub: '复制 JSON 到剪贴板, $quoteCount 句',
+                    onTap: () => showExportSheet(context, ref),
+                  ),
+                  SettingRow(
+                    label: '从剪贴板导入',
+                    sub: '粘贴之前导出的 JSON, 合并进现金库',
+                    onTap: () => showImportSheet(context, ref),
+                  ),
+                ],
+              ),
               _sectionLabel(context, '关于'),
               const SettingsGroup(
                 children: <Widget>[
@@ -96,7 +112,7 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Center(
                   child: Text(
-                    'v 0.1 · 共 $quoteCount 句已入库',
+                    'v 0.3 · 共 $quoteCount 句已入库',
                     style: TextStyle(
                       fontFamily: XJKTokens.serifItalic,
                       fontStyle: FontStyle.italic,

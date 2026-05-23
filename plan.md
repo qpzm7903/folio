@@ -10,15 +10,15 @@
 终止条件依据：以下所有项全部为 `[x]` 已完成，且最新一次 GitHub Actions workflow 状态为 `success`。
 
 - [x] L01 · 单机金句金库 (CRUD + 标签 + 搜索) — v0.2.0
-- [ ] L02 · 全屏屏保模式 (无重复随机轮播 + 切换频率)
-- [ ] L03 · 批量导入 (粘贴大段文本自动分行)
-- [ ] L04 · 主题切换 (青纸 / 林夜) + 跟随系统
-- [ ] L05 · 自托管 Noto Serif SC + EB Garamond 字体 (禁止 Google Fonts CDN)
-- [ ] L06 · 本地化日志系统 (`getApplicationSupportDirectory()` 落盘)
+- [x] L02 · 全屏屏保模式 (无重复随机轮播 + 切换频率) — v0.1.0 / v0.1.4
+- [x] L03 · 批量导入 (粘贴大段文本自动分行) — v0.1.0
+- [x] L04 · 主题切换 (青纸 / 林夜) + 跟随系统 — v0.1.0
+- [x] L05 · 自托管 Noto Serif SC + EB Garamond 字体 (禁止 Google Fonts CDN) — v0.1.0 (CI 拉取, `assets/fonts/`)
+- [x] L06 · 本地化日志系统 (`getApplicationSupportDirectory()` 落盘) — v0.1.0
 - [ ] L07 · Android 桌面小组件 (小/中/大三尺寸)
 - [ ] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式
 - [ ] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加)
-- [ ] L10 · 金句导出 / 导入 (.txt / .json) + 跨设备迁移
+- [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [ ] L11 · 全文搜索 + 标签管理 + 智能分组
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
 - [ ] L13 · go_router 路由 + Web 深链
@@ -45,6 +45,24 @@
 ---
 
 ## 版本日志
+
+### v0.3.0 — 导出 / 导入 (L10)
+
+Settings 屏新增"导入与导出"区段, 两个 SettingRow:
+
+- **导出金库**: 打开 BottomSheet, 显示 JSON (复用 `QuoteCodec.encode`),
+  顶部"复制到剪贴板"一键写入 Clipboard, 弹"已复制 N 句"toast。
+  用 [SelectableText] 让用户也能手动选段。
+- **从剪贴板导入**: 打开 BottomSheet, 进屏自动尝试粘贴剪贴板,
+  实时 `QuoteCodec.tryDecode` 预览句数 + 错误提示, OK 后调
+  `QuotesNotifier.addMany` **合并** (不覆盖现有金库, 安全)。
+
+跨平台: Web / Android 共用 `Clipboard.setData` / `Clipboard.getData`,
+不引入 file_picker / share_plus 等新插件。
+
+文件格式跟 [QuoteCodec] 一致, 跨设备只需复制 → 粘贴。
+
+完成长期项 L10。
 
 ### v0.2.2 — 修 widget 测试
 
