@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.7.0** — 自定义背景图 (用户选相册/文件; 屏保 photo 模式显示真图 + protection gradient).
+最新版本: **v0.7.1** — 重构 (AppSettings 拆 model/IO + background_picker 抽独立 + cadence helper).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图

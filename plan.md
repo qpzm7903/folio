@@ -47,6 +47,25 @@
 
 ## 版本日志
 
+### v0.7.1 — 重构 PATCH (data 拆 model/IO + settings 抽 background_picker)
+
+让 v0.7.x 拿到重构 PATCH, 解锁下一轮 v0.8.0 新功能。
+
+- **data 层拆 model/IO**: `lib/data/app_settings.dart` 新建, 把 `AppSettings`
+  + `AppThemeMode` + `AppThemeModeLabel` extension 搬过去, 不耦合
+  SharedPreferences。`settings_repository.dart` 只剩 IO 适配, 通过
+  `export 'app_settings.dart'` 保持现有 import 路径仍可用 (调用方不必
+  改 import)。
+- **settings 抽 background_picker**: `_BgAction` enum / `_BackgroundActionSheet`
+  / `_pickBackground` / `_bgSubLabel` 一组 ~80 行从 `_RotationSection`
+  搬到 `lib/presentation/settings/background_picker.dart`, 暴露
+  `showBackgroundPicker` + `backgroundSubLabel` 顶层函数。
+- **cadence helper**: 顶层 `cadenceLabel(int)` + `kCadenceChoices` 取代
+  inline 字符串拼接, 便于后续 L15 i18n 替换。
+- 新增 `test/cadence_label_test.dart` 锁映射稳定。
+
+不动业务逻辑。
+
 ### v0.7.0 — 自定义背景图 (L09)
 
 skill README.md:105-110 说"screensaver background 是 user-provided —

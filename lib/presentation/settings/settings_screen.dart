@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/background_image_service.dart';
 import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
@@ -10,7 +9,14 @@ import '../widgets/max_width_body.dart';
 import '../widgets/option_picker.dart';
 import '../widgets/setting_row.dart';
 import '../widgets/top_bar.dart';
+import 'background_picker.dart';
 import 'export_import_sheets.dart';
+
+/// 频率选项的可读标签 —— 抽出来便于以后 i18n / 单测。
+String cadenceLabel(int minutes) => '每 $minutes 分钟换一句';
+
+/// settings 屏可选的频率档位 (分钟)。
+const List<int> kCadenceChoices = <int>[5, 15, 30, 60, 120, 240];
 
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
 ///
@@ -109,54 +115,15 @@ class _RotationSection extends ConsumerWidget {
             ),
             SettingRow(
               label: '背景图片',
-              sub: _bgSubLabel(ref, s.backgroundImagePath),
+              sub: backgroundSubLabel(ref, s.backgroundImagePath),
               value: s.backgroundImagePath == null ? '默认' : '自定义',
-              onTap: () => _pickBackground(context, ref, s.backgroundImagePath),
+              onTap: () =>
+                  showBackgroundPicker(context, ref, s.backgroundImagePath),
             ),
           ],
         ),
       ],
     );
-  }
-
-  String _bgSubLabel(WidgetRef ref, String? path) {
-    if (!ref.read(backgroundImageServiceProvider).isSupported) {
-      return 'Web 暂不支持自定义';
-    }
-    if (path == null) return '深绿渐变 / 纸纹叠加';
-    return '从相册或文件选';
-  }
-
-  Future<void> _pickBackground(
-    BuildContext context,
-    WidgetRef ref,
-    String? current,
-  ) async {
-    final BackgroundImageService svc = ref.read(backgroundImageServiceProvider);
-    if (!svc.isSupported) return;
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-
-    final _BgAction? action = await showModalBottomSheet<_BgAction>(
-      context: context,
-      showDragHandle: true,
-      builder: (BuildContext ctx) =>
-          _BackgroundActionSheet(hasCustom: current != null),
-    );
-    if (action == null) return;
-
-    switch (action) {
-      case _BgAction.pick:
-        final String? path = await svc.pickAndStore();
-        if (path == null) return;
-        await ref.read(settingsProvider.notifier).setBackgroundImagePath(path);
-        messenger.showSnackBar(const SnackBar(content: Text('背景图已换上。')));
-        break;
-      case _BgAction.clear:
-        await svc.clearStored(current);
-        await ref.read(settingsProvider.notifier).setBackgroundImagePath(null);
-        messenger.showSnackBar(const SnackBar(content: Text('已经回到默认背景。')));
-        break;
-    }
   }
 
   Future<void> _pickCadence(
@@ -168,46 +135,12 @@ class _RotationSection extends ConsumerWidget {
       context: context,
       current: current,
       options: <PickerOption<int>>[
-        for (final int m in const <int>[5, 15, 30, 60, 120, 240])
-          (value: m, label: '每 $m 分钟换一句'),
+        for (final int m in kCadenceChoices) (value: m, label: cadenceLabel(m)),
       ],
     );
     if (next != null) {
       await ref.read(settingsProvider.notifier).setCadenceMinutes(next);
     }
-  }
-}
-
-enum _BgAction { pick, clear }
-
-class _BackgroundActionSheet extends StatelessWidget {
-  const _BackgroundActionSheet({required this.hasCustom});
-  final bool hasCustom;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          ListTile(
-            title: const Text(
-              '从相册或文件选一张',
-              style: TextStyle(fontFamily: XJKTokens.serifDisplay),
-            ),
-            onTap: () => Navigator.of(context).pop(_BgAction.pick),
-          ),
-          if (hasCustom)
-            ListTile(
-              title: const Text(
-                '回到默认背景',
-                style: TextStyle(fontFamily: XJKTokens.serifDisplay),
-              ),
-              onTap: () => Navigator.of(context).pop(_BgAction.clear),
-            ),
-        ],
-      ),
-    );
   }
 }
 
