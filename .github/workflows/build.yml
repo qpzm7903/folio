@@ -190,8 +190,9 @@ jobs:
     needs: [build-android, build-web, build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      # 故意不 `actions/checkout` —— release job 只需要 artifacts + 上传, 不需要
+      # git working tree。之前 checkout@v4 在 tag-only context 里偶发 token 注入
+      # 失败 ("could not read Username for 'https://github.com'"), 直接绕开。
       - uses: actions/download-artifact@v4
         with:
           name: folio-android-apk

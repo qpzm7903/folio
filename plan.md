@@ -47,6 +47,19 @@
 
 ## 版本日志
 
+### v0.7.2 — release job 移除多余 actions/checkout
+
+v0.6.1 / v0.7.1 连续两次 release job 都挂在 `actions/checkout@v4`:
+`fatal: could not read Username for 'https://github.com': terminal
+prompts disabled`。这是 GitHub Actions 在 tag-only context 里对
+release job 的 GITHUB_TOKEN 注入偶发失败。前次 rerun 通过, 但既然
+重复出现, 就不算偶发, 从配置层面修。
+
+release job 其实根本不需要 git working tree —— 它只下载 5 个 build
+artifact 然后调 `softprops/action-gh-release@v2` 上传 Release。
+直接删掉 `actions/checkout` step, 绕过整个 checkout 失败模式,
+顺便少做一份网络 IO。
+
 ### v0.7.1 — 重构 PATCH (data 拆 model/IO + settings 抽 background_picker)
 
 让 v0.7.x 拿到重构 PATCH, 解锁下一轮 v0.8.0 新功能。
