@@ -120,7 +120,7 @@ ThemeData buildThemeData(XJKTokens t, {required Brightness brightness}) {
       style: ElevatedButton.styleFrom(
         backgroundColor: t.accent,
         foregroundColor: t.fgOnAccent,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           fontFamily: XJKTokens.sansUi,
           fontSize: XJKTokens.fsBody,
           fontWeight: FontWeight.w500,

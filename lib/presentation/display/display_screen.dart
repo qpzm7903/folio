@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/quote.dart';
+import '../../data/settings_repository.dart';
 import '../../domain/shuffle.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';

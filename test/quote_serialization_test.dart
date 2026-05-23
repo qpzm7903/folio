@@ -15,7 +15,7 @@ void main() {
     });
 
     test('fromJson 容错缺失 tag/createdAt', () {
-      final Quote q = Quote.fromJson(<String, dynamic>{
+      final Quote q = Quote.fromJson(const <String, dynamic>{
         'id': '1',
         'text': '光从裂痕里照进来。',
       });

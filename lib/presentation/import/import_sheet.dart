@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -151,11 +153,17 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
               onPressed: lines.isEmpty
                   ? null
                   : () async {
+                      // 先把 BuildContext-依赖的对象捕获下来, 再 await,
+                      // 避免在 async gap 后再去用 context。
+                      final NavigatorState navigator = Navigator.of(context);
+                      final ScaffoldMessengerState messenger =
+                          ScaffoldMessenger.of(context);
+                      final int n = lines.length;
                       await ref.read(quotesProvider.notifier).addMany(lines);
                       if (!mounted) return;
-                      Navigator.of(context).maybePop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${lines.length} 句已收入金库。')),
+                      unawaited(navigator.maybePop());
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('$n 句已收入金库。')),
                       );
                     },
               child: const Text('全部收入金库'),

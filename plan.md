@@ -46,6 +46,19 @@
 
 ## 版本日志
 
+### v0.1.3 — 修 analyze 报错与警告
+
+format 阻塞解开后 `flutter analyze` 暴露 3 个 error + 6 个 info, 全部清掉:
+
+- `display_screen.dart` 漏掉 `settings_repository.dart` import, 拿不到 `AppSettings`
+- `providers.dart` 用了 `ProviderElement<Object?>`, 实际 `getAllProviderElements()`
+  返回 `ProviderElementBase<dynamic>` —— 换成 for-in + 类型推断
+- 占位 `test/widget_test.dart` —— 防 CI `flutter create` 自动生成引用 `MyApp` 的模板
+- `editor_screen` / `import_sheet` 把 BuildContext 依赖的对象 (NavigatorState /
+  ScaffoldMessengerState) 在 await 前捕获, `Navigator.maybePop()` 用 `unawaited()` 包
+- `app_theme.dart` 把 ElevatedButton textStyle 改成 `const TextStyle(...)`
+- `quote_serialization_test.dart` map 字面量加 `const`
+
 ### v0.1.2 — CI format step 改为 apply-only
 
 - v0.1.1 试图通过 dart format 对齐 CI; 但本地 Dart 3.11.6 与 CI Flutter 3.44.0

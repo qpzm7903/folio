@@ -166,7 +166,7 @@ bool resolveIsDark(AppThemeMode mode, Brightness platform) {
 void logActiveProviders(ProviderContainer container) {
   if (!kDebugMode) return;
   AppLogger.instance.debug('active providers in container');
-  container.getAllProviderElements().forEach((ProviderElement<Object?> e) {
-    AppLogger.instance.debug('  ${e.provider}');
-  });
+  for (final element in container.getAllProviderElements()) {
+    AppLogger.instance.debug('  ${element.provider}');
+  }
 }

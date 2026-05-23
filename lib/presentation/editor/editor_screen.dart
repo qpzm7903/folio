@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -139,10 +141,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   Future<void> _save() async {
     await ref.read(quotesProvider.notifier).add(_text.text, _src.text);
     if (!mounted) return;
+    final NavigatorState navigator = Navigator.of(context);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('已收入金库。')));
-    Navigator.of(context).maybePop();
+    unawaited(navigator.maybePop());
   }
 
   Future<void> _openImport(BuildContext context) async {
