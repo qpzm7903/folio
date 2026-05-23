@@ -33,9 +33,17 @@ class QuotesDatabase extends _$QuotesDatabase {
   int get schemaVersion => 1;
 
   /// 默认连接 —— `getApplicationSupportDirectory()/quotes.sqlite`。
+  ///
+  /// Android 部分 ROM 上 `getApplicationSupportDirectory()` 返回的路径
+  /// 在首次冷启动时尚未由系统创建, drift 在 isolate 里 `open(File)` 会因父
+  /// 目录不存在直接抛 SQLiteException → 进程闪退 (#1)。所以这里显式
+  /// `createSync(recursive: true)`。
   static QueryExecutor _openDefault() {
     return LazyDatabase(() async {
       final Directory dir = await getApplicationSupportDirectory();
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      }
       final File f = File('${dir.path}/quotes.sqlite');
       return NativeDatabase.createInBackground(f);
     });

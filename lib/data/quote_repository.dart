@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/logger.dart';
 import '../core/seed_quotes.dart';
 import 'drift_quote_repository_stub.dart'
     if (dart.library.io) 'drift_quote_repository_io.dart'
@@ -29,7 +30,18 @@ Future<QuoteRepository> buildQuoteRepository() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return _PrefsQuoteRepository(prefs);
   }
-  return drift_impl.buildDriftQuoteRepository();
+  try {
+    return await drift_impl.buildDriftQuoteRepository();
+  } catch (e, st) {
+    // drift / sqlite3 native 在某些设备上首次初始化失败 (v0.13.0 闪退 #1)。
+    // 兜底用 in-memory 仓库, 让 app 至少打得开 + 显示种子金句。
+    AppLogger.instance.handle(
+      e,
+      st,
+      'drift init failed, falling back to in-memory repository',
+    );
+    return InMemoryQuoteRepository(buildSeedQuotes());
+  }
 }
 
 const String _kPrefsKey = 'folio.quotes.v1';
@@ -55,5 +67,22 @@ class _PrefsQuoteRepository implements QuoteRepository {
   @override
   Future<void> saveAll(List<Quote> quotes) async {
     await prefs.setString(_kPrefsKey, QuoteCodec.encode(quotes));
+  }
+}
+
+/// drift 初始化失败时的兜底实现。仅本进程内有效, 重启即丢。
+/// 至少保证 app 不闪退 + 用户能看到种子金句 (v0.13.1 修复 #1)。
+class InMemoryQuoteRepository implements QuoteRepository {
+  InMemoryQuoteRepository(List<Quote> initial)
+    : _quotes = List<Quote>.from(initial);
+
+  List<Quote> _quotes;
+
+  @override
+  Future<List<Quote>> loadAll() async => List<Quote>.unmodifiable(_quotes);
+
+  @override
+  Future<void> saveAll(List<Quote> quotes) async {
+    _quotes = List<Quote>.from(quotes);
   }
 }

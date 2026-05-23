@@ -47,6 +47,35 @@
 
 ## 版本日志
 
+### v0.13.1 — 闪退兜底 + release 包带版本号 (PATCH for #1 #2)
+
+修两个 issue:
+
+- **#1 v0.13.0 APK 闪退**: drift `NativeDatabase.createInBackground` 在
+  部分 Android ROM 上首次冷启动时父目录尚未由系统创建, db 打开抛
+  SQLite Exception, 未捕获冒到 root 把进程拉死。
+  - `lib/data/drift/quotes_database.dart`: 在 `LazyDatabase` 里
+    `createSync(recursive: true)` 预创建 `getApplicationSupportDirectory()`。
+  - `lib/data/quote_repository.dart`: `buildQuoteRepository` 在 native
+    分支 try/catch 包 drift 初始化, 失败时 fallback 到
+    新增的 `InMemoryQuoteRepository` (跑种子金句, app 至少打得开)。
+  - `lib/main.dart`: 用 `runZonedGuarded` 包住 Bootstrap + runApp,
+    装 `FlutterError.onError` + `PlatformDispatcher.onError` 把任何
+    未捕获异常都路由到 logger; Bootstrap 自身失败时显示
+    `_BootstrapErrorApp` 屏幕代替黑屏闪退。
+  - `test/in_memory_quote_repository_test.dart`: 锁住兜底仓库
+    load/save/防御性 copy 三条不变量。
+
+- **#2 release 包名缺版本号**: GitHub Actions artifact 沿用 Flutter
+  默认的 `app-release.apk` / `folio-web.zip` 等通用名, release 资产无
+  法区分版本。
+  - `.github/workflows/build.yml`: 5 个平台 job 各加一步
+    `Resolve app version` (awk 解析 pubspec `version:` 行取 SemVer 部分,
+    不含 build_number), 把所有产物重命名为
+    `folio-<version>-<platform>.<ext>`; release job 用 glob 收集。
+
+不动 UI, 无新增 skill 参考。
+
 ### v0.13.0 — drift 持久化迁移 (L12)
 
 最后一项长期规划落地。Native 端持久化从"JSON 文件"升级到 SQLite。
@@ -142,338 +171,7 @@ L08 落地 (与 L07 镜像)。
 
 不动业务行为。
 
-### v0.11.0 — Android 桌面小组件 (L07)
-
-L07 落地。
-
-**Dart side** (`lib/data/widget_sync_service.dart`):
-- 用 `home_widget ^0.7.0` plugin 的 `HomeWidget.saveWidgetData` /
-  `updateWidget` 把"今日金句" (`todayQuote` / `todayTag`) 写到 widget
-  共享存储, 触发 native AppWidgetProvider 刷新。
-- `WidgetSyncService.configure()` 在 main 启动时调一次; `syncToday(Quote?)`
-  在 quotes 变化时调。
-- Web / 非 Android iOS 平台 → no-op (kIsWeb / Platform 守护)。
-- `FolioApp` 改 ConsumerStatefulWidget, `ref.listen<AsyncValue<List<Quote>>>`
-  监听 quotes provider, 第一句变化时调 syncToday。
-
-**Native template** (`docs/android_widget/`):
-- 三尺寸 RemoteViews 布局 (小 1x1 / 中 2x1 / 大 2x2), 按 cell 尺寸
-  动态选 layout —— 单一 `QuoteWidgetProvider` 覆盖三种尺寸。
-- 颜色对照 XJK token (`xjk_bg_raised` / `xjk_fg_1` / `xjk_mark` 等)
-  hex 翻译, 跟 `lib/theme/tokens.dart` 同步。
-- 大尺寸用 leaf-700 → dark-quote-bg 渐变, 跟 LibraryScreen 的
-  featured quote card 视觉一致。
-- `AndroidManifest_widget_fragment.xml` 提供 receiver registration,
-  `tool/inject_android_widget.sh` 在 CI `flutter create` 后 sed/python
-  注入到 `android/app/src/main/AndroidManifest.xml` 的 `</application>`
-  之前。
-
-**CI workflow**: `build-android` job 加 step
-`bash tool/inject_android_widget.sh` 在 `flutter-setup` 之后、
-`flutter build apk` 之前。其他平台 (web/linux/windows/macos) 不需要这步。
-
-**Caveat**: CI 只验证 build pass; widget 真机渲染需要用户在 Android
-桌面长按 → "小组件" → 拖动添加 (Dart side / native code 已就位)。
-
-完成 L07。
-
-### v0.10.1 — 重构 PATCH (XJKNavTabRoute extension 统一映射)
-
-让 v0.10.x 拿到重构 PATCH。
-
-router.dart 里 4 个互相隐式对应的方法 (`FolioRoutes.tabFor` /
-`pathFor` / `_tabFromIndex` / `_indexFromTab`) 都是 `XJKNavTab` ↔
-`String path` ↔ `int shellIndex` 三个角度的映射。
-
-抽 `XJKNavTabRoute` extension 把三角映射放一处:
-- `path` getter (tab → router path)
-- `shellIndex` getter (tab → StatefulShellRoute branch index)
-- `fromShellIndex(int)` (index → tab, 越界兜底 library)
-- `fromLocation(String)` (path → tab, prefix 匹配, 不认识兜底 library)
-- 静态 `tabs` 字段决定 enum 在 shell branch 里的顺序
-
-加 / 删 tab 时只动 enum + 这里, 不再四处改。
-
-`_ShellScaffold` 里 `_tabFromIndex` / `_indexFromTab` 私有方法删除,
-直接用 extension。
-
-新增 `test/nav_tab_route_test.dart` 锁定: path 唯一 + shellIndex
-唯一 + fromShellIndex/shellIndex 双向一致 + 越界兜底 +
-fromLocation 前缀匹配。
-
-### v0.10.0 — go_router 路由 + Web 深链 (L13)
-
-把原本 IndexedStack + Navigator.push 的导航层替换成 go_router。
-Web 用户终于能 bookmark `/library` `/search` `/tags` `/editor/:id`
-等具体屏的 URL, 桌面端复制 URL 共享也有意义。
-
-- 加 `go_router ^14.6.2` 依赖
-- `lib/core/router.dart` 新建:
-  - `StatefulShellRoute.indexedStack` 包 4 个底栏 branch
-    (`/library` / `/display` / `/widgets` / `/settings`),
-    每个 branch 自己的 navigator stack, 切回去时保留状态
-  - 顶层 `_ShellScaffold` 提供共享 `XJKBottomNav`, 二次点击当前 tab
-    会回到该 branch 的根
-  - 子路由 `/editor` (新建) / `/editor/:id` (编辑, 通过 path 参数
-    解析 id 并从 quotesProvider 找回 Quote) / `/search` / `/tags`
-- `lib/app.dart` 改 `MaterialApp.router` + `routerConfig`, 移除原
-  `RootShell`
-- LibraryScreen / SearchScreen / SettingsScreen 各处 Navigator.push
-  改 `context.push(FolioRoutes.editorNew)` / `context.go(...)`
-- `LibraryScreen.onOpenDisplay` 回调移除, 直接 `context.go('/display')`
-- BottomSheet / AlertDialog 的 `Navigator.of(ctx).pop(...)` 保留
-  (那些是 native modal navigator, 跟 GoRouter 无关)
-
-完成长期项 L13。
-
-### v0.9.1 — 重构 PATCH (QuotesNotifier _ready future, mutate 排队等加载)
-
-让 v0.9.x 拿到重构 PATCH; 顺手修一个 v0.9.0 widget 测试暴露的真 bug。
-
-**Bug**: `QuotesNotifier` 构造时 `unawaited(_load())`, 而 mutate 方法
-(add / addMany / update / remove / renameTag) 直接读 `state.value`。
-loading 期间用户快速点击会拿到空 list, `update` 报 "not found,
-ignoring" 静默丢操作。
-
-**Fix**:
-- 把 `_load()` 的 future 保存为 `_ready` 字段
-- `_mutate({log, transform})` 内部 `await _ready` 让所有 mutate 排队
-  等加载完
-- `update(id, ...)` 在自己 indexWhere 之前也 await _ready
-- 暴露 `ensureLoaded()` 公开方法供 widget / 测试显式同步
-
-**测试**: 新增 `test/quotes_ready_race_test.dart`, 用
-`FakeQuoteRepository.loadDelay = 80ms` 模拟"金库加载中", 在 _load
-完成前立刻 add / update, 验证最终数据正确 (v0.9.0 的实现会丢数据,
-v0.9.1 正确排队)。FakeQuoteRepository 加 loadDelay 字段。
-
-### v0.9.0 — Widget 测试框架 + 屏级测试 (L16)
-
-之前 widget test 只覆盖 confirm_delete / option_picker 两个组件,
-没有屏级别渲染验证。这一版补上框架 + 两个屏端到端测试。
-
-- `test/test_harness.dart`:
-  - `FakeQuoteRepository` 内存版 repo, 暴露 `snapshot` 让断言能拿到
-    保存后的最新数据。
-  - `pumpAppWith(tester, child:, repo:)` —— 套 SharedPreferences mock +
-    ProviderScope override + MaterialApp + Localizations delegates +
-    XJKTheme builder + Scaffold body, 一行 setup。
-  - `testQuote(...)` 默认值 Quote 工厂。
-- `test/library_screen_widget_test.dart`:
-  - 空金库 → "这里还很空。"
-  - 有金句 → "今天的金句" + featured 卡片 + 普通卡片 + 区段标题。
-- `test/editor_save_flow_test.dart`:
-  - 新建: 输入文字 → tap "收入金库" → repo.snapshot 多一条
-  - 编辑: 预填 → 改文字 → tap "存下来" → repo 中 id 不变, text 已替换
-
-L16 的"完整覆盖"是持续工作; 框架到位后, 后续 PATCH 把
-Display / Settings / Search / Tags 屏的 widget 测试逐步加上。
-
-### v0.8.1 — 重构 PATCH (SettingsNotifier _apply helper)
-
-让 v0.8.x 拿到重构 PATCH。
-
-`SettingsNotifier` 的 5 个 setter (themeMode / shuffleNoRepeat /
-showAttribution / cadenceMinutes / backgroundImagePath) 都做同样的
-"state = copyWith(...); await _repo.save(state)" 2 行样板, 跟 v0.3.1
-QuotesNotifier 的 `_mutate` 是同一类抽象。
-
-抽 `_apply(AppSettings next)`, 5 个 setter 各缩成 1 行 (差异只是
-copyWith 的具体字段, 现在表达更直接)。
-
-新增 `test/settings_notifier_test.dart`: 用 SharedPreferences mock
-covering setters 都正确更新 state + 重新打开 container 后从 prefs
-正确 load 回来 (验证 _apply 落盘); 单独覆盖 setBackgroundImagePath(null)
-触发的 prefs.remove 路径。
-
-### v0.8.0 — i18n 框架 (L15)
-
-Flutter 官方 gen-l10n 路线打通, 文案从 inline 字符串迁到 ARB:
-
-- `pubspec.yaml` 加 `flutter.generate: true`
-- 项目根 `l10n.yaml`: `arb-dir: lib/l10n` / `output-dir: lib/l10n/generated`
-  (`synthetic-package: false` 让生成代码落到仓库内可见路径)
-- `lib/l10n/app_zh.arb` (template) 写入 28 个 key, 涵盖 TopBar / 区段
-  标题 / 空态 / SnackBar / 编辑器 / 搜索 / Settings 等高频文案。
-  ARB value 沿用 skill voice (温和文学口吻, 不 SaaS, 不 emoji)。
-- `lib/l10n/app_en.arb` 提供英文 fallback —— 即使系统是英文也不会落到
-  Material 的"No translations" 兜底。
-- `lib/app.dart` MaterialApp: locale: null (跟系统), `supportedLocales:
-  AppL10n.supportedLocales`, `localizationsDelegates` 加 `AppL10n.delegate`。
-- LibraryScreen 切样: 标题 / 副标题 / FAB tooltip / 区段头 / "今天的金句" /
-  空态 / 标签未匹配文案全部走 `AppL10n.of(context)`。
-- 生成代码 `lib/l10n/generated/` gitignore (`flutter pub get` 自动生成)。
-
-剩余 ~80 个文案 (其他屏幕) 留作后续 PATCH 分批迁; L15 框架已完成。
-
-### v0.7.2 — release job 移除多余 actions/checkout
-
-v0.6.1 / v0.7.1 连续两次 release job 都挂在 `actions/checkout@v4`:
-`fatal: could not read Username for 'https://github.com': terminal
-prompts disabled`。这是 GitHub Actions 在 tag-only context 里对
-release job 的 GITHUB_TOKEN 注入偶发失败。前次 rerun 通过, 但既然
-重复出现, 就不算偶发, 从配置层面修。
-
-release job 其实根本不需要 git working tree —— 它只下载 5 个 build
-artifact 然后调 `softprops/action-gh-release@v2` 上传 Release。
-直接删掉 `actions/checkout` step, 绕过整个 checkout 失败模式,
-顺便少做一份网络 IO。
-
-### v0.7.1 — 重构 PATCH (data 拆 model/IO + settings 抽 background_picker)
-
-让 v0.7.x 拿到重构 PATCH, 解锁下一轮 v0.8.0 新功能。
-
-- **data 层拆 model/IO**: `lib/data/app_settings.dart` 新建, 把 `AppSettings`
-  + `AppThemeMode` + `AppThemeModeLabel` extension 搬过去, 不耦合
-  SharedPreferences。`settings_repository.dart` 只剩 IO 适配, 通过
-  `export 'app_settings.dart'` 保持现有 import 路径仍可用 (调用方不必
-  改 import)。
-- **settings 抽 background_picker**: `_BgAction` enum / `_BackgroundActionSheet`
-  / `_pickBackground` / `_bgSubLabel` 一组 ~80 行从 `_RotationSection`
-  搬到 `lib/presentation/settings/background_picker.dart`, 暴露
-  `showBackgroundPicker` + `backgroundSubLabel` 顶层函数。
-- **cadence helper**: 顶层 `cadenceLabel(int)` + `kCadenceChoices` 取代
-  inline 字符串拼接, 便于后续 L15 i18n 替换。
-- 新增 `test/cadence_label_test.dart` 锁映射稳定。
-
-不动业务逻辑。
-
-### v0.7.0 — 自定义背景图 (L09)
-
-skill README.md:105-110 说"screensaver background 是 user-provided —
-that's the whole point"。这版补上。
-
-- 加 `file_selector ^1.0.3` 依赖, 跨平台 (mobile + desktop) 文件选择。
-  Web 暂不支持 (kIsWeb 守护, Settings 入口降级显示提示)。
-- `lib/data/background_image_service.dart`: `pickAndStore()` 弹文件
-  选择器 → readAsBytes → 写入 `getApplicationDocumentsDirectory()/
-  backgrounds/bg-<ts>.<ext>`, 返回稳定 path。这一步是关键: file_selector
-  的 XFile 在 Android (content://) / iOS (PHPicker) / Web (blob)
-  上原始 path 不稳定, 必须复制到 app doc dir 才能扛重启。新选图时
-  会清掉同目录旧文件防止占用累积。
-- `AppSettings.backgroundImagePath: String?` 新字段; `SettingsRepository`
-  持久化到 SharedPreferences。`copyWith` 加 `clearBackgroundImage` 参
-  数显式区分"保留旧值" vs "清空"。
-- DisplayScreen photo 模式: 有用户图 → `Image.file(File(path))` cover
-  + 顶/底 protection gradient (rgba(0,0,0,0.5) → transparent at 30%/70%,
-  严格照 skill README.md:110); 没图 → 现有深绿渐变。Web 强制走渐变
-  (kIsWeb 短路)。
-- Settings 屏 "屏保 / 小组件" 区段加 "背景图片" 行: BottomSheet 提供
-  "从相册或文件选一张" / "回到默认背景" 两个操作; sub 文案根据平台
-  / 当前状态自适应。
-
-完成长期项 L09。
-
-### v0.6.1 — 重构 PATCH (settings 拆 Section + plan 压缩)
-
-让 v0.6.x 拿到重构 PATCH。
-
-- `settings_screen.dart` 把 ListView 里 4 段 (屏保 / 字体外观 /
-  标签 / 导入导出 / 关于) 各拆成独立 `_*Section` 私有 widget。
-  原来 ~130 行的 build 方法瘦身; 每个 section 一个清晰边界,
-  以后加新 section (如 v0.7 自定义背景图) 只动一处。
-- footer 的 hardcoded `'v 0.3 · ...'` 改成 const `_versionLabel`
-  顶层常量, 每个 MINOR 改一次即可。本版同步成 `'v 0.6'`。
-- plan.md 旧版本介绍 (v0.1.0 ~ v0.3.1) 压缩成一段"早期版本汇总",
-  符合 prompt.md 的"最多保留最新 5 个版本介绍"硬要求。
-
-不动业务逻辑。
-
-### v0.6.0 — 标签管理屏 (L11 收尾)
-
-L11 在 v0.2.0 完成了全文搜索, 这一刀补上标签管理。
-
-- `lib/presentation/tags/tags_screen.dart` 新建: 列出 quotes 里出现过
-  的所有标签 + 每个的句数 (派生 provider `tagCountsProvider`, 按句数
-  倒序), tap 进入重命名 BottomSheet。"按句数倒序"就是 plan 里说的
-  "智能分组" 第一刀: 大组靠前, 小尾巴靠后。
-- `_TagEditSheet`: 改名 input + "改好"按钮 + "从所有句子上取下" 红色
-  TextButton (复用 [showConfirmDeleteDialog], message 改成 "从所有句子
-  上取下「xxx」？")。
-- `QuotesNotifier` 加 `renameTag(old, new)` / `removeTag(tag)`,
-  内部都走 `_mutate` helper。`renameTag` 同名 / 空 oldTag 是 no-op。
-- Settings 屏新增"标签"区段一行入口 → push TagsScreen。
-- 测试 `test/rename_tag_test.dart`: 用 fake QuoteRepository + 真实
-  ProviderContainer 覆盖 rename / remove / no-op 三个分支。
-
-完成长期项 L11。
-
-### v0.5.1 — 重构 PATCH (showOptionPicker generic helper)
-
-让 v0.5.x 拿到重构 PATCH, 解锁下一轮 v0.6.0 新功能。
-
-settings 屏的 `_pickTheme` 和 `_pickCadence` 各 ~40 行,
-结构几乎一样: BottomSheet + ListTile 列表 + 当前选中带 ✓。
-
-抽出 `lib/presentation/widgets/option_picker.dart`,
-提供泛型 `showOptionPicker<T>` + record-based `PickerOption<T>`。
-两处调用都缩到 ~10 行。后续做"字号/字体"选择也能直接复用。
-
-新增 `test/option_picker_test.dart` widget 测试: 选中返回 value /
-空选项不崩。
-
-### v0.5.0 — 响应式适配 (L14) max-width 640
-
-按 skill `README.md:167-169` 的硬规则: 桌面/平板 content max-width 640px,
-"we are not a dashboard"; 手机保留 20px safe inset; 屏保 full-bleed。
-
-- 新建 `lib/presentation/widgets/max_width_body.dart`:
-  Align.topCenter + ConstrainedBox(maxWidth: 640) 的薄包装。
-- Library / Editor / Search / Settings / Widgets-preview 5 个屏顶层
-  套 MaxWidthBody。Display 不套, 保持屏保 full-bleed (符合"显示金句独占"
-  的产品意图)。
-- `lib/theme/app_theme.dart` BottomSheetThemeData 加 `constraints:
-  BoxConstraints(maxWidth: 640)`, 让所有 modal sheet (Import / Export /
-  pickTheme / pickCadence) 在桌面 / Web 上自动收窄。
-- BottomNav 不限宽: 跟桌面应用习惯一致, 底栏跨屏。
-
-完成长期项 L14。
-
-### v0.4.2 — 重构 PATCH (workflow 共用 composite action)
-
-让 v0.4.x 拿到重构 PATCH, 解锁下一轮 v0.5.0 新功能。
-
-5 个 build job 都有同样的 4 步 setup (flutter-action / fetch_fonts /
-flutter create / pub get), 抽到 `.github/actions/flutter-setup/action.yml`
-composite action。
-
-收益:
-- 每个 job 这 4 行 → 1 行 `uses: ./.github/actions/flutter-setup`
-- 改 setup 流程 (如更换 Flutter channel、字体策略) 只动一处
-- 平台特定步骤 (Linux apt / Android setup-java / desktop enable)
-  保留在 job 里, 因为它们不通用
-
-不动业务行为。
-
-### v0.4.1 — fetch_fonts.sh 兼容 bash 3.2
-
-v0.4.0 跑通了 Linux / Windows / Android / Web, 但 macOS runner 挂了:
-`tool/fetch_fonts.sh` 用了 `declare -A` 关联数组, 而 macOS runner
-默认 bash 是 Apple 锁住的 3.2, 不支持关联数组, `set -u` 下展开
-直接报 unbound variable。
-
-改成 bash-3 兼容的平行数组 (NAMES + URLS 一一对齐 + 长度校验),
-本地 /bin/bash 跑通验证。
-
-### v0.4.0 — 多平台 CI (L17 部分)
-
-CI workflow 加 3 个 desktop build job, 让一次 tag push 同时出 5 个
-平台的可下载产物:
-
-- `build-linux` on ubuntu-latest: 装 GTK toolchain
-  (clang/cmake/ninja/gtk-3-dev), `flutter build linux`, tar.gz。
-- `build-windows` on windows-latest: VS Build Tools 已预装,
-  `flutter build windows`, PowerShell Compress-Archive。
-- `build-macos` on macos-latest: Xcode 已预装,
-  `flutter build macos` (unsigned), zip .app。
-- 每个 job 自己 `flutter create --platforms=<platform> .`,
-  fetch_fonts.sh 拉本地字体, 走 release build。
-- `release` job 增加 3 个 download-artifact + 把 5 个产物全部
-  挂到 GitHub Release。
-
-完成长期项 L17 (除 iOS IPA, 留给 L08 一起处理 Apple 证书)。
-
-### 早期版本汇总 (v0.1.0 ~ v0.3.1)
+### 早期版本汇总 (v0.1.0 ~ v0.11.0)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -517,3 +215,54 @@ QuoteCodec 编码 JSON + Clipboard.setData 写入剪贴板; 导入 sheet
 helper, 5 行样板压缩成 1 行 transform; AppThemeMode 加 displayLabel
 extension, 让 settings 两处 (label 显示 + picker) 共享映射, picker
 直接遍历 .values 而非手维护 tuple list。
+
+**v0.4.0 / v0.4.1 / v0.4.2** 多平台 CI (L17 部分): workflow 加
+build-linux / build-windows / build-macos 三个 desktop job, 每个
+`flutter create --platforms=<p>` + release build + 压缩 + 上传
+artifact, release job 一并挂到 GitHub Release; fetch_fonts.sh 改成
+bash-3 兼容平行数组扛 macOS runner; 5 个 job 共享的 4 步 setup
+(flutter-action / fetch_fonts / flutter create / pub get) 抽到
+`.github/actions/flutter-setup/action.yml` composite action。
+
+**v0.5.0 / v0.5.1** 响应式适配 (L14) + 重构: 桌面/平板 content
+max-width 640 (skill README:167-169), Library/Editor/Search/Settings/
+Widgets-preview 套 MaxWidthBody, Display 屏保保 full-bleed;
+BottomSheetThemeData 也加 maxWidth: 640; settings 屏两处 picker 抽
+`showOptionPicker<T>` 泛型 BottomSheet。
+
+**v0.6.0 / v0.6.1** 标签管理屏 (L11 收尾) + 重构: TagsScreen 按句数
+倒序列出所有标签 (派生 tagCountsProvider) + tap 进 BottomSheet 改名 /
+"从所有句子上取下", QuotesNotifier 加 renameTag/removeTag (走 _mutate);
+settings_screen 4 段抽独立 _*Section widget。
+
+**v0.7.0 / v0.7.1 / v0.7.2** 自定义背景图 (L09) + 重构: file_selector
+跨平台选图 → 复制到 getApplicationDocumentsDirectory()/backgrounds 防
+content://blob path 失效; AppSettings.backgroundImagePath 持久化;
+DisplayScreen photo 模式有图叠 protection gradient, 无图保深绿渐变;
+data 层拆 app_settings / settings_repository, settings 屏抽
+background_picker; release job 删多余 actions/checkout 修
+tag-only context 偶发 token 注入失败。
+
+**v0.8.0 / v0.8.1** i18n 框架 (L15) + 重构: gen-l10n 打通,
+lib/l10n/app_zh.arb + app_en.arb 落 28 个高频 key, MaterialApp 接
+AppL10n.delegate, LibraryScreen 切样; SettingsNotifier 5 个 setter
+抽 `_apply(AppSettings next)` helper。剩余 ~80 个文案后续 PATCH 分批迁。
+
+**v0.9.0 / v0.9.1** Widget 测试框架 (L16) + race-condition 修: 新建
+test/test_harness.dart 提供 FakeQuoteRepository + pumpAppWith,
+LibraryScreen / Editor 两屏端到端 widget 测试; QuotesNotifier _load
+保存为 _ready future, 5 个 mutate 方法都 `await _ready` 排队等加载,
+修了"加载中快速点按数据丢"的 race。
+
+**v0.10.0 / v0.10.1** go_router 路由 + Web 深链 (L13) + 重构:
+StatefulShellRoute.indexedStack 包 4 个底栏 branch, 子路由
+`/editor` / `/editor/:id` / `/search` / `/tags` 让 Web bookmark 有意义;
+router 里 XJKNavTab ↔ path ↔ shellIndex 三角映射抽 `XJKNavTabRoute`
+extension 统一一处。
+
+**v0.11.0** Android 桌面小组件 (L07): Dart 端用 home_widget plugin
+把 todayQuote / todayTag 写到共享存储 + 触发 native AppWidgetProvider
+刷新; native 端 docs/android_widget/ 提供三尺寸 RemoteViews 布局 +
+单一 QuoteWidgetProvider, CI 用 inject_android_widget.sh 在
+`flutter create` 后注入 receiver 到 AndroidManifest。FolioApp 监听
+quotesProvider, 第一句变化时调 syncToday。
