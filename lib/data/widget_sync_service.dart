@@ -1,9 +1,7 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../core/logger.dart';
+import '../core/platform_capabilities.dart';
 import 'quote.dart';
 
 /// 跟桌面小组件 (home_widget plugin) 的桥接。
@@ -17,14 +15,7 @@ class WidgetSyncService {
   static const String _kAndroidProvider =
       'app.folio.widget.QuoteWidgetProvider';
 
-  bool get _supported {
-    if (kIsWeb) return false;
-    try {
-      return Platform.isAndroid || Platform.isIOS;
-    } catch (_) {
-      return false;
-    }
-  }
+  bool get _supported => PlatformCapabilities.supportsHomeWidget;
 
   /// 配置 widget 数据来源 —— main() 启动时调一次。
   Future<void> configure() async {

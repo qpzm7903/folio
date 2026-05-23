@@ -7,6 +7,7 @@ import 'app.dart';
 import 'core/logger.dart';
 import 'data/quote_repository.dart';
 import 'presentation/providers.dart';
+import 'presentation/widget_sync_bridge.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,7 @@ Future<void> main() async {
         sharedPreferencesProvider.overrideWithValue(prefs),
         quoteRepositoryProvider.overrideWithValue(quoteRepo),
       ],
-      child: const FolioApp(),
+      child: const WidgetSyncBridge(child: FolioApp()),
     ),
   );
 }

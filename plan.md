@@ -47,6 +47,23 @@
 
 ## 版本日志
 
+### v0.11.1 — 重构 PATCH (PlatformCapabilities + WidgetSyncBridge)
+
+让 v0.11.x 拿到重构 PATCH。
+
+- 新建 `lib/core/platform_capabilities.dart`: 集中 `kIsWeb` + try/catch
+  `Platform.isX` 的样板, 暴露 `isWeb / isAndroid / isIOS / isMobile /
+  isDesktop / supportsFileSelector / supportsHomeWidget`。
+  WidgetSyncService / BackgroundImageService / DisplayScreen 三处自写
+  的判断改用 helper。
+- 新建 `lib/presentation/widget_sync_bridge.dart`: 把 v0.11.0 塞进
+  FolioApp 的 `initState + ref.listen(quotesProvider)` 抽到独立的
+  ConsumerStatefulWidget, FolioApp 重回 ConsumerWidget。
+  main.dart 用 `WidgetSyncBridge(child: FolioApp())` 套一层。
+- 新增 `test/platform_capabilities_test.dart` 锁 host 真理表。
+
+不动业务行为。
+
 ### v0.11.0 — Android 桌面小组件 (L07)
 
 L07 落地。

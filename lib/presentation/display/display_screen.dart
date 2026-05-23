@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/platform_capabilities.dart';
 import '../../data/quote.dart';
 import '../../data/settings_repository.dart';
 import '../../domain/rotation_controller.dart';
@@ -88,7 +88,8 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
             : t.fg3;
 
         final String? bgPath = settings.backgroundImagePath;
-        final bool hasUserBg = _withPhoto && bgPath != null && !kIsWeb;
+        final bool hasUserBg =
+            _withPhoto && bgPath != null && !PlatformCapabilities.isWeb;
 
         return Stack(
           children: <Widget>[

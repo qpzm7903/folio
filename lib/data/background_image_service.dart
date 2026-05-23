@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../core/logger.dart';
+import '../core/platform_capabilities.dart';
 
 /// 自定义背景图的选取与持久化。
 ///
@@ -17,7 +17,7 @@ class BackgroundImageService {
   const BackgroundImageService();
 
   /// 当前平台是否支持自定义背景图。
-  bool get isSupported => !kIsWeb;
+  bool get isSupported => PlatformCapabilities.supportsFileSelector;
 
   /// 弹文件选择器, 选定后复制到 app doc dir, 返回新路径; 用户取消返回 `null`。
   Future<String?> pickAndStore() async {

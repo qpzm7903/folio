@@ -1,46 +1,24 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router.dart';
-import 'data/quote.dart';
 import 'data/settings_repository.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'presentation/providers.dart';
 import 'theme/app_theme.dart';
 import 'theme/tokens.dart';
 
-/// 根 widget —— 也负责把"今日金句"同步到 home widget (Android)。
-class FolioApp extends ConsumerStatefulWidget {
+/// 根 widget。
+///
+/// 注意: home widget 的"启动 configure + 监听 quotes 同步" 已经移到独立的
+/// [WidgetSyncBridge], 由 main() 套在 FolioApp 外层。这里只关心 router
+/// + theme + l10n。
+class FolioApp extends ConsumerWidget {
   const FolioApp({super.key});
 
   @override
-  ConsumerState<FolioApp> createState() => _FolioAppState();
-}
-
-class _FolioAppState extends ConsumerState<FolioApp> {
-  @override
-  void initState() {
-    super.initState();
-    unawaited(ref.read(widgetSyncServiceProvider).configure());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // quotes 列表变化时, 把第一句 (即 LibraryScreen 上"今日金句") 同步到桌面小组件
-    ref.listen<AsyncValue<List<Quote>>>(quotesProvider, (
-      AsyncValue<List<Quote>>? _,
-      AsyncValue<List<Quote>> next,
-    ) {
-      final List<Quote>? data = next.value;
-      final Quote? today = (data != null && data.isNotEmpty)
-          ? data.first
-          : null;
-      unawaited(ref.read(widgetSyncServiceProvider).syncToday(today));
-    });
-
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppSettings settings = ref.watch(settingsProvider);
     final XJKTokens paper = XJKTokens.paper();
     final XJKTokens night = XJKTokens.night();
