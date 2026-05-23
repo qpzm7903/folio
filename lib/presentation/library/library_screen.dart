@@ -6,6 +6,7 @@ import '../../data/quote.dart';
 import '../../theme/tokens.dart';
 import '../editor/editor_screen.dart';
 import '../providers.dart';
+import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/fab.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/section_header.dart';
@@ -144,39 +145,8 @@ class LibraryScreen extends ConsumerWidget {
     WidgetRef ref,
     Quote q,
   ) async {
-    final bool ok =
-        await showDialog<bool>(
-          context: context,
-          builder: (BuildContext ctx) {
-            final XJKTokens t = XJKTheme.of(ctx);
-            return AlertDialog(
-              backgroundColor: t.bgRaised,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-              ),
-              content: Text(
-                '从金库取出这句话？',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 17,
-                  color: t.fg1,
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text('留着', style: TextStyle(color: t.fg2)),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text('取出', style: TextStyle(color: t.danger)),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-    if (ok) {
+    final bool? ok = await showConfirmDeleteDialog(context);
+    if (ok == true) {
       await ref.read(quotesProvider.notifier).remove(q.id);
     }
   }

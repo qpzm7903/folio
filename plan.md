@@ -46,6 +46,21 @@
 
 ## 版本日志
 
+### v0.2.1 — 重构 PATCH (删除对话框 + 搜索状态)
+
+让 v0.2.x 这个 MINOR 拿到重构 PATCH, 解锁下一轮 v0.3.0 新功能。
+
+- 新建 `lib/presentation/widgets/confirm_delete_dialog.dart` —— 把
+  Library / Search / Editor 三处一模一样的"从金库取出这句话？"
+  AlertDialog (~30 行 × 3 = ~90 行重复) 抽成一个 top-level
+  `showConfirmDeleteDialog(context)` 函数, 三处一行调用替代。
+- `SearchScreen.build` 里的三元嵌套 (没输入 / 没命中 / 有命中)
+  抽成方法 `_buildBody`, 一眼看清三个分支。
+- 新增 `test/confirm_delete_dialog_test.dart`: widget 测试覆盖
+  点"取出"返回 true、点"留着"返回 false。
+
+不动业务逻辑。
+
 ### v0.2.0 — 全文搜索 + 编辑已有金句 (L11 第一刀)
 
 - Library TopBar 加 search 按钮 (skill `screens.jsx:85` 占位的那个 icon),

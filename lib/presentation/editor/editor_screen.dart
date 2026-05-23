@@ -7,6 +7,7 @@ import '../../data/quote.dart';
 import '../../theme/tokens.dart';
 import '../import/import_sheet.dart';
 import '../providers.dart';
+import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/top_bar.dart';
 
 /// 金句编辑屏 —— 对应 screens.jsx 的 `EditorScreen`。
@@ -181,38 +182,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   Future<void> _confirmDelete() async {
-    final XJKTokens t = XJKTheme.of(context);
-    final bool? ok = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          backgroundColor: t.bgRaised,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-          ),
-          content: Text(
-            '从金库取出这句话？',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 17,
-              color: t.fg1,
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('留着', style: TextStyle(color: t.fg2)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text('取出', style: TextStyle(color: t.danger)),
-            ),
-          ],
-        );
-      },
-    );
-    if (ok != true) return;
     final NavigatorState navigator = Navigator.of(context);
+    final bool? ok = await showConfirmDeleteDialog(context);
+    if (ok != true) return;
     await ref.read(quotesProvider.notifier).remove(widget.editing!.id);
     if (!mounted) return;
     unawaited(navigator.maybePop());
