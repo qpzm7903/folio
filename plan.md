@@ -47,6 +47,16 @@
 
 ## 版本日志
 
+### v0.4.1 — fetch_fonts.sh 兼容 bash 3.2
+
+v0.4.0 跑通了 Linux / Windows / Android / Web, 但 macOS runner 挂了:
+`tool/fetch_fonts.sh` 用了 `declare -A` 关联数组, 而 macOS runner
+默认 bash 是 Apple 锁住的 3.2, 不支持关联数组, `set -u` 下展开
+直接报 unbound variable。
+
+改成 bash-3 兼容的平行数组 (NAMES + URLS 一一对齐 + 长度校验),
+本地 /bin/bash 跑通验证。
+
 ### v0.4.0 — 多平台 CI (L17 部分)
 
 CI workflow 加 3 个 desktop build job, 让一次 tag push 同时出 5 个
