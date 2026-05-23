@@ -34,9 +34,7 @@ class TagRow extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isActive ? t.fg1 : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: isActive ? t.fg1 : t.border1,
-                ),
+                border: Border.all(color: isActive ? t.fg1 : t.border1),
               ),
               child: Center(
                 child: Text(

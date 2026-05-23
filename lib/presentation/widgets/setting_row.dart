@@ -26,7 +26,10 @@ class SettingsGroup extends StatelessWidget {
         borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
         border: Border.all(color: t.border1),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: rows,
+      ),
     );
   }
 }
@@ -56,9 +59,7 @@ class SettingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
     return InkWell(
-      onTap: toggle != null
-          ? () => onToggle?.call(!(toggle ?? false))
-          : onTap,
+      onTap: toggle != null ? () => onToggle?.call(!(toggle ?? false)) : onTap,
       borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),

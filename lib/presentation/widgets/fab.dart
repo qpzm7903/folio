@@ -29,17 +29,12 @@ class XJKFab extends StatelessWidget {
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onPressed,
-          child: Center(
-            child: XJKIcon(icon, size: 22, color: t.fgOnAccent),
-          ),
+          child: Center(child: XJKIcon(icon, size: 22, color: t.fgOnAccent)),
         ),
       ),
     );
     return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: t.shadow2,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: t.shadow2),
       child: tooltip == null ? body : Tooltip(message: tooltip!, child: body),
     );
   }

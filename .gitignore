@@ -62,3 +62,4 @@ coverage/
 # 字体文件由 CI 下载，避免巨型二进制入库
 assets/fonts/*.ttf
 assets/fonts/*.otf
+.claude/scheduled_tasks.lock

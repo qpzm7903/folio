@@ -41,10 +41,7 @@ class FolioApp extends ConsumerWidget {
       theme: buildThemeData(paper, brightness: Brightness.light),
       darkTheme: buildThemeData(night, brightness: Brightness.dark),
       locale: const Locale('zh', 'CN'),
-      supportedLocales: const <Locale>[
-        Locale('zh', 'CN'),
-        Locale('en'),
-      ],
+      supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
       localizationsDelegates: const <LocalizationsDelegate<Object>>[
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -94,8 +91,7 @@ class _RootShellState extends ConsumerState<RootShell> {
           index: _index,
           children: <Widget>[
             LibraryScreen(
-              onOpenDisplay: () =>
-                  setState(() => _current = XJKNavTab.display),
+              onOpenDisplay: () => setState(() => _current = XJKNavTab.display),
             ),
             const DisplayScreen(),
             const WidgetsPreviewScreen(),

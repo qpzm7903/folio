@@ -77,18 +77,21 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                             color: t.fgMuted,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(XJKTokens.radiusLg),
+                            borderRadius: BorderRadius.circular(
+                              XJKTokens.radiusLg,
+                            ),
                             borderSide: BorderSide(color: t.border1),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(XJKTokens.radiusLg),
+                            borderRadius: BorderRadius.circular(
+                              XJKTokens.radiusLg,
+                            ),
                             borderSide: BorderSide(color: t.border1),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(XJKTokens.radiusLg),
+                            borderRadius: BorderRadius.circular(
+                              XJKTokens.radiusLg,
+                            ),
                             borderSide: BorderSide(color: t.accent, width: 1.5),
                           ),
                           filled: true,
@@ -134,13 +137,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   Future<void> _save() async {
-    await ref
-        .read(quotesProvider.notifier)
-        .add(_text.text, _src.text);
+    await ref.read(quotesProvider.notifier).add(_text.text, _src.text);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已收入金库。')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('已收入金库。')));
     Navigator.of(context).maybePop();
   }
 

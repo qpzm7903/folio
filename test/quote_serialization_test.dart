@@ -21,8 +21,10 @@ void main() {
       });
       expect(q.tag, isEmpty);
       // createdAt 兜底成 now 附近, 不至于崩
-      expect(q.createdAt.isBefore(DateTime.now().add(const Duration(seconds: 1))),
-          isTrue);
+      expect(
+        q.createdAt.isBefore(DateTime.now().add(const Duration(seconds: 1))),
+        isTrue,
+      );
     });
   });
 }

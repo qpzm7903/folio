@@ -15,8 +15,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final XJKTokens t = XJKTheme.of(context);
     final AppSettings s = ref.watch(settingsProvider);
-    final int quoteCount =
-        ref.watch(quotesProvider).asData?.value.length ?? 0;
+    final int quoteCount = ref.watch(quotesProvider).asData?.value.length ?? 0;
 
     String themeLabel;
     switch (s.themeMode) {
@@ -52,16 +51,18 @@ class SettingsScreen extends ConsumerWidget {
                     sub: '所有句子轮过一次才再出现',
                     toggle: s.shuffleNoRepeat,
                     showChevron: false,
-                    onToggle: (bool v) =>
-                        ref.read(settingsProvider.notifier).setShuffleNoRepeat(v),
+                    onToggle: (bool v) => ref
+                        .read(settingsProvider.notifier)
+                        .setShuffleNoRepeat(v),
                   ),
                   SettingRow(
                     label: '显示出处',
                     sub: 'quote attribution',
                     toggle: s.showAttribution,
                     showChevron: false,
-                    onToggle: (bool v) =>
-                        ref.read(settingsProvider.notifier).setShowAttribution(v),
+                    onToggle: (bool v) => ref
+                        .read(settingsProvider.notifier)
+                        .setShowAttribution(v),
                   ),
                 ],
               ),
@@ -88,11 +89,7 @@ class SettingsScreen extends ConsumerWidget {
               _sectionLabel(context, '关于'),
               const SettingsGroup(
                 children: <Widget>[
-                  SettingRow(
-                    label: '小金库',
-                    sub: '一句话停一停',
-                    showChevron: false,
-                  ),
+                  SettingRow(label: '小金库', sub: '一句话停一停', showChevron: false),
                 ],
               ),
               Padding(
@@ -145,14 +142,12 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              for (final (AppThemeMode, String) item in const <(
-                AppThemeMode,
-                String
-              )>[
-                (AppThemeMode.system, '跟随系统'),
-                (AppThemeMode.paper, '青纸 · Paper'),
-                (AppThemeMode.night, '林夜 · Forest'),
-              ])
+              for (final (AppThemeMode, String) item
+                  in const <(AppThemeMode, String)>[
+                    (AppThemeMode.system, '跟随系统'),
+                    (AppThemeMode.paper, '青纸 · Paper'),
+                    (AppThemeMode.night, '林夜 · Forest'),
+                  ])
                 ListTile(
                   title: Text(
                     item.$2,

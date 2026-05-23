@@ -27,10 +27,7 @@ class XJKTopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 6, 12, 14),
       child: Row(
         children: <Widget>[
-          if (leading != null) ...<Widget>[
-            leading!,
-            const SizedBox(width: 8),
-          ],
+          if (leading != null) ...<Widget>[leading!, const SizedBox(width: 8)],
           Flexible(
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -80,11 +77,7 @@ class XJKTopBar extends StatelessWidget {
 }
 
 class XJKTopBarAction {
-  const XJKTopBarAction({
-    required this.icon,
-    this.label,
-    this.onPressed,
-  });
+  const XJKTopBarAction({required this.icon, this.label, this.onPressed});
 
   final String icon;
   final String? label;

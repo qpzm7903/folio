@@ -15,12 +15,7 @@ class Quote {
   final String tag;
   final DateTime createdAt;
 
-  Quote copyWith({
-    String? id,
-    String? text,
-    String? tag,
-    DateTime? createdAt,
-  }) {
+  Quote copyWith({String? id, String? text, String? tag, DateTime? createdAt}) {
     return Quote(
       id: id ?? this.id,
       text: text ?? this.text,
@@ -30,18 +25,19 @@ class Quote {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'id': id,
-        'text': text,
-        'tag': tag,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'text': text,
+    'tag': tag,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   factory Quote.fromJson(Map<String, dynamic> json) {
     return Quote(
       id: json['id'] as String,
       text: json['text'] as String,
       tag: (json['tag'] as String?) ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.now(),
     );
   }

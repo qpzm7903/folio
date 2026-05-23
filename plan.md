@@ -46,7 +46,13 @@
 
 ## 版本日志
 
-### v0.1.0 (in progress) — 首版核心
+### v0.1.1 — workflow 修复
+
+- v0.1.0 的 `dart format --set-exit-if-changed` 在 CI 上拦下了 12 个未格式化文件 (本地没有 dart CLI, 没法预先校验)。
+- 本版安装 dart-sdk 后 `dart format lib test` 重新整理 22 个文件 (含 widget/screen/test) 的换行与缩进; 风格检查现在 0 diff。
+- 不动业务逻辑。
+
+### v0.1.0 — 首版核心
 
 目标：跑通 "写一句 → 进金库 → 屏保里再次遇见" 的核心闭环。
 

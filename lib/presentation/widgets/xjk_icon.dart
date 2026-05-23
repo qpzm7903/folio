@@ -8,12 +8,7 @@ import '../../theme/tokens.dart';
 /// 颜色: 默认走 `fg2`; 传 [color] 覆盖。
 /// 尺寸: 默认 20 (inline), 底栏用 22, tab bar 用 24。
 class XJKIcon extends StatelessWidget {
-  const XJKIcon(
-    this.name, {
-    this.size = 20,
-    this.color,
-    super.key,
-  });
+  const XJKIcon(this.name, {this.size = 20, this.color, super.key});
 
   final String name;
   final double size;
@@ -61,7 +56,9 @@ class XJKIconButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: onPressed,
-          child: Center(child: XJKIcon(icon, size: size, color: color)),
+          child: Center(
+            child: XJKIcon(icon, size: size, color: color),
+          ),
         ),
       ),
     );

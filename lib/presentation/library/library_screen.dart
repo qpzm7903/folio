@@ -30,14 +30,10 @@ class LibraryScreen extends ConsumerWidget {
       children: <Widget>[
         Column(
           children: <Widget>[
-            const XJKTopBar(
-              title: '小金库',
-              subtitle: 'est. 2026',
-            ),
+            const XJKTopBar(title: '小金库', subtitle: 'est. 2026'),
             Expanded(
               child: async.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, StackTrace _) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -53,8 +49,8 @@ class LibraryScreen extends ConsumerWidget {
                   final List<Quote> filtered = activeTag == '全部'
                       ? quotes
                       : quotes
-                          .where((Quote q) => q.tag == activeTag)
-                          .toList(growable: false);
+                            .where((Quote q) => q.tag == activeTag)
+                            .toList(growable: false);
                   if (filtered.isEmpty) {
                     return _LibraryNoMatch(tag: activeTag);
                   }
@@ -74,10 +70,7 @@ class LibraryScreen extends ConsumerWidget {
                       ),
 
                       const SizedBox(height: 12),
-                      SectionHeader(
-                        title: '你的金库',
-                        count: quotes.length,
-                      ),
+                      SectionHeader(title: '你的金库', count: quotes.length),
                       TagRow(
                         tags: tags,
                         active: activeTag,
@@ -103,10 +96,7 @@ class LibraryScreen extends ConsumerWidget {
         Positioned(
           right: 20,
           bottom: 24 + MediaQuery.of(context).padding.bottom + 64,
-          child: XJKFab(
-            tooltip: '新的一句',
-            onPressed: () => _openEditor(context),
-          ),
+          child: XJKFab(tooltip: '新的一句', onPressed: () => _openEditor(context)),
         ),
       ],
     );
@@ -125,7 +115,8 @@ class LibraryScreen extends ConsumerWidget {
     WidgetRef ref,
     Quote q,
   ) async {
-    final bool ok = await showDialog<bool>(
+    final bool ok =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext ctx) {
             final XJKTokens t = XJKTheme.of(ctx);
@@ -244,4 +235,3 @@ class _LibraryNoMatch extends StatelessWidget {
     );
   }
 }
-

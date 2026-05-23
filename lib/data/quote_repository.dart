@@ -43,15 +43,15 @@ class _FileQuoteRepository implements QuoteRepository {
       if (!file.existsSync()) {
         final List<Quote> seed = buildSeedQuotes();
         await saveAll(seed);
-        AppLogger.instance
-            .info('quotes.json missing, seeded ${seed.length} quotes');
+        AppLogger.instance.info(
+          'quotes.json missing, seeded ${seed.length} quotes',
+        );
         return seed;
       }
       final String raw = await file.readAsString();
       final List<dynamic> data = jsonDecode(raw) as List<dynamic>;
       return <Quote>[
-        for (final dynamic e in data)
-          Quote.fromJson(e as Map<String, dynamic>),
+        for (final dynamic e in data) Quote.fromJson(e as Map<String, dynamic>),
       ];
     } catch (e, st) {
       AppLogger.instance.handle(e, st, 'failed to load quotes.json');
@@ -88,8 +88,7 @@ class _PrefsQuoteRepository implements QuoteRepository {
     try {
       final List<dynamic> data = jsonDecode(raw) as List<dynamic>;
       return <Quote>[
-        for (final dynamic e in data)
-          Quote.fromJson(e as Map<String, dynamic>),
+        for (final dynamic e in data) Quote.fromJson(e as Map<String, dynamic>),
       ];
     } catch (e, st) {
       AppLogger.instance.handle(e, st, 'failed to decode prefs quotes');

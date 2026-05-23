@@ -12,18 +12,18 @@ import '../data/settings_repository.dart';
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
 final Provider<SharedPreferences> sharedPreferencesProvider =
     Provider<SharedPreferences>((Ref ref) {
-  throw UnimplementedError('overrideWith in ProviderScope');
-});
+      throw UnimplementedError('overrideWith in ProviderScope');
+    });
 
 final Provider<QuoteRepository> quoteRepositoryProvider =
     Provider<QuoteRepository>((Ref ref) {
-  throw UnimplementedError('overrideWith in ProviderScope');
-});
+      throw UnimplementedError('overrideWith in ProviderScope');
+    });
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {
-  return SettingsRepository(ref.watch(sharedPreferencesProvider));
-});
+      return SettingsRepository(ref.watch(sharedPreferencesProvider));
+    });
 
 class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier(this._repo) : super(_repo.load());
@@ -53,8 +53,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
 final StateNotifierProvider<SettingsNotifier, AppSettings> settingsProvider =
     StateNotifierProvider<SettingsNotifier, AppSettings>((Ref ref) {
-  return SettingsNotifier(ref.watch(settingsRepositoryProvider));
-});
+      return SettingsNotifier(ref.watch(settingsRepositoryProvider));
+    });
 
 class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   QuotesNotifier(this._repo) : super(const AsyncValue<List<Quote>>.loading()) {
@@ -113,8 +113,9 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
 
   Future<void> remove(String id) async {
     final List<Quote> current = state.value ?? <Quote>[];
-    final List<Quote> next =
-        current.where((Quote q) => q.id != id).toList(growable: false);
+    final List<Quote> next = current
+        .where((Quote q) => q.id != id)
+        .toList(growable: false);
     state = AsyncValue<List<Quote>>.data(next);
     await _repo.saveAll(next);
     AppLogger.instance.info('removed quote id=$id');
@@ -127,11 +128,11 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
 }
 
 final StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>
-    quotesProvider =
-    StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>(
-        (Ref ref) {
-  return QuotesNotifier(ref.watch(quoteRepositoryProvider));
-});
+quotesProvider = StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>(
+  (Ref ref) {
+    return QuotesNotifier(ref.watch(quoteRepositoryProvider));
+  },
+);
 
 /// 派生: 全部标签 (含"全部")。
 final Provider<List<String>> tagsProvider = Provider<List<String>>((Ref ref) {
@@ -145,8 +146,9 @@ final Provider<List<String>> tagsProvider = Provider<List<String>>((Ref ref) {
 });
 
 /// 当前选中的标签 (默认全部)。
-final StateProvider<String> activeTagProvider =
-    StateProvider<String>((Ref ref) => '全部');
+final StateProvider<String> activeTagProvider = StateProvider<String>(
+  (Ref ref) => '全部',
+);
 
 /// 当前是否处于深色模式 —— 综合 settings + system。
 bool resolveIsDark(AppThemeMode mode, Brightness platform) {

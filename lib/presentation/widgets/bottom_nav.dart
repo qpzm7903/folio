@@ -67,11 +67,7 @@ class XJKBottomNav extends StatelessWidget {
 }
 
 class _NavItem {
-  const _NavItem({
-    required this.tab,
-    required this.icon,
-    required this.label,
-  });
+  const _NavItem({required this.tab, required this.icon, required this.label});
   final XJKNavTab tab;
   final String icon;
   final String label;

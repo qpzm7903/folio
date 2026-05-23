@@ -22,8 +22,10 @@ void main() {
 
   group('NoRepeatShuffle', () {
     test('一轮内每个 index 都恰好出现一次', () {
-      final NoRepeatShuffle s =
-          NoRepeatShuffle(itemCount: 10, random: Random(42));
+      final NoRepeatShuffle s = NoRepeatShuffle(
+        itemCount: 10,
+        random: Random(42),
+      );
       final Set<int> seen = <int>{};
       seen.add(s.currentIndex);
       for (int i = 0; i < s.totalInRound - 1; i++) {
@@ -35,8 +37,10 @@ void main() {
     });
 
     test('整轮结束后会重洗, round +1', () {
-      final NoRepeatShuffle s =
-          NoRepeatShuffle(itemCount: 5, random: Random(7));
+      final NoRepeatShuffle s = NoRepeatShuffle(
+        itemCount: 5,
+        random: Random(7),
+      );
       // 走完第一轮 (4 次 next 从 pos=0 到 pos=4)
       for (int i = 0; i < 5; i++) {
         s.next();
@@ -47,16 +51,21 @@ void main() {
 
     test('新一轮的第一个 index 不会等于上一轮的最后一个', () {
       // 用一个能稳定复现的种子
-      final NoRepeatShuffle s =
-          NoRepeatShuffle(itemCount: 5, random: Random(1));
+      final NoRepeatShuffle s = NoRepeatShuffle(
+        itemCount: 5,
+        random: Random(1),
+      );
       // 走到第一轮最后
       for (int i = 0; i < 4; i++) {
         s.next();
       }
       final int last = s.currentIndex;
       s.next(); // 切到第 2 轮
-      expect(s.currentIndex == last, isFalse,
-          reason: 'last=$last, new first=${s.currentIndex}');
+      expect(
+        s.currentIndex == last,
+        isFalse,
+        reason: 'last=$last, new first=${s.currentIndex}',
+      );
     });
 
     test('itemCount=1 时永远是 0, 不会崩溃', () {

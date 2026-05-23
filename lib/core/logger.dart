@@ -30,9 +30,7 @@ class AppLogger {
         logsDir.createSync(recursive: true);
       }
       _logFile = File('${logsDir.path}/folio.log');
-      _talker.configure(
-        observer: _FileObserver(_logFile!),
-      );
+      _talker.configure(observer: _FileObserver(_logFile!));
       _talker.info('folio logger initialised, path=${_logFile!.path}');
     } catch (e, st) {
       _talker.handle(e, st, 'failed to set up file logger');
@@ -52,11 +50,7 @@ class _FileObserver extends TalkerObserver {
 
   void _append(String line) {
     try {
-      file.writeAsStringSync(
-        '$line\n',
-        mode: FileMode.append,
-        flush: false,
-      );
+      file.writeAsStringSync('$line\n', mode: FileMode.append, flush: false);
     } catch (_) {
       // 故意吞掉 —— 写日志失败不能影响主流程
     }

@@ -76,7 +76,8 @@ class XJKTokens {
   static const double fsLabel = 11;
 
   // ===== Letter spacing =====
-  static const double trackingTight = -0.02 * fsH1; // approximation in logical px
+  static const double trackingTight =
+      -0.02 * fsH1; // approximation in logical px
   static const double trackingNormal = 0;
   static const double trackingWide = 0.08 * fsBody;
   static const double trackingLabel = 0.16 * fsLabel;
@@ -291,59 +292,55 @@ class XJKTokens {
 
   /// 卡片软阴影 (绿调低扩散)
   List<BoxShadow> get shadow1 => <BoxShadow>[
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.04),
-          offset: const Offset(0, 1),
-        ),
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.06),
-          offset: const Offset(0, 1),
-          blurRadius: 2,
-        ),
-      ];
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.04),
+      offset: const Offset(0, 1),
+    ),
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.06),
+      offset: const Offset(0, 1),
+      blurRadius: 2,
+    ),
+  ];
 
   List<BoxShadow> get shadow2 => <BoxShadow>[
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.06),
-          offset: const Offset(0, 2),
-          blurRadius: 4,
-        ),
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.05),
-          offset: const Offset(0, 4),
-          blurRadius: 12,
-        ),
-      ];
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.06),
+      offset: const Offset(0, 2),
+      blurRadius: 4,
+    ),
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.05),
+      offset: const Offset(0, 4),
+      blurRadius: 12,
+    ),
+  ];
 
   List<BoxShadow> get shadow3 => <BoxShadow>[
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.10),
-          offset: const Offset(0, 8),
-          blurRadius: 24,
-        ),
-        BoxShadow(
-          color: _shadowTint.withValues(alpha: 0.06),
-          offset: const Offset(0, 2),
-          blurRadius: 6,
-        ),
-      ];
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.10),
+      offset: const Offset(0, 8),
+      blurRadius: 24,
+    ),
+    BoxShadow(
+      color: _shadowTint.withValues(alpha: 0.06),
+      offset: const Offset(0, 2),
+      blurRadius: 6,
+    ),
+  ];
 
   Color get _shadowTint => ink900;
 }
 
 /// 通过 [InheritedWidget] 让 XJKTokens 全局可用。
 class XJKTheme extends InheritedWidget {
-  const XJKTheme({
-    required this.tokens,
-    required super.child,
-    super.key,
-  });
+  const XJKTheme({required this.tokens, required super.child, super.key});
 
   final XJKTokens tokens;
 
   static XJKTokens of(BuildContext context) {
-    final XJKTheme? widget =
-        context.dependOnInheritedWidgetOfExactType<XJKTheme>();
+    final XJKTheme? widget = context
+        .dependOnInheritedWidgetOfExactType<XJKTheme>();
     assert(widget != null, 'XJKTheme not found above this widget');
     return widget!.tokens;
   }

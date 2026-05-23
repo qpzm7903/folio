@@ -53,8 +53,10 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   }
 
   Timer _makeTimer(int cadenceMin) {
-    return Timer.periodic(Duration(minutes: cadenceMin.clamp(1, 60 * 24)),
-        (_) => _advance());
+    return Timer.periodic(
+      Duration(minutes: cadenceMin.clamp(1, 60 * 24)),
+      (_) => _advance(),
+    );
   }
 
   void _restartAutoTimer(int cadenceMin) {
@@ -77,16 +79,16 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
 
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (Object e, StackTrace _) =>
-          Center(child: Text('$e', style: TextStyle(color: t.danger))),
+      error: (Object e, StackTrace _) => Center(
+        child: Text('$e', style: TextStyle(color: t.danger)),
+      ),
       data: (List<Quote> quotes) {
         if (quotes.isEmpty) {
           return _displayEmpty(context);
         }
         _ensureShuffler(quotes.length, settings.cadenceMinutes);
         final Quote current = quotes[_shuffler!.currentIndex];
-        final Color textColor =
-            _withPhoto ? const Color(0xFFF7F8ED) : t.fg1;
+        final Color textColor = _withPhoto ? const Color(0xFFF7F8ED) : t.fg1;
         final Color subColor = _withPhoto
             ? const Color(0xFFF7F8ED).withValues(alpha: 0.7)
             : t.fg3;
@@ -101,11 +103,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                     ? LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: <Color>[
-                          t.ink500,
-                          t.ink700,
-                          t.ink900,
-                        ],
+                        colors: <Color>[t.ink500, t.ink700, t.ink900],
                       )
                     : null,
                 color: _withPhoto ? null : t.bgPage,
@@ -116,21 +114,26 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
             Positioned.fill(
               child: SafeArea(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 28, vertical: 80),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 80,
+                  ),
                   child: AnimatedSwitcher(
                     duration: XJKTokens.durPage,
-                    transitionBuilder:
-                        (Widget child, Animation<double> anim) {
-                      final Animation<Offset> slide = Tween<Offset>(
-                        begin: const Offset(0, 0.04),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                          parent: anim, curve: XJKTokens.easePaper));
+                    transitionBuilder: (Widget child, Animation<double> anim) {
+                      final Animation<Offset> slide =
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: anim,
+                              curve: XJKTokens.easePaper,
+                            ),
+                          );
                       return FadeTransition(
                         opacity: anim,
-                        child: SlideTransition(
-                            position: slide, child: child),
+                        child: SlideTransition(position: slide, child: child),
                       );
                     },
                     child: Column(
@@ -187,7 +190,9 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: t.bgRaised.withValues(alpha: _withPhoto ? 0.3 : 0.6),
                     borderRadius: BorderRadius.circular(999),
