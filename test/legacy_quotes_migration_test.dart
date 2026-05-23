@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:folio/data/legacy_quotes_migration.dart';
 import 'package:folio/data/quote_codec.dart';
 import 'package:folio/data/quote.dart';
-import 'package:path_provider/path_provider.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
