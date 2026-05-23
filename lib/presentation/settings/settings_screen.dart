@@ -17,7 +17,7 @@ import 'export_import_sheets.dart';
 String cadenceLabel(int minutes) => '每 $minutes 分钟换一句';
 
 /// settings 屏可选的频率档位 (分钟)。
-const List<int> kCadenceChoices = <int>[5, 15, 30, 60, 120, 240];
+const List<int> kCadenceChoices = <int>[1, 2, 3, 5, 15, 30, 60, 120, 240];
 
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
 ///

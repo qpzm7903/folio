@@ -17,7 +17,7 @@ import '../widgets/xjk_icon.dart';
 /// - 无重复随机轮播 [NoRepeatShuffle]
 /// - 640ms 交叉淡入 + 8px 向上漂移
 /// - 顶左返回按钮 (在 IndexedStack 模式下没有路由可返回, 隐藏即可)
-/// - 底部 3 个工具按钮: shuffle / image (切换深底) / bookmark (TODO)
+/// - 底部 3 个工具按钮: shuffle / image (切换深底) / bookmark (v0.13.3 起 toggle 收藏)
 class DisplayScreen extends ConsumerStatefulWidget {
   const DisplayScreen({this.onBack, super.key});
 
@@ -243,11 +243,34 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                         color: textColor,
                         tooltip: '换背景',
                       ),
-                      XJKIconButton(
-                        icon: 'bookmark',
-                        onPressed: null, // v0.3 起接收藏功能
-                        color: textColor.withValues(alpha: 0.4),
-                        tooltip: '收藏 (即将上线)',
+                      Consumer(
+                        builder: (BuildContext _, WidgetRef cref, Widget? __) {
+                          final Set<String> favs = cref.watch(
+                            favoritesProvider,
+                          );
+                          final bool isFav = favs.contains(current.id);
+                          return XJKIconButton(
+                            icon: 'bookmark',
+                            color: isFav
+                                ? textColor
+                                : textColor.withValues(alpha: 0.5),
+                            tooltip: isFav ? '已收藏 (再点取消)' : '收藏这一句',
+                            onPressed: () async {
+                              final ScaffoldMessengerState messenger =
+                                  ScaffoldMessenger.of(context);
+                              await cref
+                                  .read(favoritesProvider.notifier)
+                                  .toggle(current.id);
+                              if (!mounted) return;
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  duration: const Duration(milliseconds: 1200),
+                                  content: Text(isFav ? '已取消收藏。' : '已收藏这一句。'),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),

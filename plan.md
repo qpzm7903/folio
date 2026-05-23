@@ -47,6 +47,41 @@
 
 ## 版本日志
 
+### v0.13.3 — 修 #3 #4 (4 个子问题)
+
+合并修 Issue #3 (Windows v0.13.0 三处) + #4 (屏保收藏无效):
+
+- **#3.1 TagsScreen 无法退回**: 之前 TopBar 没 leading,Settings push
+  过去后用户只能靠系统手势退回 (桌面端没有)。给 `TagsScreen` 的
+  `XJKTopBar` 加 `leading: XJKIconButton(icon: 'chevron-left', ...)`,
+  跟 skill `ui_kits/android-app/screens.jsx:170` DisplayScreen 的
+  back 视觉一致; onTap 优先 `context.canPop() → context.pop()`,
+  兜底 `context.go('/library')`。
+
+- **#3.2 cadence 加 1/2/3 分钟**: `kCadenceChoices` 由
+  `[5, 15, 30, 60, 120, 240]` 改成 `[1, 2, 3, 5, 15, 30, 60, 120, 240]`。
+  DisplayScreen 已经 `cadenceMin.clamp(1, 60*24)`, 无需改限。
+
+- **#3.3 Widgets tab 文案过时**: widgets_preview_screen.dart 副标题
+  "三种尺寸 · v0.4 起会真正接入 Android 桌面" 改成
+  "三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面"。
+  顶部 doc 注释同步说明 L07 (v0.11.0) / L08 (v0.12.0) 已落地。
+
+- **#4 屏保收藏功能可用**: 之前 bookmark 按钮 `onPressed: null`
+  显示 "收藏 (即将上线)"。新建 `lib/data/favorites_repository.dart`
+  用 SharedPreferences 存 `Set<String>` 收藏过的 quote id (key
+  `folio.favorites.ids.v1`), 故意不动 drift schema, PATCH 范围内
+  无数据库迁移; `providers.dart` 新增 `FavoritesNotifier` + provider,
+  Display 屏 bookmark 按钮包 Consumer toggle, icon opacity 切实/虚 +
+  tooltip 切换 + SnackBar 反馈。"收藏列表入口屏" 留到 v0.14.0 MINOR。
+
+新增 `test/favorites_repository_test.dart` 三条不变量: 空 prefs load /
+save→load 回环 / save 空集后清空。
+
+参考 skill 文件: `ui_kits/android-app/screens.jsx` (back button 视觉,
+DisplayScreen bottom controls 三按钮布局), `assets/icons/chevron-left.svg`
++ `bookmark.svg`。
+
 ### v0.13.2 — 修 v0.13.1 awk 解析空版本号 (#2 回归)
 
 v0.13.1 用 `awk -F'[ :+]'` 把 `:`/space/`+` 全当分隔符切 pubspec
@@ -143,35 +178,7 @@ initialize 幂等不互相破坏。
 
 不动业务行为。
 
-### v0.12.0 — iOS 桌面小组件 (L08)
-
-L08 落地 (与 L07 镜像)。
-
-- **Dart side** (`lib/data/widget_sync_service.dart`): 加 `iOSName:
-  'QuoteWidget'` 给 `HomeWidget.updateWidget`, 让 iOS WidgetKit timeline
-  能 reload。
-- **Swift template** (`docs/ios_widget/Swift/`):
-  - `QuoteEntry.swift` —— TimelineEntry, 从 App Group
-    `group.app.folio` 共享 UserDefaults 读 `todayQuote` / `todayTag`,
-    key 跟 Dart 端写入一致。
-  - `QuoteProvider.swift` —— TimelineProvider, 30 分钟兜底刷新 (跟
-    Android `updatePeriodMillis="1800000"` 同步)。
-  - `QuoteWidget.swift` —— `StaticConfiguration` + 三个 family
-    (`.systemSmall` / `.systemMedium` / `.systemLarge`) SwiftUI view,
-    严格翻译 skill `ui_kits/android-widgets/widgets.jsx` 的小/中/大三
-    种视觉, 大尺寸 leaf-700 → dark-quote-bg 渐变。
-  - `QuoteWidgetBundle.swift` —— `@main` 入口。
-  - `Colors.swift` —— XJK token 翻译到 SwiftUI `Color(hex:)`,
-    跟 `lib/theme/tokens.dart` 同步。
-  - `Info.plist.fragment` —— 关键 `NSExtensionPointIdentifier =
-    com.apple.widgetkit-extension`。
-- **Caveat**: iOS Widget Extension 必须在 Xcode 里新建 target,
-  IPA 还要 Apple Developer 证书。CI 暂不构建 iOS。`docs/ios_widget/
-  README.md` 给出完整启用步骤。
-
-完成 L08 的代码框架; IPA 是 caveat 项 (用户证书才能签)。
-
-### 早期版本汇总 (v0.1.0 ~ v0.11.1)
+### 早期版本汇总 (v0.1.0 ~ v0.12.0)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -268,3 +275,11 @@ RemoteViews 布局 + 单一 QuoteWidgetProvider, CI 用 inject_android_widget.sh
 抽 `lib/core/platform_capabilities.dart` 集中 `kIsWeb` + `Platform.isX`
 样板, `lib/presentation/widget_sync_bridge.dart` 把 `ref.listen
 (quotesProvider)` 从 FolioApp 抽出独立 ConsumerStatefulWidget。
+
+**v0.12.0** iOS 桌面小组件 (L08, 与 L07 镜像): Dart 端 `HomeWidget.
+updateWidget` 加 `iOSName: 'QuoteWidget'`; Swift 模板 docs/ios_widget/
+提供 QuoteEntry / QuoteProvider / QuoteWidget (StaticConfiguration 三个
+family) / QuoteWidgetBundle, 严格翻译 skill widgets.jsx 三尺寸视觉,
+App Group `group.app.folio` 跨 app/extension 共享 UserDefaults。
+Caveat: iOS Widget Extension 须 Xcode 新建 target + Apple Developer
+证书签名, CI 暂不构建 iOS。

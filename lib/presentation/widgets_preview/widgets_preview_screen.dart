@@ -7,7 +7,8 @@ import '../providers.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/top_bar.dart';
 
-/// 组件预览屏 —— v0.1 是设计样张, 真实 Android 桌面小组件留到 v0.4 落地。
+/// 组件预览屏 —— 真实 Android widget 在 v0.11.0 (L07) 已落地,
+/// iOS 在 v0.12.0 (L08) 已落地; 这屏保留为"主屏添加引导 + 视觉预览"。
 /// 视觉直接照搬 skill `ui_kits/android-widgets/widgets.jsx` 的小/中/大三尺寸。
 class WidgetsPreviewScreen extends ConsumerWidget {
   const WidgetsPreviewScreen({super.key});
@@ -39,7 +40,7 @@ class WidgetsPreviewScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '三种尺寸 · v0.4 起会真正接入 Android 桌面。',
+                  '三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面。',
                   style: TextStyle(
                     fontFamily: XJKTokens.serifItalic,
                     fontStyle: FontStyle.italic,

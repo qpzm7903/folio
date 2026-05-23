@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/logger.dart';
 import '../data/background_image_service.dart';
+import '../data/favorites_repository.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
@@ -33,6 +34,37 @@ final Provider<WidgetSyncService> widgetSyncServiceProvider =
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {
       return SettingsRepository(ref.watch(sharedPreferencesProvider));
+    });
+
+final Provider<FavoritesRepository> favoritesRepositoryProvider =
+    Provider<FavoritesRepository>((Ref ref) {
+      return FavoritesRepository(ref.watch(sharedPreferencesProvider));
+    });
+
+/// 收藏的 quote id 集合 —— Display 屏的 bookmark 按钮 toggle (Issue #4)。
+/// 持久化到 SharedPreferences, 跟 drift schema 解耦。
+class FavoritesNotifier extends StateNotifier<Set<String>> {
+  FavoritesNotifier(this._repo) : super(_repo.load());
+
+  final FavoritesRepository _repo;
+
+  bool isFavorite(String id) => state.contains(id);
+
+  Future<void> toggle(String id) async {
+    final Set<String> next = Set<String>.of(state);
+    if (next.contains(id)) {
+      next.remove(id);
+    } else {
+      next.add(id);
+    }
+    state = next;
+    await _repo.save(next);
+  }
+}
+
+final StateNotifierProvider<FavoritesNotifier, Set<String>> favoritesProvider =
+    StateNotifierProvider<FavoritesNotifier, Set<String>>((Ref ref) {
+      return FavoritesNotifier(ref.watch(favoritesRepositoryProvider));
     });
 
 class SettingsNotifier extends StateNotifier<AppSettings> {

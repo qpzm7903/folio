@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/top_bar.dart';
+import '../widgets/xjk_icon.dart';
 
 /// 标签管理屏 —— L11 收尾。
 ///
@@ -29,7 +31,23 @@ class TagsScreen extends ConsumerWidget {
         child: MaxWidthBody(
           child: Column(
             children: <Widget>[
-              const XJKTopBar(title: '标签管理', subtitle: 'tags'),
+              XJKTopBar(
+                title: '标签管理',
+                subtitle: 'tags',
+                leading: XJKIconButton(
+                  icon: 'chevron-left',
+                  tooltip: '返回',
+                  onPressed: () {
+                    // 标签管理屏是从 settings push 进来的, 优先 pop 回 settings;
+                    // 兜底 go 回 library (顶层 tab).
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/library');
+                    }
+                  },
+                ),
+              ),
               Expanded(
                 child: tags.isEmpty
                     ? const _TagsEmpty()
