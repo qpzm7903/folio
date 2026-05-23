@@ -47,6 +47,23 @@
 
 ## 版本日志
 
+### v0.13.2 — 修 v0.13.1 awk 解析空版本号 (#2 回归)
+
+v0.13.1 用 `awk -F'[ :+]'` 把 `:`/space/`+` 全当分隔符切 pubspec
+`version: 0.13.1+32`。问题: 集合 FS 在连续分隔符 (`': '`) 处插入空
+field, `$2` 是空字符串 → 5 个平台产物落地都叫 `folio--<platform>.<ext>`
+版本号位置为空, #2 实际未修。
+
+改用 `grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//'`:
+- grep 只挑 version 行
+- sed 第一段剥前缀 + 空格
+- 第二段切 `+` 之后的 build_number, 用 `[+]` 字符类避免 BSD sed
+  在 `-E` 模式下报 "repetition-operator operand invalid"
+  (Linux GNU sed 容忍裸 `+`, BSD 不容忍, 跨平台保险写法)
+- 本地 macOS BSD sed 验证: 输出 `0.13.1`, 跟期望一致
+
+5 个平台 job + workflow 文件全部同步。bump pubspec 0.13.1+32 → 0.13.2+33。
+
 ### v0.13.1 — 闪退兜底 + release 包带版本号 (PATCH for #1 #2)
 
 修两个 issue:
@@ -154,24 +171,7 @@ L08 落地 (与 L07 镜像)。
 
 完成 L08 的代码框架; IPA 是 caveat 项 (用户证书才能签)。
 
-### v0.11.1 — 重构 PATCH (PlatformCapabilities + WidgetSyncBridge)
-
-让 v0.11.x 拿到重构 PATCH。
-
-- 新建 `lib/core/platform_capabilities.dart`: 集中 `kIsWeb` + try/catch
-  `Platform.isX` 的样板, 暴露 `isWeb / isAndroid / isIOS / isMobile /
-  isDesktop / supportsFileSelector / supportsHomeWidget`。
-  WidgetSyncService / BackgroundImageService / DisplayScreen 三处自写
-  的判断改用 helper。
-- 新建 `lib/presentation/widget_sync_bridge.dart`: 把 v0.11.0 塞进
-  FolioApp 的 `initState + ref.listen(quotesProvider)` 抽到独立的
-  ConsumerStatefulWidget, FolioApp 重回 ConsumerWidget。
-  main.dart 用 `WidgetSyncBridge(child: FolioApp())` 套一层。
-- 新增 `test/platform_capabilities_test.dart` 锁 host 真理表。
-
-不动业务行为。
-
-### 早期版本汇总 (v0.1.0 ~ v0.11.0)
+### 早期版本汇总 (v0.1.0 ~ v0.11.1)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -260,9 +260,11 @@ StatefulShellRoute.indexedStack 包 4 个底栏 branch, 子路由
 router 里 XJKNavTab ↔ path ↔ shellIndex 三角映射抽 `XJKNavTabRoute`
 extension 统一一处。
 
-**v0.11.0** Android 桌面小组件 (L07): Dart 端用 home_widget plugin
-把 todayQuote / todayTag 写到共享存储 + 触发 native AppWidgetProvider
-刷新; native 端 docs/android_widget/ 提供三尺寸 RemoteViews 布局 +
-单一 QuoteWidgetProvider, CI 用 inject_android_widget.sh 在
-`flutter create` 后注入 receiver 到 AndroidManifest。FolioApp 监听
-quotesProvider, 第一句变化时调 syncToday。
+**v0.11.0 / v0.11.1** Android 桌面小组件 (L07) + 重构: Dart 端用
+home_widget plugin 把 todayQuote / todayTag 写到共享存储 + 触发 native
+AppWidgetProvider 刷新; native 端 docs/android_widget/ 提供三尺寸
+RemoteViews 布局 + 单一 QuoteWidgetProvider, CI 用 inject_android_widget.sh
+在 `flutter create` 后注入 receiver 到 AndroidManifest。重构 PATCH
+抽 `lib/core/platform_capabilities.dart` 集中 `kIsWeb` + `Platform.isX`
+样板, `lib/presentation/widget_sync_bridge.dart` 把 `ref.listen
+(quotesProvider)` 从 FolioApp 抽出独立 ConsumerStatefulWidget。

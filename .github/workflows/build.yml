@@ -56,7 +56,7 @@ jobs:
       - name: Resolve app version
         id: ver
         run: |
-          v=$(awk -F'[ :+]' '/^version:/{print $2; exit}' pubspec.yaml)
+          v=$(grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Build APK (release)
@@ -89,7 +89,7 @@ jobs:
       - name: Resolve app version
         id: ver
         run: |
-          v=$(awk -F'[ :+]' '/^version:/{print $2; exit}' pubspec.yaml)
+          v=$(grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Build web (release)
@@ -127,7 +127,7 @@ jobs:
       - name: Resolve app version
         id: ver
         run: |
-          v=$(awk -F'[ :+]' '/^version:/{print $2; exit}' pubspec.yaml)
+          v=$(grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Enable Linux desktop
@@ -164,7 +164,7 @@ jobs:
         id: ver
         shell: bash
         run: |
-          v=$(awk -F'[ :+]' '/^version:/{print $2; exit}' pubspec.yaml)
+          v=$(grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Enable Windows desktop
@@ -200,7 +200,7 @@ jobs:
       - name: Resolve app version
         id: ver
         run: |
-          v=$(awk -F'[ :+]' '/^version:/{print $2; exit}' pubspec.yaml)
+          v=$(grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//')
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Enable macOS desktop
