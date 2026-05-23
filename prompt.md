@@ -6,7 +6,7 @@
 
 # 注意事项
 - prompt.md文件用于下达指令给Claude Code, 禁止AI修改prompt.md文件
-- .github/workflows/build.yml文件用于GitHub Actions构建, 除了0.1.0版本从脚手架代码复制例外, 禁止AI修改.github/workflows/build.yml文件
+- .github/workflows/build.yml文件用于GitHub Actions构建,
 - 隐私秘钥等文件禁止上传到GitHub仓库
 - 授权Claude Code自动执行命令和计划, 无需批准确认
 - 必须使用main分支开发新版本
@@ -15,7 +15,6 @@
 - 由于本地缺少完整的多平台构建环境(尤其是iOS/macOS需要Xcode), 构建相关操作必须放在GitHub Actions上执行
 - `gh`命令必须在代码仓目录下执行
 - 首个版本号必须从0.1.0开始
-- 0.1.0版本的开发必须复制脚手架代码 http://192.168.31.120:3020/github/flutter-app-example/archive/main.zip 来搭建项目基础框架, 大于0.1.0版本的开发则不用再参考
 - 必须基于`pubspec.yaml`文件中的`version`字段确定新版本的版本号(格式为`x.y.z+buildNumber`, 其中`buildNumber`自增)
 - 必须使用仓库名称作为APP名称, 必须使用`app.仓库名称(snake_case命名法)`作为APP包名/Bundle ID/Application ID
 
@@ -24,7 +23,7 @@
   文件 (colors_and_type.css / ui_kits/android-app/screens.jsx / 
   ui_kits/android-widgets/widgets.jsx 等), 禁止凭空设计 UI
 
-  
+
 # 开发流程
 
 每次任务的执行遵循新版本迭代开发全流程。
