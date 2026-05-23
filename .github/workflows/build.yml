@@ -1,0 +1,144 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: analyze + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch bundled fonts
+        run: bash tool/fetch_fonts.sh
+
+      - name: Materialize platform folders
+        run: flutter create --org app --project-name folio --platforms=android,web .
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test --reporter expanded
+
+  build-android:
+    name: build android apk
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch bundled fonts
+        run: bash tool/fetch_fonts.sh
+
+      - name: Materialize platform folders
+        run: flutter create --org app --project-name folio --platforms=android,web .
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build APK (release)
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: folio-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  build-web:
+    name: build web bundle
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch bundled fonts
+        run: bash tool/fetch_fonts.sh
+
+      - name: Materialize platform folders
+        run: flutter create --org app --project-name folio --platforms=android,web .
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build web (release)
+        run: flutter build web --release --base-href "/folio/"
+
+      - name: Zip web bundle
+        run: |
+          cd build/web && zip -r ../../folio-web.zip . && cd ../..
+
+      - name: Upload web bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: folio-web
+          path: folio-web.zip
+          if-no-files-found: error
+
+  release:
+    name: github release (tag only)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-android, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: folio-android-apk
+          path: dist/android
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: folio-web
+          path: dist/web
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/android/app-release.apk
+            dist/web/folio-web.zip
