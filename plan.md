@@ -25,7 +25,8 @@
 - [ ] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web)
 - [ ] L15 · 国际化 (中文为主，预留 en 框架)
 - [ ] L16 · 完整测试覆盖 (单元 + Widget + 集成)
-- [ ] L17 · 多平台 CI 产物 (Android APK/AAB · iOS IPA · Web · Win · macOS · Linux)
+- [~] L17 · 多平台 CI 产物 — v0.4.0 实现 Android + Web + Linux + Windows + macOS;
+  iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
 
 ---
 
@@ -45,6 +46,27 @@
 ---
 
 ## 版本日志
+
+### v0.4.0 — 多平台 CI (L17 部分)
+
+CI workflow 加 3 个 desktop build job, 让一次 tag push 同时出 5 个
+平台的可下载产物:
+
+- `build-linux` on ubuntu-latest: 装 GTK toolchain
+  (clang/cmake/ninja/gtk-3-dev), `flutter build linux`,
+  打 tar.gz 上传。
+- `build-windows` on windows-latest: 不用装额外 toolchain
+  (VS Build Tools 已预装), `flutter build windows`,
+  PowerShell `Compress-Archive` 打 zip。
+- `build-macos` on macos-latest: Xcode 已预装,
+  `flutter build macos` (不签名, 用户首次打开需 ctrl+click 绕过 Gatekeeper),
+  zip .app bundle。
+- 每个 job 自己 `flutter create --platforms=<platform> .`,
+  fetch_fonts.sh 一次拉本地字体, 走 release build。
+- `release` job 增加 3 个 download-artifact + 把 5 个产物全部
+  挂到 GitHub Release 的 files。
+
+完成长期项 L17 (除 iOS IPA, 留给 L08 一起处理 Apple 证书)。
 
 ### v0.3.1 — 重构 PATCH (QuotesNotifier mutate + ThemeMode label)
 

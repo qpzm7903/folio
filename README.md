@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.3.1** — 重构 (QuotesNotifier mutate helper + ThemeMode label extension).
+最新版本: **v0.4.0** — 多平台 CI 产物 (+ Linux / Windows / macOS 桌面包).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图
@@ -33,8 +33,16 @@ flutter run -d <device>    # Android
 
 ## 构建产物
 
-每个 tag (`v*`) 推送都会触发 GitHub Actions, 生成 Android APK 和 Web zip,
-并打到 GitHub Releases。流水线在 `.github/workflows/build.yml` 。
+每个 tag (`v*`) 推送都会触发 GitHub Actions, 生成以下产物并挂到 GitHub Release:
+
+- Android APK (`app-release.apk`)
+- Web bundle (`folio-web.zip`)
+- Linux x64 (`folio-linux-x64.tar.gz`)
+- Windows x64 (`folio-windows-x64.zip`)
+- macOS (`folio-macos.zip`, 不签名, 首次打开需 ctrl+click 绕过 Gatekeeper)
+
+iOS IPA 暂不构建 (需要 Apple 开发者证书, L08 一并处理)。
+流水线在 `.github/workflows/build.yml` 。
 
 ## 设计
 
