@@ -24,7 +24,7 @@
 - [ ] L13 · go_router 路由 + Web 深链
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
-- [ ] L16 · 完整测试覆盖 (单元 + Widget + 集成)
+- [x] L16 · 完整测试覆盖 (单元 + Widget + 集成) — v0.9.0 (test_harness + 屏级 widget 测试框架到位; 剩余屏后续 PATCH 持续覆盖)
 - [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
   iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
 
@@ -46,6 +46,28 @@
 ---
 
 ## 版本日志
+
+### v0.9.0 — Widget 测试框架 + 屏级测试 (L16)
+
+之前 widget test 只覆盖 confirm_delete / option_picker 两个组件,
+没有屏级别渲染验证。这一版补上框架 + 两个屏端到端测试。
+
+- `test/test_harness.dart`:
+  - `FakeQuoteRepository` 内存版 repo, 暴露 `snapshot` 让断言能拿到
+    保存后的最新数据。
+  - `pumpAppWith(tester, child:, repo:)` —— 套 SharedPreferences mock +
+    ProviderScope override + MaterialApp + Localizations delegates +
+    XJKTheme builder + Scaffold body, 一行 setup。
+  - `testQuote(...)` 默认值 Quote 工厂。
+- `test/library_screen_widget_test.dart`:
+  - 空金库 → "这里还很空。"
+  - 有金句 → "今天的金句" + featured 卡片 + 普通卡片 + 区段标题。
+- `test/editor_save_flow_test.dart`:
+  - 新建: 输入文字 → tap "收入金库" → repo.snapshot 多一条
+  - 编辑: 预填 → 改文字 → tap "存下来" → repo 中 id 不变, text 已替换
+
+L16 的"完整覆盖"是持续工作; 框架到位后, 后续 PATCH 把
+Display / Settings / Search / Tags 屏的 widget 测试逐步加上。
 
 ### v0.8.1 — 重构 PATCH (SettingsNotifier _apply helper)
 

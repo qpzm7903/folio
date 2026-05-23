@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.8.1** — 重构 (SettingsNotifier 抽 _apply helper, 5 个 setter 各缩成一行).
+最新版本: **v0.9.0** — Widget 测试框架 + Library/Editor 屏级测试 (L16).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图
