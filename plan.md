@@ -47,6 +47,30 @@
 
 ## 版本日志
 
+### v0.10.1 — 重构 PATCH (XJKNavTabRoute extension 统一映射)
+
+让 v0.10.x 拿到重构 PATCH。
+
+router.dart 里 4 个互相隐式对应的方法 (`FolioRoutes.tabFor` /
+`pathFor` / `_tabFromIndex` / `_indexFromTab`) 都是 `XJKNavTab` ↔
+`String path` ↔ `int shellIndex` 三个角度的映射。
+
+抽 `XJKNavTabRoute` extension 把三角映射放一处:
+- `path` getter (tab → router path)
+- `shellIndex` getter (tab → StatefulShellRoute branch index)
+- `fromShellIndex(int)` (index → tab, 越界兜底 library)
+- `fromLocation(String)` (path → tab, prefix 匹配, 不认识兜底 library)
+- 静态 `tabs` 字段决定 enum 在 shell branch 里的顺序
+
+加 / 删 tab 时只动 enum + 这里, 不再四处改。
+
+`_ShellScaffold` 里 `_tabFromIndex` / `_indexFromTab` 私有方法删除,
+直接用 extension。
+
+新增 `test/nav_tab_route_test.dart` 锁定: path 唯一 + shellIndex
+唯一 + fromShellIndex/shellIndex 双向一致 + 越界兜底 +
+fromLocation 前缀匹配。
+
 ### v0.10.0 — go_router 路由 + Web 深链 (L13)
 
 把原本 IndexedStack + Navigator.push 的导航层替换成 go_router。

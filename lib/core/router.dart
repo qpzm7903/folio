@@ -15,7 +15,8 @@ import '../presentation/widgets_preview/widgets_preview_screen.dart';
 import '../theme/tokens.dart';
 
 /// 4 个底部 tab 的 path —— `/library` / `/display` / `/widgets` / `/settings`,
-/// 跟 [XJKNavTab] 一一对应。
+/// 跟 [XJKNavTab] 一一对应; 加 [XJKNavTabRoute] extension 后 tab ↔ path ↔
+/// shell branch index 三个角度的映射都在 [XJKNavTabRoute] 里。
 class FolioRoutes {
   const FolioRoutes._();
   static const String library = '/library';
@@ -28,25 +29,47 @@ class FolioRoutes {
   static const String editorEdit = '/editor/:id';
   static const String search = '/search';
   static const String tags = '/tags';
+}
 
-  static XJKNavTab tabFor(String location) {
-    if (location.startsWith(display)) return XJKNavTab.display;
-    if (location.startsWith(widgets)) return XJKNavTab.widgetsTab;
-    if (location.startsWith(settings)) return XJKNavTab.settings;
-    return XJKNavTab.library;
+/// 把 tab 跟 router path / shell branch index 绑成一个权威映射。
+///
+/// `tabs` 字段决定 [XJKNavTab.values] 在 [StatefulShellRoute.indexedStack]
+/// 里的 branch 顺序; 增 / 删 tab 时只动 enum + 这里。
+extension XJKNavTabRoute on XJKNavTab {
+  static const List<XJKNavTab> tabs = <XJKNavTab>[
+    XJKNavTab.library,
+    XJKNavTab.display,
+    XJKNavTab.widgetsTab,
+    XJKNavTab.settings,
+  ];
+
+  /// 对应的 go_router top-level path。
+  String get path {
+    switch (this) {
+      case XJKNavTab.library:
+        return FolioRoutes.library;
+      case XJKNavTab.display:
+        return FolioRoutes.display;
+      case XJKNavTab.widgetsTab:
+        return FolioRoutes.widgets;
+      case XJKNavTab.settings:
+        return FolioRoutes.settings;
+    }
   }
 
-  static String pathFor(XJKNavTab tab) {
-    switch (tab) {
-      case XJKNavTab.library:
-        return library;
-      case XJKNavTab.display:
-        return display;
-      case XJKNavTab.widgetsTab:
-        return widgets;
-      case XJKNavTab.settings:
-        return settings;
+  /// 在 [StatefulShellRoute.indexedStack] branch 列表里的下标。
+  int get shellIndex => tabs.indexOf(this);
+
+  static XJKNavTab fromShellIndex(int i) {
+    if (i < 0 || i >= tabs.length) return XJKNavTab.library;
+    return tabs[i];
+  }
+
+  static XJKNavTab fromLocation(String location) {
+    for (final XJKNavTab t in tabs) {
+      if (location.startsWith(t.path)) return t;
     }
+    return XJKNavTab.library;
   }
 }
 
@@ -150,42 +173,16 @@ class _ShellScaffold extends StatelessWidget {
       backgroundColor: t.bgPage,
       body: SafeArea(bottom: false, child: shell),
       bottomNavigationBar: XJKBottomNav(
-        current: _tabFromIndex(shell.currentIndex),
+        current: XJKNavTabRoute.fromShellIndex(shell.currentIndex),
         onChanged: (XJKNavTab tab) {
           shell.goBranch(
-            _indexFromTab(tab),
+            tab.shellIndex,
             // 二次点击当前 tab → 回到根
-            initialLocation: tab == _tabFromIndex(shell.currentIndex),
+            initialLocation:
+                tab == XJKNavTabRoute.fromShellIndex(shell.currentIndex),
           );
         },
       ),
     );
-  }
-
-  static XJKNavTab _tabFromIndex(int i) {
-    switch (i) {
-      case 1:
-        return XJKNavTab.display;
-      case 2:
-        return XJKNavTab.widgetsTab;
-      case 3:
-        return XJKNavTab.settings;
-      case 0:
-      default:
-        return XJKNavTab.library;
-    }
-  }
-
-  static int _indexFromTab(XJKNavTab tab) {
-    switch (tab) {
-      case XJKNavTab.library:
-        return 0;
-      case XJKNavTab.display:
-        return 1;
-      case XJKNavTab.widgetsTab:
-        return 2;
-      case XJKNavTab.settings:
-        return 3;
-    }
   }
 }
