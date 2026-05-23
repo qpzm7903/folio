@@ -4,11 +4,15 @@ import 'package:folio/presentation/widgets/confirm_delete_dialog.dart';
 import 'package:folio/theme/tokens.dart';
 
 Widget _wrap(Widget child) {
+  // XJKTheme 必须放在 Navigator 之上, 否则 showDialog 弹出的 overlay
+  // 在 root navigator 下, 拿不到 XJKTheme.of(ctx), 直接 assert 挂掉。
+  // 生产代码 app.dart 也是这样用 MaterialApp.builder 注入的。
   return MaterialApp(
-    home: XJKTheme(
+    builder: (BuildContext _, Widget? c) => XJKTheme(
       tokens: XJKTokens.paper(),
-      child: Scaffold(body: Builder(builder: (_) => child)),
+      child: c ?? const SizedBox.shrink(),
     ),
+    home: Scaffold(body: Builder(builder: (_) => child)),
   );
 }
 

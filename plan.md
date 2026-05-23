@@ -46,6 +46,17 @@
 
 ## 版本日志
 
+### v0.2.2 — 修 widget 测试
+
+v0.2.1 加的 `test/confirm_delete_dialog_test.dart` 在 CI 上挂了:
+`XJKTheme` 当时放在 `MaterialApp.home` 下, 但 `showDialog` 弹出的
+overlay 走 root Navigator, 不在 home 的祖先链上, 所以
+`XJKTheme.of(ctx)` 的 assert 直接挂掉, dialog 根本没构建, 自然
+找不到"留着 / 取出"按钮。
+
+改成跟生产代码 `app.dart` 一样, 用 `MaterialApp.builder` 把
+XJKTheme 注入到 Navigator 之上, dialog overlay 也能正确拿到 tokens。
+
 ### v0.2.1 — 重构 PATCH (删除对话框 + 搜索状态)
 
 让 v0.2.x 这个 MINOR 拿到重构 PATCH, 解锁下一轮 v0.3.0 新功能。
