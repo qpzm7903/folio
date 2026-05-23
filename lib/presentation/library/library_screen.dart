@@ -11,6 +11,7 @@ import '../widgets/quote_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/tag_row.dart';
 import '../widgets/top_bar.dart';
+import 'search_screen.dart';
 
 /// 金库主屏 —— 对应 screens.jsx 的 `LibraryScreen`.
 class LibraryScreen extends ConsumerWidget {
@@ -30,7 +31,17 @@ class LibraryScreen extends ConsumerWidget {
       children: <Widget>[
         Column(
           children: <Widget>[
-            const XJKTopBar(title: '小金库', subtitle: 'est. 2026'),
+            XJKTopBar(
+              title: '小金库',
+              subtitle: 'est. 2026',
+              actions: <XJKTopBarAction>[
+                XJKTopBarAction(
+                  icon: 'search',
+                  label: '搜索',
+                  onPressed: () => _openSearch(context),
+                ),
+              ],
+            ),
             Expanded(
               child: async.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -84,6 +95,7 @@ class LibraryScreen extends ConsumerWidget {
                           quote: q.text,
                           source: q.tag,
                           date: _fmtDate(q.createdAt),
+                          onTap: () => _openEditExisting(context, q),
                           onLongPress: () => _confirmDelete(context, ref, q),
                         ),
                     ],
@@ -106,6 +118,23 @@ class LibraryScreen extends ConsumerWidget {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext _) => const EditorScreen(),
+      ),
+    );
+  }
+
+  Future<void> _openEditExisting(BuildContext context, Quote q) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext _) => EditorScreen(editing: q),
+      ),
+    );
+  }
+
+  Future<void> _openSearch(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext _) => const SearchScreen(),
+        fullscreenDialog: true,
       ),
     );
   }

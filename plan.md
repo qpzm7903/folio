@@ -9,7 +9,7 @@
 
 终止条件依据：以下所有项全部为 `[x]` 已完成，且最新一次 GitHub Actions workflow 状态为 `success`。
 
-- [ ] L01 · 单机金句金库 (CRUD + 标签 + 搜索)
+- [x] L01 · 单机金句金库 (CRUD + 标签 + 搜索) — v0.2.0
 - [ ] L02 · 全屏屏保模式 (无重复随机轮播 + 切换频率)
 - [ ] L03 · 批量导入 (粘贴大段文本自动分行)
 - [ ] L04 · 主题切换 (青纸 / 林夜) + 跟随系统
@@ -45,6 +45,24 @@
 ---
 
 ## 版本日志
+
+### v0.2.0 — 全文搜索 + 编辑已有金句 (L11 第一刀)
+
+- Library TopBar 加 search 按钮 (skill `screens.jsx:85` 占位的那个 icon),
+  点击 push 全屏 `SearchScreen`。
+- `SearchScreen`: 顶部 SearchBar (44×fg-raised 卡片, 圆角 14px) +
+  实时按 quote.text/tag 大小写不敏感子串过滤 + 命中数提示行
+  ("3 句包含「光」")。空态文案沿用 skill 温和口吻 (".../要不要换一个词？")。
+- 普通 QuoteCard tap 现在进入编辑 (之前没动作)。
+  EditorScreen 改造成可接 `editing: Quote?`,
+  存在时标题变 "改一改" + 右上角"取出"按钮 + 保存调
+  `QuotesNotifier.update`。
+- `lib/presentation/providers.dart` 新增 `QuotesNotifier.update(id, text, tag)`。
+- `lib/presentation/library/search_screen.dart` 新增, ~250 行。
+- 测试: `test/search_test.dart` 覆盖空 query / 子串 / tag / 大小写 / 不命中 / 多命中。
+
+完成长期项: 部分 L01 (搜索) + L11 第一刀 (全文搜索)。
+未做: L11 的"标签管理 + 智能分组" 留给 v0.3.0。
 
 ### v0.1.4 — 重构 PATCH (display Timer + Quote codec)
 

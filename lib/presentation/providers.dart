@@ -111,6 +111,24 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     AppLogger.instance.info('bulk added ${created.length} quotes');
   }
 
+  Future<void> update(String id, String text, String tag) async {
+    final List<Quote> current = state.value ?? <Quote>[];
+    final int idx = current.indexWhere((Quote q) => q.id == id);
+    if (idx < 0) {
+      AppLogger.instance.warning('update id=$id not found, ignoring');
+      return;
+    }
+    final Quote updated = current[idx].copyWith(
+      text: text.trim(),
+      tag: tag.trim(),
+    );
+    final List<Quote> next = List<Quote>.of(current);
+    next[idx] = updated;
+    state = AsyncValue<List<Quote>>.data(next);
+    await _repo.saveAll(next);
+    AppLogger.instance.info('updated quote id=$id');
+  }
+
   Future<void> remove(String id) async {
     final List<Quote> current = state.value ?? <Quote>[];
     final List<Quote> next = current

@@ -3,22 +3,40 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/quote.dart';
 import '../../theme/tokens.dart';
 import '../import/import_sheet.dart';
 import '../providers.dart';
 import '../widgets/top_bar.dart';
 
-/// 新建金句 —— 对应 screens.jsx 的 `EditorScreen`.
+/// 金句编辑屏 —— 对应 screens.jsx 的 `EditorScreen`。
+///
+/// 两种模式:
+/// - 新建: `EditorScreen()`, 标题 "新的一句", 右上角支持批量导入
+/// - 编辑: `EditorScreen(editing: quote)`, 标题 "改一改",
+///   表单预填, 保存时调 `update(id, ...)` 而非 `add`
 class EditorScreen extends ConsumerStatefulWidget {
-  const EditorScreen({super.key});
+  const EditorScreen({this.editing, super.key});
+
+  /// 非空 → 编辑模式。
+  final Quote? editing;
 
   @override
   ConsumerState<EditorScreen> createState() => _EditorScreenState();
 }
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
-  final TextEditingController _text = TextEditingController();
-  final TextEditingController _src = TextEditingController();
+  late final TextEditingController _text;
+  late final TextEditingController _src;
+
+  bool get _isEditing => widget.editing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _text = TextEditingController(text: widget.editing?.text ?? '');
+    _src = TextEditingController(text: widget.editing?.tag ?? '');
+  }
 
   @override
   void dispose() {
@@ -37,13 +55,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         child: Column(
           children: <Widget>[
             XJKTopBar(
-              title: '新的一句',
+              title: _isEditing ? '改一改' : '新的一句',
               actions: <XJKTopBarAction>[
-                XJKTopBarAction(
-                  icon: 'upload',
-                  label: '批量导入',
-                  onPressed: () => _openImport(context),
-                ),
+                if (!_isEditing)
+                  XJKTopBarAction(
+                    icon: 'upload',
+                    label: '批量导入',
+                    onPressed: () => _openImport(context),
+                  ),
+                if (_isEditing)
+                  XJKTopBarAction(
+                    icon: 'trash-2',
+                    label: '取出',
+                    onPressed: _confirmDelete,
+                  ),
                 XJKTopBarAction(
                   icon: 'x',
                   label: '关闭',
@@ -60,7 +85,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     Expanded(
                       child: TextField(
                         controller: _text,
-                        autofocus: true,
+                        autofocus: !_isEditing,
                         maxLines: null,
                         expands: true,
                         textAlignVertical: TextAlignVertical.top,
@@ -125,7 +150,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       opacity: canSave ? 1 : 0.4,
                       child: ElevatedButton(
                         onPressed: canSave ? _save : null,
-                        child: const Text('收入金库'),
+                        child: Text(_isEditing ? '存下来' : '收入金库'),
                       ),
                     ),
                   ],
@@ -139,12 +164,57 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   Future<void> _save() async {
-    await ref.read(quotesProvider.notifier).add(_text.text, _src.text);
-    if (!mounted) return;
     final NavigatorState navigator = Navigator.of(context);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('已收入金库。')));
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    if (_isEditing) {
+      await ref
+          .read(quotesProvider.notifier)
+          .update(widget.editing!.id, _text.text, _src.text);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('已经改好。')));
+    } else {
+      await ref.read(quotesProvider.notifier).add(_text.text, _src.text);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('已收入金库。')));
+    }
+    unawaited(navigator.maybePop());
+  }
+
+  Future<void> _confirmDelete() async {
+    final XJKTokens t = XJKTheme.of(context);
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          backgroundColor: t.bgRaised,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
+          ),
+          content: Text(
+            '从金库取出这句话？',
+            style: TextStyle(
+              fontFamily: XJKTokens.serifDisplay,
+              fontSize: 17,
+              color: t.fg1,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text('留着', style: TextStyle(color: t.fg2)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text('取出', style: TextStyle(color: t.danger)),
+            ),
+          ],
+        );
+      },
+    );
+    if (ok != true) return;
+    final NavigatorState navigator = Navigator.of(context);
+    await ref.read(quotesProvider.notifier).remove(widget.editing!.id);
+    if (!mounted) return;
     unawaited(navigator.maybePop());
   }
 
