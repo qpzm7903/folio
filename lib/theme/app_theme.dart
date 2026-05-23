@@ -165,6 +165,8 @@ ThemeData buildThemeData(XJKTokens t, {required Brightness brightness}) {
       backgroundColor: t.bgRaised,
       surfaceTintColor: Colors.transparent,
       modalBackgroundColor: t.bgRaised,
+      // 桌面/Web 上限宽 640px (skill README.md:169), 手机宽度自然不到这个值。
+      constraints: const BoxConstraints(maxWidth: 640),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(XJKTokens.radiusXl),

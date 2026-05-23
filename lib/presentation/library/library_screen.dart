@@ -8,6 +8,7 @@ import '../editor/editor_screen.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/fab.dart';
+import '../widgets/max_width_body.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/tag_row.dart';
@@ -28,90 +29,96 @@ class LibraryScreen extends ConsumerWidget {
     final String activeTag = ref.watch(activeTagProvider);
     final List<String> tags = ref.watch(tagsProvider);
 
-    return Stack(
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            XJKTopBar(
-              title: '小金库',
-              subtitle: 'est. 2026',
-              actions: <XJKTopBarAction>[
-                XJKTopBarAction(
-                  icon: 'search',
-                  label: '搜索',
-                  onPressed: () => _openSearch(context),
-                ),
-              ],
-            ),
-            Expanded(
-              child: async.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object e, StackTrace _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      '没能读到金库, 再试一次？\n$e',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: t.danger),
+    return MaxWidthBody(
+      child: Stack(
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              XJKTopBar(
+                title: '小金库',
+                subtitle: 'est. 2026',
+                actions: <XJKTopBarAction>[
+                  XJKTopBarAction(
+                    icon: 'search',
+                    label: '搜索',
+                    onPressed: () => _openSearch(context),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: async.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object e, StackTrace _) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        '没能读到金库, 再试一次？\n$e',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: t.danger),
+                      ),
                     ),
                   ),
-                ),
-                data: (List<Quote> quotes) {
-                  if (quotes.isEmpty) return const _LibraryEmpty();
-                  final List<Quote> filtered = activeTag == '全部'
-                      ? quotes
-                      : quotes
-                            .where((Quote q) => q.tag == activeTag)
-                            .toList(growable: false);
-                  if (filtered.isEmpty) {
-                    return _LibraryNoMatch(tag: activeTag);
-                  }
-                  final Quote today = filtered.first;
-                  final List<Quote> rest = filtered.skip(1).toList();
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                    children: <Widget>[
-                      const _HelloHero(),
-                      const SizedBox(height: 12),
-                      QuoteCard(
-                        quote: today.text,
-                        source: today.tag,
-                        date: _fmtDate(today.createdAt),
-                        variant: QuoteCardVariant.featured,
-                        onTap: onOpenDisplay,
-                      ),
-
-                      const SizedBox(height: 12),
-                      SectionHeader(title: '你的金库', count: quotes.length),
-                      TagRow(
-                        tags: tags,
-                        active: activeTag,
-                        onSelect: (String selected) =>
-                            ref.read(activeTagProvider.notifier).state =
-                                selected,
-                      ),
-                      const SizedBox(height: 12),
-                      for (final Quote q in rest)
+                  data: (List<Quote> quotes) {
+                    if (quotes.isEmpty) return const _LibraryEmpty();
+                    final List<Quote> filtered = activeTag == '全部'
+                        ? quotes
+                        : quotes
+                              .where((Quote q) => q.tag == activeTag)
+                              .toList(growable: false);
+                    if (filtered.isEmpty) {
+                      return _LibraryNoMatch(tag: activeTag);
+                    }
+                    final Quote today = filtered.first;
+                    final List<Quote> rest = filtered.skip(1).toList();
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                      children: <Widget>[
+                        const _HelloHero(),
+                        const SizedBox(height: 12),
                         QuoteCard(
-                          quote: q.text,
-                          source: q.tag,
-                          date: _fmtDate(q.createdAt),
-                          onTap: () => _openEditExisting(context, q),
-                          onLongPress: () => _confirmDelete(context, ref, q),
+                          quote: today.text,
+                          source: today.tag,
+                          date: _fmtDate(today.createdAt),
+                          variant: QuoteCardVariant.featured,
+                          onTap: onOpenDisplay,
                         ),
-                    ],
-                  );
-                },
+
+                        const SizedBox(height: 12),
+                        SectionHeader(title: '你的金库', count: quotes.length),
+                        TagRow(
+                          tags: tags,
+                          active: activeTag,
+                          onSelect: (String selected) =>
+                              ref.read(activeTagProvider.notifier).state =
+                                  selected,
+                        ),
+                        const SizedBox(height: 12),
+                        for (final Quote q in rest)
+                          QuoteCard(
+                            quote: q.text,
+                            source: q.tag,
+                            date: _fmtDate(q.createdAt),
+                            onTap: () => _openEditExisting(context, q),
+                            onLongPress: () => _confirmDelete(context, ref, q),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
+            ],
+          ),
+          Positioned(
+            right: 20,
+            bottom: 24 + MediaQuery.of(context).padding.bottom + 64,
+            child: XJKFab(
+              tooltip: '新的一句',
+              onPressed: () => _openEditor(context),
             ),
-          ],
-        ),
-        Positioned(
-          right: 20,
-          bottom: 24 + MediaQuery.of(context).padding.bottom + 64,
-          child: XJKFab(tooltip: '新的一句', onPressed: () => _openEditor(context)),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 

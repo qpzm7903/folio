@@ -22,7 +22,7 @@
 - [ ] L11 · 全文搜索 + 标签管理 + 智能分组
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
 - [ ] L13 · go_router 路由 + Web 深链
-- [ ] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web)
+- [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [ ] L15 · 国际化 (中文为主，预留 en 框架)
 - [ ] L16 · 完整测试覆盖 (单元 + Widget + 集成)
 - [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
@@ -46,6 +46,23 @@
 ---
 
 ## 版本日志
+
+### v0.5.0 — 响应式适配 (L14) max-width 640
+
+按 skill `README.md:167-169` 的硬规则: 桌面/平板 content max-width 640px,
+"we are not a dashboard"; 手机保留 20px safe inset; 屏保 full-bleed。
+
+- 新建 `lib/presentation/widgets/max_width_body.dart`:
+  Align.topCenter + ConstrainedBox(maxWidth: 640) 的薄包装。
+- Library / Editor / Search / Settings / Widgets-preview 5 个屏顶层
+  套 MaxWidthBody。Display 不套, 保持屏保 full-bleed (符合"显示金句独占"
+  的产品意图)。
+- `lib/theme/app_theme.dart` BottomSheetThemeData 加 `constraints:
+  BoxConstraints(maxWidth: 640)`, 让所有 modal sheet (Import / Export /
+  pickTheme / pickCadence) 在桌面 / Web 上自动收窄。
+- BottomNav 不限宽: 跟桌面应用习惯一致, 底栏跨屏。
+
+完成长期项 L14。
 
 ### v0.4.2 — 重构 PATCH (workflow 共用 composite action)
 

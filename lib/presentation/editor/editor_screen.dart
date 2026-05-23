@@ -8,6 +8,7 @@ import '../../theme/tokens.dart';
 import '../import/import_sheet.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
+import '../widgets/max_width_body.dart';
 import '../widgets/top_bar.dart';
 
 /// 金句编辑屏 —— 对应 screens.jsx 的 `EditorScreen`。
@@ -53,112 +54,117 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     return Scaffold(
       backgroundColor: t.bgPage,
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            XJKTopBar(
-              title: _isEditing ? '改一改' : '新的一句',
-              actions: <XJKTopBarAction>[
-                if (!_isEditing)
+        child: MaxWidthBody(
+          child: Column(
+            children: <Widget>[
+              XJKTopBar(
+                title: _isEditing ? '改一改' : '新的一句',
+                actions: <XJKTopBarAction>[
+                  if (!_isEditing)
+                    XJKTopBarAction(
+                      icon: 'upload',
+                      label: '批量导入',
+                      onPressed: () => _openImport(context),
+                    ),
+                  if (_isEditing)
+                    XJKTopBarAction(
+                      icon: 'trash-2',
+                      label: '取出',
+                      onPressed: _confirmDelete,
+                    ),
                   XJKTopBarAction(
-                    icon: 'upload',
-                    label: '批量导入',
-                    onPressed: () => _openImport(context),
+                    icon: 'x',
+                    label: '关闭',
+                    onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                if (_isEditing)
-                  XJKTopBarAction(
-                    icon: 'trash-2',
-                    label: '取出',
-                    onPressed: _confirmDelete,
-                  ),
-                XJKTopBarAction(
-                  icon: 'x',
-                  label: '关闭',
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Expanded(
-                      child: TextField(
-                        controller: _text,
-                        autofocus: !_isEditing,
-                        maxLines: null,
-                        expands: true,
-                        textAlignVertical: TextAlignVertical.top,
-                        onChanged: (_) => setState(() {}),
-                        style: TextStyle(
-                          fontFamily: XJKTokens.serifDisplay,
-                          fontSize: 18,
-                          height: 1.75,
-                          color: t.fg1,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: '写下一句你最近读到的话…',
-                          hintStyle: TextStyle(
+                ],
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          controller: _text,
+                          autofocus: !_isEditing,
+                          maxLines: null,
+                          expands: true,
+                          textAlignVertical: TextAlignVertical.top,
+                          onChanged: (_) => setState(() {}),
+                          style: TextStyle(
                             fontFamily: XJKTokens.serifDisplay,
                             fontSize: 18,
-                            color: t.fgMuted,
+                            height: 1.75,
+                            color: t.fg1,
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              XJKTokens.radiusLg,
+                          decoration: InputDecoration(
+                            hintText: '写下一句你最近读到的话…',
+                            hintStyle: TextStyle(
+                              fontFamily: XJKTokens.serifDisplay,
+                              fontSize: 18,
+                              color: t.fgMuted,
                             ),
-                            borderSide: BorderSide(color: t.border1),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              XJKTokens.radiusLg,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                XJKTokens.radiusLg,
+                              ),
+                              borderSide: BorderSide(color: t.border1),
                             ),
-                            borderSide: BorderSide(color: t.border1),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              XJKTokens.radiusLg,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                XJKTokens.radiusLg,
+                              ),
+                              borderSide: BorderSide(color: t.border1),
                             ),
-                            borderSide: BorderSide(color: t.accent, width: 1.5),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                XJKTokens.radiusLg,
+                              ),
+                              borderSide: BorderSide(
+                                color: t.accent,
+                                width: 1.5,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: t.bgRaised,
                           ),
-                          filled: true,
-                          fillColor: t.bgRaised,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _src,
-                      decoration: InputDecoration(
-                        hintText: '— 出处 / 标签（可留空）',
-                        hintStyle: TextStyle(
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _src,
+                        decoration: InputDecoration(
+                          hintText: '— 出处 / 标签（可留空）',
+                          hintStyle: TextStyle(
+                            fontFamily: XJKTokens.serifItalic,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 14,
+                            color: t.fgMuted,
+                          ),
+                        ),
+                        style: TextStyle(
                           fontFamily: XJKTokens.serifItalic,
                           fontStyle: FontStyle.italic,
                           fontSize: 14,
-                          color: t.fgMuted,
+                          color: t.fg2,
                         ),
                       ),
-                      style: TextStyle(
-                        fontFamily: XJKTokens.serifItalic,
-                        fontStyle: FontStyle.italic,
-                        fontSize: 14,
-                        color: t.fg2,
+                      const SizedBox(height: 16),
+                      Opacity(
+                        opacity: canSave ? 1 : 0.4,
+                        child: ElevatedButton(
+                          onPressed: canSave ? _save : null,
+                          child: Text(_isEditing ? '存下来' : '收入金库'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Opacity(
-                      opacity: canSave ? 1 : 0.4,
-                      child: ElevatedButton(
-                        onPressed: canSave ? _save : null,
-                        child: Text(_isEditing ? '存下来' : '收入金库'),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

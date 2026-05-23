@@ -9,6 +9,7 @@ import '../../theme/tokens.dart';
 import '../editor/editor_screen.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
+import '../widgets/max_width_body.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/xjk_icon.dart';
 
@@ -63,16 +64,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Scaffold(
       backgroundColor: t.bgPage,
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _SearchBar(
-              controller: _q,
-              focus: _focus,
-              onChanged: _onChanged,
-              onCancel: () => Navigator.of(context).maybePop(),
-            ),
-            Expanded(child: _buildBody(all, hits)),
-          ],
+        child: MaxWidthBody(
+          child: Column(
+            children: <Widget>[
+              _SearchBar(
+                controller: _q,
+                focus: _focus,
+                onChanged: _onChanged,
+                onCancel: () => Navigator.of(context).maybePop(),
+              ),
+              Expanded(child: _buildBody(all, hits)),
+            ],
+          ),
         ),
       ),
     );

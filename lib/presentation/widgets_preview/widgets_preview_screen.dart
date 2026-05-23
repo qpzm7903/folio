@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/quote.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../widgets/max_width_body.dart';
 import '../widgets/top_bar.dart';
 
 /// 组件预览屏 —— v0.1 是设计样张, 真实 Android 桌面小组件留到 v0.4 落地。
@@ -20,41 +21,43 @@ class WidgetsPreviewScreen extends ConsumerWidget {
     final Quote? medium = quotes.length > 1 ? quotes[1] : small;
     final Quote? large = quotes.length > 2 ? quotes[2] : small;
 
-    return Column(
-      children: <Widget>[
-        const XJKTopBar(title: '小组件', subtitle: 'widgets'),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-            children: <Widget>[
-              Text(
-                '把金句放到主屏。',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 22,
-                  color: t.fg1,
+    return MaxWidthBody(
+      child: Column(
+        children: <Widget>[
+          const XJKTopBar(title: '小组件', subtitle: 'widgets'),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+              children: <Widget>[
+                Text(
+                  '把金句放到主屏。',
+                  style: TextStyle(
+                    fontFamily: XJKTokens.serifDisplay,
+                    fontSize: 22,
+                    color: t.fg1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '三种尺寸 · v0.4 起会真正接入 Android 桌面。',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifItalic,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                  color: t.fg3,
+                const SizedBox(height: 6),
+                Text(
+                  '三种尺寸 · v0.4 起会真正接入 Android 桌面。',
+                  style: TextStyle(
+                    fontFamily: XJKTokens.serifItalic,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                    color: t.fg3,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              if (small != null) _SmallWidgetMock(quote: small),
-              const SizedBox(height: 16),
-              if (medium != null) _MediumWidgetMock(quote: medium),
-              const SizedBox(height: 16),
-              if (large != null) _LargeWidgetMock(quote: large),
-            ],
+                const SizedBox(height: 24),
+                if (small != null) _SmallWidgetMock(quote: small),
+                const SizedBox(height: 16),
+                if (medium != null) _MediumWidgetMock(quote: medium),
+                const SizedBox(height: 16),
+                if (large != null) _LargeWidgetMock(quote: large),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
