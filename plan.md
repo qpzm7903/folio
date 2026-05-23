@@ -47,6 +47,23 @@
 
 ## 版本日志
 
+### v0.8.1 — 重构 PATCH (SettingsNotifier _apply helper)
+
+让 v0.8.x 拿到重构 PATCH。
+
+`SettingsNotifier` 的 5 个 setter (themeMode / shuffleNoRepeat /
+showAttribution / cadenceMinutes / backgroundImagePath) 都做同样的
+"state = copyWith(...); await _repo.save(state)" 2 行样板, 跟 v0.3.1
+QuotesNotifier 的 `_mutate` 是同一类抽象。
+
+抽 `_apply(AppSettings next)`, 5 个 setter 各缩成 1 行 (差异只是
+copyWith 的具体字段, 现在表达更直接)。
+
+新增 `test/settings_notifier_test.dart`: 用 SharedPreferences mock
+covering setters 都正确更新 state + 重新打开 container 后从 prefs
+正确 load 回来 (验证 _apply 落盘); 单独覆盖 setBackgroundImagePath(null)
+触发的 prefs.remove 路径。
+
 ### v0.8.0 — i18n 框架 (L15)
 
 Flutter 官方 gen-l10n 路线打通, 文案从 inline 字符串迁到 ARB:

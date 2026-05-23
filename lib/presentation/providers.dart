@@ -36,32 +36,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   final SettingsRepository _repo;
 
-  Future<void> setThemeMode(AppThemeMode mode) async {
-    state = state.copyWith(themeMode: mode);
-    await _repo.save(state);
-  }
+  Future<void> setThemeMode(AppThemeMode mode) =>
+      _apply(state.copyWith(themeMode: mode));
 
-  Future<void> setShuffleNoRepeat(bool v) async {
-    state = state.copyWith(shuffleNoRepeat: v);
-    await _repo.save(state);
-  }
+  Future<void> setShuffleNoRepeat(bool v) =>
+      _apply(state.copyWith(shuffleNoRepeat: v));
 
-  Future<void> setShowAttribution(bool v) async {
-    state = state.copyWith(showAttribution: v);
-    await _repo.save(state);
-  }
+  Future<void> setShowAttribution(bool v) =>
+      _apply(state.copyWith(showAttribution: v));
 
-  Future<void> setCadenceMinutes(int v) async {
-    state = state.copyWith(cadenceMinutes: v);
-    await _repo.save(state);
-  }
+  Future<void> setCadenceMinutes(int v) =>
+      _apply(state.copyWith(cadenceMinutes: v));
 
-  Future<void> setBackgroundImagePath(String? path) async {
-    state = state.copyWith(
+  Future<void> setBackgroundImagePath(String? path) => _apply(
+    state.copyWith(
       backgroundImagePath: path,
       clearBackgroundImage: path == null,
-    );
-    await _repo.save(state);
+    ),
+  );
+
+  /// 共用的"写 state + 落盘"流程。5 个 setter 各自需要做的差异只是
+  /// copyWith 的具体字段, 这一行 helper 把样板压到一处。
+  Future<void> _apply(AppSettings next) async {
+    state = next;
+    await _repo.save(next);
   }
 }
 

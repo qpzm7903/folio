@@ -1,6 +1,7 @@
 /// 全局设置 model 与对应枚举。
 ///
 /// 不耦合 [SharedPreferences]; IO 适配在 `settings_repository.dart` 里。
+library;
 
 enum AppThemeMode { system, paper, night }
 
@@ -60,5 +61,24 @@ class AppSettings {
     showAttribution: true,
     cadenceMinutes: 30,
     backgroundImagePath: null,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSettings &&
+          other.themeMode == themeMode &&
+          other.shuffleNoRepeat == shuffleNoRepeat &&
+          other.showAttribution == showAttribution &&
+          other.cadenceMinutes == cadenceMinutes &&
+          other.backgroundImagePath == backgroundImagePath);
+
+  @override
+  int get hashCode => Object.hash(
+    themeMode,
+    shuffleNoRepeat,
+    showAttribution,
+    cadenceMinutes,
+    backgroundImagePath,
   );
 }
