@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/background_image_service.dart';
 import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
@@ -19,7 +20,7 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   /// footer 上的版本标签 —— 跟 pubspec 同步, 手动维护 (每个 MINOR 改一次)。
-  static const String _versionLabel = 'v 0.6';
+  static const String _versionLabel = 'v 0.7';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,10 +107,56 @@ class _RotationSection extends ConsumerWidget {
               onToggle: (bool v) =>
                   ref.read(settingsProvider.notifier).setShowAttribution(v),
             ),
+            SettingRow(
+              label: '背景图片',
+              sub: _bgSubLabel(ref, s.backgroundImagePath),
+              value: s.backgroundImagePath == null ? '默认' : '自定义',
+              onTap: () => _pickBackground(context, ref, s.backgroundImagePath),
+            ),
           ],
         ),
       ],
     );
+  }
+
+  String _bgSubLabel(WidgetRef ref, String? path) {
+    if (!ref.read(backgroundImageServiceProvider).isSupported) {
+      return 'Web 暂不支持自定义';
+    }
+    if (path == null) return '深绿渐变 / 纸纹叠加';
+    return '从相册或文件选';
+  }
+
+  Future<void> _pickBackground(
+    BuildContext context,
+    WidgetRef ref,
+    String? current,
+  ) async {
+    final BackgroundImageService svc = ref.read(backgroundImageServiceProvider);
+    if (!svc.isSupported) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+    final _BgAction? action = await showModalBottomSheet<_BgAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext ctx) =>
+          _BackgroundActionSheet(hasCustom: current != null),
+    );
+    if (action == null) return;
+
+    switch (action) {
+      case _BgAction.pick:
+        final String? path = await svc.pickAndStore();
+        if (path == null) return;
+        await ref.read(settingsProvider.notifier).setBackgroundImagePath(path);
+        messenger.showSnackBar(const SnackBar(content: Text('背景图已换上。')));
+        break;
+      case _BgAction.clear:
+        await svc.clearStored(current);
+        await ref.read(settingsProvider.notifier).setBackgroundImagePath(null);
+        messenger.showSnackBar(const SnackBar(content: Text('已经回到默认背景。')));
+        break;
+    }
   }
 
   Future<void> _pickCadence(
@@ -128,6 +175,39 @@ class _RotationSection extends ConsumerWidget {
     if (next != null) {
       await ref.read(settingsProvider.notifier).setCadenceMinutes(next);
     }
+  }
+}
+
+enum _BgAction { pick, clear }
+
+class _BackgroundActionSheet extends StatelessWidget {
+  const _BackgroundActionSheet({required this.hasCustom});
+  final bool hasCustom;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ListTile(
+            title: const Text(
+              '从相册或文件选一张',
+              style: TextStyle(fontFamily: XJKTokens.serifDisplay),
+            ),
+            onTap: () => Navigator.of(context).pop(_BgAction.pick),
+          ),
+          if (hasCustom)
+            ListTile(
+              title: const Text(
+                '回到默认背景',
+                style: TextStyle(fontFamily: XJKTokens.serifDisplay),
+              ),
+              onTap: () => Navigator.of(context).pop(_BgAction.clear),
+            ),
+        ],
+      ),
+    );
   }
 }
 

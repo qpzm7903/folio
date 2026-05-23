@@ -17,7 +17,7 @@
 - [x] L06 · 本地化日志系统 (`getApplicationSupportDirectory()` 落盘) — v0.1.0
 - [ ] L07 · Android 桌面小组件 (小/中/大三尺寸)
 - [ ] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式
-- [ ] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加)
+- [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
@@ -46,6 +46,32 @@
 ---
 
 ## 版本日志
+
+### v0.7.0 — 自定义背景图 (L09)
+
+skill README.md:105-110 说"screensaver background 是 user-provided —
+that's the whole point"。这版补上。
+
+- 加 `file_selector ^1.0.3` 依赖, 跨平台 (mobile + desktop) 文件选择。
+  Web 暂不支持 (kIsWeb 守护, Settings 入口降级显示提示)。
+- `lib/data/background_image_service.dart`: `pickAndStore()` 弹文件
+  选择器 → readAsBytes → 写入 `getApplicationDocumentsDirectory()/
+  backgrounds/bg-<ts>.<ext>`, 返回稳定 path。这一步是关键: file_selector
+  的 XFile 在 Android (content://) / iOS (PHPicker) / Web (blob)
+  上原始 path 不稳定, 必须复制到 app doc dir 才能扛重启。新选图时
+  会清掉同目录旧文件防止占用累积。
+- `AppSettings.backgroundImagePath: String?` 新字段; `SettingsRepository`
+  持久化到 SharedPreferences。`copyWith` 加 `clearBackgroundImage` 参
+  数显式区分"保留旧值" vs "清空"。
+- DisplayScreen photo 模式: 有用户图 → `Image.file(File(path))` cover
+  + 顶/底 protection gradient (rgba(0,0,0,0.5) → transparent at 30%/70%,
+  严格照 skill README.md:110); 没图 → 现有深绿渐变。Web 强制走渐变
+  (kIsWeb 短路)。
+- Settings 屏 "屏保 / 小组件" 区段加 "背景图片" 行: BottomSheet 提供
+  "从相册或文件选一张" / "回到默认背景" 两个操作; sub 文案根据平台
+  / 当前状态自适应。
+
+完成长期项 L09。
 
 ### v0.6.1 — 重构 PATCH (settings 拆 Section + plan 压缩)
 

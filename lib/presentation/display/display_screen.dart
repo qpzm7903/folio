@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -84,22 +87,56 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
             ? const Color(0xFFF7F8ED).withValues(alpha: 0.7)
             : t.fg3;
 
+        final String? bgPath = settings.backgroundImagePath;
+        final bool hasUserBg = _withPhoto && bgPath != null && !kIsWeb;
+
         return Stack(
           children: <Widget>[
-            // 背景: photo 模式下用深绿渐变模拟; default 沿用 bgPage
-            AnimatedContainer(
-              duration: XJKTokens.durSlow,
-              decoration: BoxDecoration(
-                gradient: _withPhoto
-                    ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: <Color>[t.ink500, t.ink700, t.ink900],
-                      )
-                    : null,
-                color: _withPhoto ? null : t.bgPage,
+            // 背景: 用户图 > 深绿渐变 > bgPage
+            if (hasUserBg)
+              Positioned.fill(
+                child: Image.file(
+                  File(bgPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (BuildContext _, Object __, StackTrace? ___) =>
+                      ColoredBox(color: t.bgPage),
+                ),
+              )
+            else
+              AnimatedContainer(
+                duration: XJKTokens.durSlow,
+                decoration: BoxDecoration(
+                  gradient: _withPhoto
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: <Color>[t.ink500, t.ink700, t.ink900],
+                        )
+                      : null,
+                  color: _withPhoto ? null : t.bgPage,
+                ),
               ),
-            ),
+
+            // Protection gradient —— 用户图必须配,
+            // skill README.md:110 的硬规则, 保证文字可读
+            if (hasUserBg)
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: <double>[0.0, 0.3, 0.7, 1.0],
+                      colors: <Color>[
+                        Color(0x80000000),
+                        Color(0x00000000),
+                        Color(0x00000000),
+                        Color(0x80000000),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
             // Quote 内容 (淡入 + 上漂)
             Positioned.fill(

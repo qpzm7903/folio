@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/logger.dart';
+import '../data/background_image_service.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
@@ -19,6 +20,11 @@ final Provider<QuoteRepository> quoteRepositoryProvider =
     Provider<QuoteRepository>((Ref ref) {
       throw UnimplementedError('overrideWith in ProviderScope');
     });
+
+final Provider<BackgroundImageService> backgroundImageServiceProvider =
+    Provider<BackgroundImageService>(
+      (Ref ref) => const BackgroundImageService(),
+    );
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {
@@ -47,6 +53,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setCadenceMinutes(int v) async {
     state = state.copyWith(cadenceMinutes: v);
+    await _repo.save(state);
+  }
+
+  Future<void> setBackgroundImagePath(String? path) async {
+    state = state.copyWith(
+      backgroundImagePath: path,
+      clearBackgroundImage: path == null,
+    );
     await _repo.save(state);
   }
 }
