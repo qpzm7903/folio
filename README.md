@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.13.4** — bypass drift, native 端持久化退回 SharedPreferences (#5 闪退根治).
+最新版本: **v0.13.5** — 重构 PATCH (拆 legacy_quotes_migration + bootstrap_error_screen).
 长期规划 16/17 (L12 drift 持久化临时打回, 等用户机型/SIGSEGV 真因定位再恢复)。
 
 ## 截图

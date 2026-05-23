@@ -47,6 +47,29 @@
 
 ## 版本日志
 
+### v0.13.5 — 重构 PATCH (legacy_quotes_migration + bootstrap_error_screen)
+
+让 v0.13.x 拿到重构 PATCH。
+
+- **quote_repository.dart 拆分** (103 → 76 行): top-level
+  `_maybeMigrateLegacyJson` 抽到独立 `lib/data/legacy_quotes_migration.dart`
+  的 `LegacyQuotesMigration` 类。理由: 这是个独立关注点 (历史文件格式
+  → 当前存储的一次性迁移), 跟 repo 的 load/save 语义无关; 抽出后 repo
+  文件专注 "接口 + Prefs 实现 + InMemory 兜底" 三件事, 而 migration
+  自身可以独立单测 (旧文件不存在 / 存在 + prefs 空 / prefs 已有 / 旧文件
+  损坏 4 个分支), 不必走真实 SharedPreferences/path_provider mock 链。
+- **main.dart 拆分** (98 → 56 行): 内联的 `_BootstrapErrorApp` 抽到
+  `lib/presentation/bootstrap_error_screen.dart` 的 `BootstrapErrorScreen`
+  公开 widget。理由: main.dart 应该只关心 "process entry + 全局错误兜底
+  路由 + runApp" 三件事; 错误屏的渲染细节是 UI 关注点, 跟 presentation/
+  目录的其它屏并列。抽出后 BootstrapErrorScreen 还能在 widget book / 设计
+  review 时单独 preview。
+- **测试**: 新增 `test/legacy_quotes_migration_test.dart` 用 `_FakePathProvider`
+  (PathProviderPlatform.instance override) + temp dir 锁 4 个不变量;
+  in_memory test group 标题更新, 不再写"drift 失败兜底" (已过时)。
+
+不动业务行为。
+
 ### v0.13.4 — bypass drift, native 走 prefs (Issue #5)
 
 用户反馈 v0.13.2 APK 仍闪退 (Issue #5)。我 v0.13.1 装的
@@ -158,35 +181,7 @@ field, `$2` 是空字符串 → 5 个平台产物落地都叫 `folio--<platform>
 
 不动 UI, 无新增 skill 参考。
 
-### v0.13.0 — drift 持久化迁移 (L12)
-
-最后一项长期规划落地。Native 端持久化从"JSON 文件"升级到 SQLite。
-
-- 加 `drift ^2.20.0` + `sqlite3_flutter_libs ^0.5.24` + dev:
-  `drift_dev` / `build_runner`
-- `lib/data/drift/quotes_database.dart`:
-  - 表声明 `Quotes extends Table`, `@DataClassName('QuoteRow')`
-    避开跟业务 `Quote` 重名
-  - `QuotesDatabase` 提供 `openDefault()` (lazy `getApplicationSupportDirectory()/quotes.sqlite`)
-    + `memory()` (in-memory for 测试)
-  - `loadAll()` 按 createdAt desc 排; `saveAll()` transaction + batch insertAll
-    清空再写
-- `lib/data/drift_quote_repository.dart`: 实现 [QuoteRepository] 接口,
-  首次 `loadAll` 时 if drift 空 + `quotes.json` 存在 → 把 JSON 解析
-  导入 + rename 旧文件 `.migrated-<ts>` 备份, 不直接删 (用户能恢复)。
-- `buildQuoteRepository`: native → `DriftQuoteRepository` (含迁移),
-  web → 仍走 `_PrefsQuoteRepository` (drift web 需要 sqlite.wasm,
-  留 v0.14+ 单独处理)。`_FileQuoteRepository` 死代码删除。
-- CI: `flutter-setup` composite action 在 `pub get` 后加 step,
-  if `drift_dev` 在 deps 里则跑 `dart run build_runner build
-  --delete-conflicting-outputs` 生成 *.g.dart。
-- `.gitignore` 加 `*.drift.dart` (drift v2 部分用 .drift.dart 后缀)。
-- `test/drift_quotes_database_test.dart`: in-memory db 覆盖空库 /
-  双向 / 整组替换 / 默认 tag 四个分支。
-
-完成 L12。**长期规划 17 项全部 [x]**, 终止条件之一满足。
-
-### 早期版本汇总 (v0.1.0 ~ v0.12.1)
+### 早期版本汇总 (v0.1.0 ~ v0.13.0)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -297,3 +292,10 @@ intl 数据 → SharedPreferences → QuoteRepository → ProviderScope
 overrides → runApp" 抽到 `lib/core/bootstrap.dart` 的 `Bootstrap.
 initialize()`, 返回 `List<Override>` 给 main 自己拼 ProviderScope,
 让集成测试 / 未来多入口能复用前 5 步; main.dart 缩成 4 行。
+
+**v0.13.0** drift 持久化迁移 (L12 首次尝试): 加 drift ^2.20.0 +
+sqlite3_flutter_libs ^0.5.24 + dev drift_dev + build_runner; native 端
+持久化从 quotes.json 升级到 SQLite, 启动时一次性 JSON → drift 迁移 +
+rename 备份; Web 仍走 SharedPreferences。L12 在 v0.13.0 标 [x] 但
+v0.13.4 因 Issue #5 native SIGSEGV 切除 drift 后打回 [ ], drift 路径
+完全删除等真因定位后再以 v0.14+ 重新引入。

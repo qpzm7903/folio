@@ -3,7 +3,7 @@ import 'package:folio/data/quote.dart';
 import 'package:folio/data/quote_repository.dart';
 
 void main() {
-  group('InMemoryQuoteRepository (drift 失败兜底, v0.13.1 修复 #1)', () {
+  group('InMemoryQuoteRepository (兜底实现, v0.13.4 起仅供测试 / prefs 失败兜底)', () {
     Quote mk(String id, String text) =>
         Quote(id: id, text: text, tag: '', createdAt: DateTime(2026, 1, 1));
 
