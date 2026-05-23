@@ -20,7 +20,7 @@
 - [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
-- [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
+- [x] L12 · drift 持久化迁移 (替换 JSON 文件存储) — v0.13.0 (native 走 drift + sqlite3, 一次性 JSON → SQLite 迁移; Web 仍走 SharedPreferences)
 - [x] L13 · go_router 路由 + Web 深链 — v0.10.0 (StatefulShellRoute + URL 深链)
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
@@ -46,6 +46,34 @@
 ---
 
 ## 版本日志
+
+### v0.13.0 — drift 持久化迁移 (L12)
+
+最后一项长期规划落地。Native 端持久化从"JSON 文件"升级到 SQLite。
+
+- 加 `drift ^2.20.0` + `sqlite3_flutter_libs ^0.5.24` + dev:
+  `drift_dev` / `build_runner`
+- `lib/data/drift/quotes_database.dart`:
+  - 表声明 `Quotes extends Table`, `@DataClassName('QuoteRow')`
+    避开跟业务 `Quote` 重名
+  - `QuotesDatabase` 提供 `openDefault()` (lazy `getApplicationSupportDirectory()/quotes.sqlite`)
+    + `memory()` (in-memory for 测试)
+  - `loadAll()` 按 createdAt desc 排; `saveAll()` transaction + batch insertAll
+    清空再写
+- `lib/data/drift_quote_repository.dart`: 实现 [QuoteRepository] 接口,
+  首次 `loadAll` 时 if drift 空 + `quotes.json` 存在 → 把 JSON 解析
+  导入 + rename 旧文件 `.migrated-<ts>` 备份, 不直接删 (用户能恢复)。
+- `buildQuoteRepository`: native → `DriftQuoteRepository` (含迁移),
+  web → 仍走 `_PrefsQuoteRepository` (drift web 需要 sqlite.wasm,
+  留 v0.14+ 单独处理)。`_FileQuoteRepository` 死代码删除。
+- CI: `flutter-setup` composite action 在 `pub get` 后加 step,
+  if `drift_dev` 在 deps 里则跑 `dart run build_runner build
+  --delete-conflicting-outputs` 生成 *.g.dart。
+- `.gitignore` 加 `*.drift.dart` (drift v2 部分用 .drift.dart 后缀)。
+- `test/drift_quotes_database_test.dart`: in-memory db 覆盖空库 /
+  双向 / 整组替换 / 默认 tag 四个分支。
+
+完成 L12。**长期规划 17 项全部 [x]**, 终止条件之一满足。
 
 ### v0.12.1 — 重构 PATCH (Bootstrap helper)
 

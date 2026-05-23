@@ -1,76 +1,38 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/logger.dart';
 import '../core/seed_quotes.dart';
+import 'drift_quote_repository_stub.dart'
+    if (dart.library.io) 'drift_quote_repository_io.dart'
+    as drift_impl;
 import 'quote.dart';
 import 'quote_codec.dart';
 
-/// Quote 仓储 —— JSON 持久化 (v0.1.x 简化方案), 后续 MINOR 切到 drift。
+/// Quote 仓储 —— 抽象接口。
 ///
-/// 存储位置:
-/// - 非 Web: `getApplicationSupportDirectory()/quotes.json`
-/// - Web: 走 [SharedPreferences] (浏览器没有文件 IO)
+/// - **Native** (Android / iOS / desktop): `DriftQuoteRepository` (drift + sqlite3)
+/// - **Web**: [_PrefsQuoteRepository] (SharedPreferences; drift web 留 v0.14+)
 abstract class QuoteRepository {
   Future<List<Quote>> loadAll();
   Future<void> saveAll(List<Quote> quotes);
 }
 
 /// 工厂入口 —— 自动按平台选择实现。
+///
+/// 通过 conditional import 把 dart:io/drift/sqlite3 的链路完全隔离到
+/// `drift_quote_repository_io.dart`, web build (dart2js) 只会解析
+/// `drift_quote_repository_stub.dart`, 不会触达 dart:ffi。
 Future<QuoteRepository> buildQuoteRepository() async {
   if (kIsWeb) {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return _PrefsQuoteRepository(prefs);
   }
-  final Directory dir = await getApplicationSupportDirectory();
-  return _FileQuoteRepository(File('${dir.path}/quotes.json'));
+  return drift_impl.buildDriftQuoteRepository();
 }
 
 const String _kPrefsKey = 'folio.quotes.v1';
-
-/// 装载入口: 解析 [raw], 失败时记日志并 fallback 到种子数据。
-List<Quote> _decodeOrSeed(String? raw, {required String context}) {
-  if (raw == null || raw.isEmpty) return buildSeedQuotes();
-  return QuoteCodec.tryDecode(raw, context: context) ?? buildSeedQuotes();
-}
-
-class _FileQuoteRepository implements QuoteRepository {
-  _FileQuoteRepository(this.file);
-
-  final File file;
-
-  @override
-  Future<List<Quote>> loadAll() async {
-    try {
-      if (!file.existsSync()) {
-        final List<Quote> seed = buildSeedQuotes();
-        await saveAll(seed);
-        AppLogger.instance.info(
-          'quotes.json missing, seeded ${seed.length} quotes',
-        );
-        return seed;
-      }
-      final String raw = await file.readAsString();
-      return _decodeOrSeed(raw, context: 'load quotes.json');
-    } catch (e, st) {
-      AppLogger.instance.handle(e, st, 'failed to load quotes.json');
-      return buildSeedQuotes();
-    }
-  }
-
-  @override
-  Future<void> saveAll(List<Quote> quotes) async {
-    try {
-      await file.writeAsString(QuoteCodec.encode(quotes), flush: true);
-    } catch (e, st) {
-      AppLogger.instance.handle(e, st, 'failed to write quotes.json');
-    }
-  }
-}
 
 class _PrefsQuoteRepository implements QuoteRepository {
   _PrefsQuoteRepository(this.prefs);
@@ -85,7 +47,9 @@ class _PrefsQuoteRepository implements QuoteRepository {
       await saveAll(seed);
       return seed;
     }
-    return _decodeOrSeed(raw, context: 'load prefs quotes');
+    if (raw.isEmpty) return buildSeedQuotes();
+    return QuoteCodec.tryDecode(raw, context: 'load prefs quotes') ??
+        buildSeedQuotes();
   }
 
   @override

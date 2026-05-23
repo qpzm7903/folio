@@ -33,3 +33,12 @@ runs:
     - name: Pub get
       shell: bash
       run: flutter pub get
+
+    - name: Build runner codegen (drift, etc.)
+      shell: bash
+      # drift_dev 等 dev_deps 需要 build_runner 生成 *.g.dart;
+      # 没用到 codegen 的项目这步是 no-op (检查 drift_dev 是否在 deps 里)。
+      run: |
+        if grep -q "^  drift_dev:" pubspec.yaml; then
+          dart run build_runner build --delete-conflicting-outputs
+        fi

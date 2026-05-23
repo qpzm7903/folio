@@ -51,10 +51,11 @@ Thumbs.db
 # Web
 lib/generated_plugin_registrant.dart
 
-# Generated
+# Generated (build_runner output — CI 上 `dart run build_runner build` 自动生成)
 *.g.dart
 *.freezed.dart
 *.mocks.dart
+*.drift.dart
 
 # flutter gen-l10n 生成的本地化代码 —— CI 上 `flutter pub get` 自动生成
 lib/l10n/generated/
