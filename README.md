@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.10.1** — 重构 (XJKNavTabRoute extension 统一 tab/path/index 映射).
+最新版本: **v0.11.0** — Android 桌面小组件 (L07): home_widget 同步 + 三尺寸 RemoteViews + CI 自动注入 native files.
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图

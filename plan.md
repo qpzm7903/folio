@@ -15,7 +15,7 @@
 - [x] L04 · 主题切换 (青纸 / 林夜) + 跟随系统 — v0.1.0
 - [x] L05 · 自托管 Noto Serif SC + EB Garamond 字体 (禁止 Google Fonts CDN) — v0.1.0 (CI 拉取, `assets/fonts/`)
 - [x] L06 · 本地化日志系统 (`getApplicationSupportDirectory()` 落盘) — v0.1.0
-- [ ] L07 · Android 桌面小组件 (小/中/大三尺寸)
+- [x] L07 · Android 桌面小组件 (小/中/大三尺寸) — v0.11.0 (Dart home_widget 同步 + native RemoteViews/AppWidgetProvider 模板, CI 自动注入)
 - [ ] L08 · iOS 桌面小组件 + 全平台屏保 / 锁屏样式
 - [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
@@ -46,6 +46,41 @@
 ---
 
 ## 版本日志
+
+### v0.11.0 — Android 桌面小组件 (L07)
+
+L07 落地。
+
+**Dart side** (`lib/data/widget_sync_service.dart`):
+- 用 `home_widget ^0.7.0` plugin 的 `HomeWidget.saveWidgetData` /
+  `updateWidget` 把"今日金句" (`todayQuote` / `todayTag`) 写到 widget
+  共享存储, 触发 native AppWidgetProvider 刷新。
+- `WidgetSyncService.configure()` 在 main 启动时调一次; `syncToday(Quote?)`
+  在 quotes 变化时调。
+- Web / 非 Android iOS 平台 → no-op (kIsWeb / Platform 守护)。
+- `FolioApp` 改 ConsumerStatefulWidget, `ref.listen<AsyncValue<List<Quote>>>`
+  监听 quotes provider, 第一句变化时调 syncToday。
+
+**Native template** (`docs/android_widget/`):
+- 三尺寸 RemoteViews 布局 (小 1x1 / 中 2x1 / 大 2x2), 按 cell 尺寸
+  动态选 layout —— 单一 `QuoteWidgetProvider` 覆盖三种尺寸。
+- 颜色对照 XJK token (`xjk_bg_raised` / `xjk_fg_1` / `xjk_mark` 等)
+  hex 翻译, 跟 `lib/theme/tokens.dart` 同步。
+- 大尺寸用 leaf-700 → dark-quote-bg 渐变, 跟 LibraryScreen 的
+  featured quote card 视觉一致。
+- `AndroidManifest_widget_fragment.xml` 提供 receiver registration,
+  `tool/inject_android_widget.sh` 在 CI `flutter create` 后 sed/python
+  注入到 `android/app/src/main/AndroidManifest.xml` 的 `</application>`
+  之前。
+
+**CI workflow**: `build-android` job 加 step
+`bash tool/inject_android_widget.sh` 在 `flutter-setup` 之后、
+`flutter build apk` 之前。其他平台 (web/linux/windows/macos) 不需要这步。
+
+**Caveat**: CI 只验证 build pass; widget 真机渲染需要用户在 Android
+桌面长按 → "小组件" → 拖动添加 (Dart side / native code 已就位)。
+
+完成 L07。
 
 ### v0.10.1 — 重构 PATCH (XJKNavTabRoute extension 统一映射)
 

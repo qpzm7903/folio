@@ -9,6 +9,7 @@ import '../data/background_image_service.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
+import '../data/widget_sync_service.dart';
 
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
 final Provider<SharedPreferences> sharedPreferencesProvider =
@@ -25,6 +26,9 @@ final Provider<BackgroundImageService> backgroundImageServiceProvider =
     Provider<BackgroundImageService>(
       (Ref ref) => const BackgroundImageService(),
     );
+
+final Provider<WidgetSyncService> widgetSyncServiceProvider =
+    Provider<WidgetSyncService>((Ref ref) => const WidgetSyncService());
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {

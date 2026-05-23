@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XJK design tokens needed by widget RemoteViews. 跟 lib/theme/tokens.dart 同步。 -->
+<resources>
+    <color name="xjk_bg_raised">#FBFCF3</color>
+    <color name="xjk_fg_1">#1D2A1F</color>
+    <color name="xjk_fg_3">#5E7263</color>
+    <color name="xjk_mark">#B8A866</color>
+    <color name="xjk_mark_soft">#33B8A866</color>
+    <color name="xjk_border_1">#CDD4B6</color>
+    <color name="xjk_leaf_700">#4A6B35</color>
+    <color name="xjk_dark_quote_bg">#2C3D27</color>
+    <color name="xjk_dark_quote_text">#EDF2DC</color>
+</resources>

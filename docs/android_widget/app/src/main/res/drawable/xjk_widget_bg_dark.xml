@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色大组件背景: leaf-700 → dark-quote-bg 渐变 + radius xl -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:startColor="@color/xjk_leaf_700"
+        android:endColor="@color/xjk_dark_quote_bg"
+        android:angle="135"/>
+    <corners android:radius="22dp"/>
+</shape>

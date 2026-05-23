@@ -27,7 +27,7 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   /// footer 上的版本标签 —— 跟 pubspec 同步, 手动维护 (每个 MINOR 改一次)。
-  static const String _versionLabel = 'v 0.10';
+  static const String _versionLabel = 'v 0.11';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

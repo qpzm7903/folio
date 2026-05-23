@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">小金库 · 今日金句</string>
+    <string name="widget_brand">小金库</string>
+    <string name="widget_brand_seal">金</string>
+    <string name="widget_default_quote">把你今天读到的一句话留下来。</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "金" 印背景: bamboo soft 圆 (浅色 widget 用) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/xjk_mark_soft"/>
+</shape>

@@ -1,0 +1,14 @@
+<!--
+  追加到 android/app/src/main/AndroidManifest.xml 的 <application> 节点内。
+  CI 的 inject_android_widget.sh 会用 sed 把这个 fragment 插到 </application> 之前。
+-->
+<receiver
+    android:name="app.folio.widget.QuoteWidgetProvider"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/quote_widget_info" />
+</receiver>

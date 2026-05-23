@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小尺寸 (1x1, ~160dp): 顶部"金"印 + 一段截断金句 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/xjk_widget_bg_light">
+
+    <TextView
+        android:id="@+id/widget_seal"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="@drawable/xjk_widget_seal_bg"
+        android:gravity="center"
+        android:text="@string/widget_brand_seal"
+        android:textColor="@color/xjk_mark"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/widget_quote"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:lineSpacingMultiplier="1.6"
+        android:text="@string/widget_default_quote"
+        android:textColor="@color/xjk_fg_1"
+        android:textSize="12sp"/>
+</LinearLayout>
