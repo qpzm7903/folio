@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.12.0** — iOS 桌面小组件 (L08): Dart home_widget iOSName + SwiftUI WidgetKit 三尺寸模板 (IPA 需用户证书).
+最新版本: **v0.12.1** — 重构 (Bootstrap helper, main.dart 拆出可复用的进程初始化).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图

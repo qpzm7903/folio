@@ -47,6 +47,28 @@
 
 ## 版本日志
 
+### v0.12.1 — 重构 PATCH (Bootstrap helper)
+
+让 v0.12.x 拿到重构 PATCH。
+
+`main.dart` 原本把"ensureInitialized → logger init → intl 数据 →
+SharedPreferences → QuoteRepository → ProviderScope overrides → runApp"
+塞在一个函数里。集成测试或者将来的多入口 (e.g. CLI tool, 单独
+benchmark) 没法复用前 5 步。
+
+抽到 `lib/core/bootstrap.dart`:
+- `Bootstrap.initialize()` 返回 `List<Override>`, 调用方负责拼
+  `ProviderScope` + `runApp`
+- 注释里写明顺序为什么重要 (logger 必须先于 intl/prefs 起来,
+  否则中间报错没人记)
+- main.dart 缩成 4 行: bootstrap → runApp
+
+新增 `test/bootstrap_test.dart`: 验证返回 overrides 含
+sharedPreferencesProvider + quoteRepositoryProvider, 且多次
+initialize 幂等不互相破坏。
+
+不动业务行为。
+
 ### v0.12.0 — iOS 桌面小组件 (L08)
 
 L08 落地 (与 L07 镜像)。
