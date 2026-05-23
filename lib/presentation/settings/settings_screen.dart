@@ -5,6 +5,7 @@ import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/max_width_body.dart';
+import '../widgets/option_picker.dart';
 import '../widgets/setting_row.dart';
 import '../widgets/top_bar.dart';
 import 'export_import_sheets.dart';
@@ -141,27 +142,13 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     AppThemeMode current,
   ) async {
-    final AppThemeMode? next = await showModalBottomSheet<AppThemeMode>(
+    final AppThemeMode? next = await showOptionPicker<AppThemeMode>(
       context: context,
-      showDragHandle: true,
-      builder: (BuildContext ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              for (final AppThemeMode mode in AppThemeMode.values)
-                ListTile(
-                  title: Text(
-                    mode.displayLabel,
-                    style: const TextStyle(fontFamily: XJKTokens.serifDisplay),
-                  ),
-                  trailing: current == mode ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(ctx).pop(mode),
-                ),
-            ],
-          ),
-        );
-      },
+      current: current,
+      options: <PickerOption<AppThemeMode>>[
+        for (final AppThemeMode m in AppThemeMode.values)
+          (value: m, label: m.displayLabel),
+      ],
     );
     if (next != null) {
       await ref.read(settingsProvider.notifier).setThemeMode(next);
@@ -173,27 +160,13 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     int current,
   ) async {
-    final int? next = await showModalBottomSheet<int>(
+    final int? next = await showOptionPicker<int>(
       context: context,
-      showDragHandle: true,
-      builder: (BuildContext ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              for (final int m in <int>[5, 15, 30, 60, 120, 240])
-                ListTile(
-                  title: Text(
-                    '每 $m 分钟换一句',
-                    style: const TextStyle(fontFamily: XJKTokens.serifDisplay),
-                  ),
-                  trailing: current == m ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(ctx).pop(m),
-                ),
-            ],
-          ),
-        );
-      },
+      current: current,
+      options: <PickerOption<int>>[
+        for (final int m in const <int>[5, 15, 30, 60, 120, 240])
+          (value: m, label: '每 $m 分钟换一句'),
+      ],
     );
     if (next != null) {
       await ref.read(settingsProvider.notifier).setCadenceMinutes(next);

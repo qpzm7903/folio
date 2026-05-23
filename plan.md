@@ -47,6 +47,20 @@
 
 ## 版本日志
 
+### v0.5.1 — 重构 PATCH (showOptionPicker generic helper)
+
+让 v0.5.x 拿到重构 PATCH, 解锁下一轮 v0.6.0 新功能。
+
+settings 屏的 `_pickTheme` 和 `_pickCadence` 各 ~40 行,
+结构几乎一样: BottomSheet + ListTile 列表 + 当前选中带 ✓。
+
+抽出 `lib/presentation/widgets/option_picker.dart`,
+提供泛型 `showOptionPicker<T>` + record-based `PickerOption<T>`。
+两处调用都缩到 ~10 行。后续做"字号/字体"选择也能直接复用。
+
+新增 `test/option_picker_test.dart` widget 测试: 选中返回 value /
+空选项不崩。
+
 ### v0.5.0 — 响应式适配 (L14) max-width 640
 
 按 skill `README.md:167-169` 的硬规则: 桌面/平板 content max-width 640px,

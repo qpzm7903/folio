@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.5.0** — 响应式适配 (桌面 / Web 上 content max-width 640px).
+最新版本: **v0.5.1** — 重构 (settings picker 抽 generic showOptionPicker helper).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图
