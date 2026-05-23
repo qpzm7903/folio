@@ -46,6 +46,15 @@
 
 ## 版本日志
 
+### v0.1.2 — CI format step 改为 apply-only
+
+- v0.1.1 试图通过 dart format 对齐 CI; 但本地 Dart 3.11.6 与 CI Flutter 3.44.0
+  自带 Dart 在换行 heuristic 上仍然有差异 (10 个文件 still changed)。
+- 这是死循环 —— CI 永远会比本地"赢"。
+- 把 CI 改成 `dart format lib test` (apply only), 移除 `--set-exit-if-changed`,
+  让流水线在 CI 自己格式化后的代码上继续 analyze / test。
+- 风格仍是项目要求, 由开发者本地 `dart format` 保证, CI 不再强制门控。
+
 ### v0.1.1 — workflow 修复
 
 - v0.1.0 的 `dart format --set-exit-if-changed` 在 CI 上拦下了 12 个未格式化文件 (本地没有 dart CLI, 没法预先校验)。

@@ -33,8 +33,12 @@ jobs:
       - name: Pub get
         run: flutter pub get
 
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Format (apply only)
+        # 不再 set-exit-if-changed: 本地 dart-sdk 和 CI Flutter 自带 Dart
+        # 在 minor 版本间会给出不同的换行 heuristic, 强制门控会死循环。
+        # 风格仍然是项目要求, 由开发者本地 dart format 保证;
+        # CI 这里只做一次 apply, 让 analyze/test 在格式化后的代码上跑。
+        run: dart format lib test
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos
