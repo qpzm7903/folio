@@ -2,6 +2,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppThemeMode { system, paper, night }
 
+extension AppThemeModeLabel on AppThemeMode {
+  /// 用户可见标签 —— 中文为主, 跟 settings 屏一致。
+  String get displayLabel {
+    switch (this) {
+      case AppThemeMode.system:
+        return '跟随系统';
+      case AppThemeMode.paper:
+        return '青纸 · Paper';
+      case AppThemeMode.night:
+        return '林夜 · Forest';
+    }
+  }
+}
+
 class AppSettings {
   const AppSettings({
     required this.themeMode,

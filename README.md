@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.3.0** — 导出 / 导入 (剪贴板 JSON 跨设备迁移).
+最新版本: **v0.3.1** — 重构 (QuotesNotifier mutate helper + ThemeMode label extension).
 功能上等价于 v0.1.0: 首版核心金库 + 屏保 + 主题切换 + 批量导入。
 
 ## 截图

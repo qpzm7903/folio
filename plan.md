@@ -46,6 +46,23 @@
 
 ## 版本日志
 
+### v0.3.1 — 重构 PATCH (QuotesNotifier mutate + ThemeMode label)
+
+让 v0.3.x 拿到重构 PATCH, 解锁下一轮 v0.4.0 新功能。
+
+- `QuotesNotifier` 的 4 个 mutate 方法 (add / addMany / update / remove)
+  都有同样的"读 current → 算 next → state = AsyncValue.data(next) →
+  repo.saveAll → log"5 行样板。抽 `_mutate({log, transform})` helper,
+  4 个方法各只声明 transform。
+- `AppThemeMode` 增加 `displayLabel` extension, 把"system → 跟随系统 /
+  paper → 青纸 · Paper / night → 林夜 · Forest"这条映射放到 model 旁边。
+  原本 settings_screen 里两处 (label 显示 + picker bottom sheet) 各
+  hardcode 一遍, 现在都改用 extension。Picker 直接遍历
+  `AppThemeMode.values` 而不是手维护 tuple list, 新增枚举值时不会漏。
+- 新增 `test/theme_mode_label_test.dart` 锁定映射稳定 (settings 屏依赖)。
+
+不动业务行为。
+
 ### v0.3.0 — 导出 / 导入 (L10)
 
 Settings 屏新增"导入与导出"区段, 两个 SettingRow:

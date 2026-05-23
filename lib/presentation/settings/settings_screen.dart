@@ -17,19 +17,7 @@ class SettingsScreen extends ConsumerWidget {
     final XJKTokens t = XJKTheme.of(context);
     final AppSettings s = ref.watch(settingsProvider);
     final int quoteCount = ref.watch(quotesProvider).asData?.value.length ?? 0;
-
-    String themeLabel;
-    switch (s.themeMode) {
-      case AppThemeMode.system:
-        themeLabel = '跟随系统';
-        break;
-      case AppThemeMode.paper:
-        themeLabel = '青纸 · Paper';
-        break;
-      case AppThemeMode.night:
-        themeLabel = '林夜 · Forest';
-        break;
-    }
+    final String themeLabel = s.themeMode.displayLabel;
 
     return Column(
       children: <Widget>[
@@ -158,19 +146,14 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              for (final (AppThemeMode, String) item
-                  in const <(AppThemeMode, String)>[
-                    (AppThemeMode.system, '跟随系统'),
-                    (AppThemeMode.paper, '青纸 · Paper'),
-                    (AppThemeMode.night, '林夜 · Forest'),
-                  ])
+              for (final AppThemeMode mode in AppThemeMode.values)
                 ListTile(
                   title: Text(
-                    item.$2,
+                    mode.displayLabel,
                     style: const TextStyle(fontFamily: XJKTokens.serifDisplay),
                   ),
-                  trailing: current == item.$1 ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(ctx).pop(item.$1),
+                  trailing: current == mode ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(ctx).pop(mode),
                 ),
             ],
           ),

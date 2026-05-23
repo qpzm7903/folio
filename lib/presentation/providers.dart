@@ -76,21 +76,19 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   }
 
   Future<void> add(String text, String tag) async {
-    final List<Quote> current = state.value ?? <Quote>[];
     final Quote q = Quote(
       id: _newId(),
       text: text.trim(),
       tag: tag.trim(),
       createdAt: DateTime.now(),
     );
-    final List<Quote> next = <Quote>[q, ...current];
-    state = AsyncValue<List<Quote>>.data(next);
-    await _repo.saveAll(next);
-    AppLogger.instance.info('added quote id=${q.id}');
+    await _mutate(
+      log: 'added quote id=${q.id}',
+      transform: (List<Quote> cur) => <Quote>[q, ...cur],
+    );
   }
 
   Future<void> addMany(Iterable<String> texts, {String tag = ''}) async {
-    final List<Quote> current = state.value ?? <Quote>[];
     final DateTime now = DateTime.now();
     int i = 0;
     final List<Quote> created = <Quote>[
@@ -100,19 +98,19 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
             id: _newId(suffix: i++),
             text: t.trim(),
             tag: tag.trim(),
-            // 让批量导入的句子保持 1 秒间隔, 排序时不全部并列
+            // 让批量导入的句子保持毫秒级间隔, 排序时不全部并列
             createdAt: now.add(Duration(milliseconds: i)),
           ),
     ];
     if (created.isEmpty) return;
-    final List<Quote> next = <Quote>[...created.reversed, ...current];
-    state = AsyncValue<List<Quote>>.data(next);
-    await _repo.saveAll(next);
-    AppLogger.instance.info('bulk added ${created.length} quotes');
+    await _mutate(
+      log: 'bulk added ${created.length} quotes',
+      transform: (List<Quote> cur) => <Quote>[...created.reversed, ...cur],
+    );
   }
 
   Future<void> update(String id, String text, String tag) async {
-    final List<Quote> current = state.value ?? <Quote>[];
+    final List<Quote> current = state.value ?? const <Quote>[];
     final int idx = current.indexWhere((Quote q) => q.id == id);
     if (idx < 0) {
       AppLogger.instance.warning('update id=$id not found, ignoring');
@@ -122,21 +120,36 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
       text: text.trim(),
       tag: tag.trim(),
     );
-    final List<Quote> next = List<Quote>.of(current);
-    next[idx] = updated;
-    state = AsyncValue<List<Quote>>.data(next);
-    await _repo.saveAll(next);
-    AppLogger.instance.info('updated quote id=$id');
+    await _mutate(
+      log: 'updated quote id=$id',
+      transform: (List<Quote> cur) {
+        final List<Quote> next = List<Quote>.of(cur);
+        final int now = next.indexWhere((Quote q) => q.id == id);
+        if (now >= 0) next[now] = updated;
+        return next;
+      },
+    );
   }
 
   Future<void> remove(String id) async {
-    final List<Quote> current = state.value ?? <Quote>[];
-    final List<Quote> next = current
-        .where((Quote q) => q.id != id)
-        .toList(growable: false);
+    await _mutate(
+      log: 'removed quote id=$id',
+      transform: (List<Quote> cur) =>
+          cur.where((Quote q) => q.id != id).toList(growable: false),
+    );
+  }
+
+  /// 共用的"读 current → 算 next → 落盘 + 写状态 + 记日志"流程。
+  /// 把 4 个 mutate 方法里重复的样板压成一行 transform。
+  Future<void> _mutate({
+    required String log,
+    required List<Quote> Function(List<Quote>) transform,
+  }) async {
+    final List<Quote> current = state.value ?? const <Quote>[];
+    final List<Quote> next = transform(current);
     state = AsyncValue<List<Quote>>.data(next);
     await _repo.saveAll(next);
-    AppLogger.instance.info('removed quote id=$id');
+    AppLogger.instance.info(log);
   }
 
   String _newId({int suffix = 0}) {
