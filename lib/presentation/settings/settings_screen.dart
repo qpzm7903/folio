@@ -11,16 +11,19 @@ import '../widgets/setting_row.dart';
 import '../widgets/top_bar.dart';
 import 'export_import_sheets.dart';
 
-/// 设置 —— 对应 screens.jsx 的 `SettingsScreen`.
+/// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
+///
+/// 5 个 section + 一个 footer。每 section 一个独立的私有 widget,
+/// 加新 section (如 v0.7 "自定义背景图") 时只动一处。
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  /// footer 上的版本标签 —— 跟 pubspec 同步, 手动维护 (每个 MINOR 改一次)。
+  static const String _versionLabel = 'v 0.6';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final XJKTokens t = XJKTheme.of(context);
-    final AppSettings s = ref.watch(settingsProvider);
     final int quoteCount = ref.watch(quotesProvider).asData?.value.length ?? 0;
-    final String themeLabel = s.themeMode.displayLabel;
 
     return MaxWidthBody(
       child: Column(
@@ -30,100 +33,12 @@ class SettingsScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
               children: <Widget>[
-                _sectionLabel(context, '屏保 / 小组件'),
-                SettingsGroup(
-                  children: <Widget>[
-                    SettingRow(
-                      label: '更换频率',
-                      sub: '一句话停留多久',
-                      value: '${s.cadenceMinutes} 分钟',
-                      onTap: () => _pickCadence(context, ref, s.cadenceMinutes),
-                    ),
-                    SettingRow(
-                      label: '不重复轮播',
-                      sub: '所有句子轮过一次才再出现',
-                      toggle: s.shuffleNoRepeat,
-                      showChevron: false,
-                      onToggle: (bool v) => ref
-                          .read(settingsProvider.notifier)
-                          .setShuffleNoRepeat(v),
-                    ),
-                    SettingRow(
-                      label: '显示出处',
-                      sub: 'quote attribution',
-                      toggle: s.showAttribution,
-                      showChevron: false,
-                      onToggle: (bool v) => ref
-                          .read(settingsProvider.notifier)
-                          .setShowAttribution(v),
-                    ),
-                  ],
-                ),
-                _sectionLabel(context, '字体与外观'),
-                SettingsGroup(
-                  children: <Widget>[
-                    SettingRow(
-                      label: '主题',
-                      value: themeLabel,
-                      onTap: () => _pickTheme(context, ref, s.themeMode),
-                    ),
-                    const SettingRow(
-                      label: '字号',
-                      value: '标准',
-                      showChevron: false,
-                    ),
-                    const SettingRow(
-                      label: '字体',
-                      value: 'Noto Serif SC',
-                      showChevron: false,
-                    ),
-                  ],
-                ),
-                _sectionLabel(context, '标签'),
-                SettingsGroup(
-                  children: <Widget>[
-                    SettingRow(
-                      label: '标签管理',
-                      sub: '重命名 / 取下整组标签',
-                      onTap: () => _openTags(context),
-                    ),
-                  ],
-                ),
-                _sectionLabel(context, '导入与导出'),
-                SettingsGroup(
-                  children: <Widget>[
-                    SettingRow(
-                      label: '导出金库',
-                      sub: '复制 JSON 到剪贴板, $quoteCount 句',
-                      onTap: () => showExportSheet(context, ref),
-                    ),
-                    SettingRow(
-                      label: '从剪贴板导入',
-                      sub: '粘贴之前导出的 JSON, 合并进现金库',
-                      onTap: () => showImportSheet(context, ref),
-                    ),
-                  ],
-                ),
-                _sectionLabel(context, '关于'),
-                const SettingsGroup(
-                  children: <Widget>[
-                    SettingRow(label: '小金库', sub: '一句话停一停', showChevron: false),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: Text(
-                      'v 0.3 · 共 $quoteCount 句已入库',
-                      style: TextStyle(
-                        fontFamily: XJKTokens.serifItalic,
-                        fontStyle: FontStyle.italic,
-                        fontSize: 12,
-                        color: t.fgMuted,
-                      ),
-                    ),
-                  ),
-                ),
+                const _RotationSection(),
+                const _AppearanceSection(),
+                const _TagsSection(),
+                const _ImportExportSection(),
+                const _AboutSection(),
+                _VersionFooter(label: _versionLabel, quoteCount: quoteCount),
               ],
             ),
           ),
@@ -131,8 +46,15 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _sectionLabel(BuildContext context, String label) {
+/// 一致风格的 section 大字标题。
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 16, 0, 10),
@@ -147,10 +69,95 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Future<void> _openTags(BuildContext context) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (BuildContext _) => const TagsScreen()),
+/// 屏保 / 小组件: 频率 + 不重复 + 显示出处
+class _RotationSection extends ConsumerWidget {
+  const _RotationSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppSettings s = ref.watch(settingsProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const _SectionLabel('屏保 / 小组件'),
+        SettingsGroup(
+          children: <Widget>[
+            SettingRow(
+              label: '更换频率',
+              sub: '一句话停留多久',
+              value: '${s.cadenceMinutes} 分钟',
+              onTap: () => _pickCadence(context, ref, s.cadenceMinutes),
+            ),
+            SettingRow(
+              label: '不重复轮播',
+              sub: '所有句子轮过一次才再出现',
+              toggle: s.shuffleNoRepeat,
+              showChevron: false,
+              onToggle: (bool v) =>
+                  ref.read(settingsProvider.notifier).setShuffleNoRepeat(v),
+            ),
+            SettingRow(
+              label: '显示出处',
+              sub: 'quote attribution',
+              toggle: s.showAttribution,
+              showChevron: false,
+              onToggle: (bool v) =>
+                  ref.read(settingsProvider.notifier).setShowAttribution(v),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickCadence(
+    BuildContext context,
+    WidgetRef ref,
+    int current,
+  ) async {
+    final int? next = await showOptionPicker<int>(
+      context: context,
+      current: current,
+      options: <PickerOption<int>>[
+        for (final int m in const <int>[5, 15, 30, 60, 120, 240])
+          (value: m, label: '每 $m 分钟换一句'),
+      ],
+    );
+    if (next != null) {
+      await ref.read(settingsProvider.notifier).setCadenceMinutes(next);
+    }
+  }
+}
+
+/// 字体与外观: 主题 + (占位) 字号 / 字体。
+class _AppearanceSection extends ConsumerWidget {
+  const _AppearanceSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppSettings s = ref.watch(settingsProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const _SectionLabel('字体与外观'),
+        SettingsGroup(
+          children: <Widget>[
+            SettingRow(
+              label: '主题',
+              value: s.themeMode.displayLabel,
+              onTap: () => _pickTheme(context, ref, s.themeMode),
+            ),
+            const SettingRow(label: '字号', value: '标准', showChevron: false),
+            const SettingRow(
+              label: '字体',
+              value: 'Noto Serif SC',
+              showChevron: false,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -171,22 +178,108 @@ class SettingsScreen extends ConsumerWidget {
       await ref.read(settingsProvider.notifier).setThemeMode(next);
     }
   }
+}
 
-  Future<void> _pickCadence(
-    BuildContext context,
-    WidgetRef ref,
-    int current,
-  ) async {
-    final int? next = await showOptionPicker<int>(
-      context: context,
-      current: current,
-      options: <PickerOption<int>>[
-        for (final int m in const <int>[5, 15, 30, 60, 120, 240])
-          (value: m, label: '每 $m 分钟换一句'),
+/// 标签: 入口到 TagsScreen。
+class _TagsSection extends StatelessWidget {
+  const _TagsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const _SectionLabel('标签'),
+        SettingsGroup(
+          children: <Widget>[
+            SettingRow(
+              label: '标签管理',
+              sub: '重命名 / 取下整组标签',
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext _) => const TagsScreen(),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
-    if (next != null) {
-      await ref.read(settingsProvider.notifier).setCadenceMinutes(next);
-    }
+  }
+}
+
+/// 导入与导出: 剪贴板 JSON 跨设备迁移。
+class _ImportExportSection extends ConsumerWidget {
+  const _ImportExportSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int quoteCount = ref.watch(quotesProvider).asData?.value.length ?? 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const _SectionLabel('导入与导出'),
+        SettingsGroup(
+          children: <Widget>[
+            SettingRow(
+              label: '导出金库',
+              sub: '复制 JSON 到剪贴板, $quoteCount 句',
+              onTap: () => showExportSheet(context, ref),
+            ),
+            SettingRow(
+              label: '从剪贴板导入',
+              sub: '粘贴之前导出的 JSON, 合并进现金库',
+              onTap: () => showImportSheet(context, ref),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// 关于。
+class _AboutSection extends StatelessWidget {
+  const _AboutSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _SectionLabel('关于'),
+        SettingsGroup(
+          children: <Widget>[
+            SettingRow(label: '小金库', sub: '一句话停一停', showChevron: false),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _VersionFooter extends StatelessWidget {
+  const _VersionFooter({required this.label, required this.quoteCount});
+
+  final String label;
+  final int quoteCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final XJKTokens t = XJKTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: Text(
+          '$label · 共 $quoteCount 句已入库',
+          style: TextStyle(
+            fontFamily: XJKTokens.serifItalic,
+            fontStyle: FontStyle.italic,
+            fontSize: 12,
+            color: t.fgMuted,
+          ),
+        ),
+      ),
+    );
   }
 }
