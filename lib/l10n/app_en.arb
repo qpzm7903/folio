@@ -1,0 +1,47 @@
+{
+  "@@locale": "en",
+  "appTitle": "Folio",
+  "appSubtitle": "est. 2026",
+
+  "tabLibrary": "Library",
+  "tabDisplay": "Screensaver",
+  "tabWidgets": "Widgets",
+  "tabSettings": "Settings",
+
+  "todayQuote": "Today's quote",
+  "yourLibrary": "Your library",
+  "quoteCount": "{n} quotes",
+
+  "libraryEmptyTitle": "Nothing here yet.",
+  "libraryEmptyBody": "Paste a sentence in,\nlet it come back to you one day.",
+  "noMatchInTag": "Nothing tagged \"{tag}\" yet.",
+
+  "actionSearch": "Search",
+  "actionMore": "More",
+  "actionClose": "Close",
+  "actionImport": "Bulk import",
+  "actionRemove": "Remove",
+  "actionKeep": "Keep",
+
+  "fabNewQuote": "New quote",
+  "editorTitleNew": "New quote",
+  "editorTitleEdit": "Tweak",
+  "editorHint": "Write down a sentence you read lately…",
+  "editorSourceHint": "— source / tag (optional)",
+  "editorSaveNew": "Add to library",
+  "editorSaveEdit": "Save",
+
+  "snackSaved": "Added.",
+  "snackUpdated": "Updated.",
+  "snackBulkAdded": "{n} quotes added.",
+
+  "confirmRemoveQuote": "Take this sentence out of the library?",
+
+  "searchHintInput": "Search what you wrote…",
+  "searchHintEmptyLibrary": "Library is empty, nothing to search.",
+  "searchHintTotal": "Find one in {n} quotes.\nWord or tag, both work.",
+  "searchEmpty": "Nothing matches \"{query}\".\nTry another word?",
+
+  "settingsTitle": "Settings",
+  "settingsSubtitle": "settings"
+}

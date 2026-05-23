@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/settings_repository.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'presentation/display/display_screen.dart';
 import 'presentation/library/library_screen.dart';
 import 'presentation/providers.dart';
@@ -40,9 +41,10 @@ class FolioApp extends ConsumerWidget {
       themeMode: mode,
       theme: buildThemeData(paper, brightness: Brightness.light),
       darkTheme: buildThemeData(night, brightness: Brightness.dark),
-      locale: const Locale('zh', 'CN'),
-      supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
+      // locale: null 跟随系统; 系统语言不在 supportedLocales 时 fallback 到第一项 (zh)
+      supportedLocales: AppL10n.supportedLocales,
       localizationsDelegates: const <LocalizationsDelegate<Object>>[
+        AppL10n.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

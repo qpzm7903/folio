@@ -23,7 +23,7 @@
 - [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储)
 - [ ] L13 · go_router 路由 + Web 深链
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
-- [ ] L15 · 国际化 (中文为主，预留 en 框架)
+- [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
 - [ ] L16 · 完整测试覆盖 (单元 + Widget + 集成)
 - [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
   iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
@@ -46,6 +46,26 @@
 ---
 
 ## 版本日志
+
+### v0.8.0 — i18n 框架 (L15)
+
+Flutter 官方 gen-l10n 路线打通, 文案从 inline 字符串迁到 ARB:
+
+- `pubspec.yaml` 加 `flutter.generate: true`
+- 项目根 `l10n.yaml`: `arb-dir: lib/l10n` / `output-dir: lib/l10n/generated`
+  (`synthetic-package: false` 让生成代码落到仓库内可见路径)
+- `lib/l10n/app_zh.arb` (template) 写入 28 个 key, 涵盖 TopBar / 区段
+  标题 / 空态 / SnackBar / 编辑器 / 搜索 / Settings 等高频文案。
+  ARB value 沿用 skill voice (温和文学口吻, 不 SaaS, 不 emoji)。
+- `lib/l10n/app_en.arb` 提供英文 fallback —— 即使系统是英文也不会落到
+  Material 的"No translations" 兜底。
+- `lib/app.dart` MaterialApp: locale: null (跟系统), `supportedLocales:
+  AppL10n.supportedLocales`, `localizationsDelegates` 加 `AppL10n.delegate`。
+- LibraryScreen 切样: 标题 / 副标题 / FAB tooltip / 区段头 / "今天的金句" /
+  空态 / 标签未匹配文案全部走 `AppL10n.of(context)`。
+- 生成代码 `lib/l10n/generated/` gitignore (`flutter pub get` 自动生成)。
+
+剩余 ~80 个文案 (其他屏幕) 留作后续 PATCH 分批迁; L15 框架已完成。
 
 ### v0.7.2 — release job 移除多余 actions/checkout
 

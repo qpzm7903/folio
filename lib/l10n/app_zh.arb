@@ -1,0 +1,72 @@
+{
+  "@@locale": "zh",
+  "appTitle": "小金库",
+  "appSubtitle": "est. 2026",
+
+  "tabLibrary": "金库",
+  "tabDisplay": "屏保",
+  "tabWidgets": "组件",
+  "tabSettings": "设置",
+
+  "todayQuote": "今天的金句",
+  "yourLibrary": "你的金库",
+  "quoteCount": "{n} 句",
+  "@quoteCount": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+
+  "libraryEmptyTitle": "这里还很空。",
+  "libraryEmptyBody": "贴一句话进来，让它有一天\n突然出现在屏幕上。",
+  "noMatchInTag": "这一类还没有。 「{tag}」",
+  "@noMatchInTag": {
+    "placeholders": {
+      "tag": { "type": "String" }
+    }
+  },
+
+  "actionSearch": "搜索",
+  "actionMore": "更多",
+  "actionClose": "关闭",
+  "actionImport": "批量导入",
+  "actionRemove": "取出",
+  "actionKeep": "留着",
+
+  "fabNewQuote": "新的一句",
+  "editorTitleNew": "新的一句",
+  "editorTitleEdit": "改一改",
+  "editorHint": "写下一句你最近读到的话…",
+  "editorSourceHint": "— 出处 / 标签（可留空）",
+  "editorSaveNew": "收入金库",
+  "editorSaveEdit": "存下来",
+
+  "snackSaved": "已收入金库。",
+  "snackUpdated": "已经改好。",
+  "snackBulkAdded": "{n} 句已收入金库。",
+  "@snackBulkAdded": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+
+  "confirmRemoveQuote": "从金库取出这句话？",
+
+  "searchHintInput": "搜你写过的句子…",
+  "searchHintEmptyLibrary": "金库还很空, 暂时没什么可搜。",
+  "searchHintTotal": "在 {n} 句里找一句。\n词或标签都行。",
+  "@searchHintTotal": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "searchEmpty": "没有找到\"{query}\"。\n要不要换一个词试试？",
+  "@searchEmpty": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+
+  "settingsTitle": "设置",
+  "settingsSubtitle": "settings"
+}

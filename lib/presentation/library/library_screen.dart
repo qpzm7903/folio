@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/quote.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../editor/editor_screen.dart';
 import '../providers.dart';
@@ -25,6 +26,7 @@ class LibraryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final XJKTokens t = XJKTheme.of(context);
+    final AppL10n l10n = AppL10n.of(context);
     final AsyncValue<List<Quote>> async = ref.watch(quotesProvider);
     final String activeTag = ref.watch(activeTagProvider);
     final List<String> tags = ref.watch(tagsProvider);
@@ -35,12 +37,12 @@ class LibraryScreen extends ConsumerWidget {
           Column(
             children: <Widget>[
               XJKTopBar(
-                title: '小金库',
-                subtitle: 'est. 2026',
+                title: l10n.appTitle,
+                subtitle: l10n.appSubtitle,
                 actions: <XJKTopBarAction>[
                   XJKTopBarAction(
                     icon: 'search',
-                    label: '搜索',
+                    label: l10n.actionSearch,
                     onPressed: () => _openSearch(context),
                   ),
                 ],
@@ -85,7 +87,10 @@ class LibraryScreen extends ConsumerWidget {
                         ),
 
                         const SizedBox(height: 12),
-                        SectionHeader(title: '你的金库', count: quotes.length),
+                        SectionHeader(
+                          title: l10n.yourLibrary,
+                          count: quotes.length,
+                        ),
                         TagRow(
                           tags: tags,
                           active: activeTag,
@@ -113,7 +118,7 @@ class LibraryScreen extends ConsumerWidget {
             right: 20,
             bottom: 24 + MediaQuery.of(context).padding.bottom + 64,
             child: XJKFab(
-              tooltip: '新的一句',
+              tooltip: l10n.fabNewQuote,
               onPressed: () => _openEditor(context),
             ),
           ),
@@ -164,7 +169,7 @@ class LibraryScreen extends ConsumerWidget {
   }
 }
 
-/// 用 Builder 让它能 access tokens —— 显示 "今天的金句" 标签。
+/// 显示 "今天的金句" 标签 —— l10n 化。
 class _HelloHero extends StatelessWidget {
   const _HelloHero();
 
@@ -174,7 +179,7 @@ class _HelloHero extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Text(
-        '今天的金句',
+        AppL10n.of(context).todayQuote,
         style: TextStyle(
           fontFamily: XJKTokens.sansUi,
           fontSize: 11,
@@ -193,13 +198,14 @@ class _LibraryEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
+    final AppL10n l10n = AppL10n.of(context);
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            '这里还很空。',
+            l10n.libraryEmptyTitle,
             style: TextStyle(
               fontFamily: XJKTokens.serifDisplay,
               fontSize: 22,
@@ -208,7 +214,7 @@ class _LibraryEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '贴一句话进来，让它有一天\n突然出现在屏幕上。',
+            l10n.libraryEmptyBody,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: XJKTokens.serifDisplay,
@@ -234,7 +240,7 @@ class _LibraryNoMatch extends StatelessWidget {
       padding: const EdgeInsets.all(32),
       child: Center(
         child: Text(
-          '这一类还没有。 「$tag」',
+          AppL10n.of(context).noMatchInTag(tag),
           style: TextStyle(color: t.fg3, fontFamily: XJKTokens.serifDisplay),
         ),
       ),

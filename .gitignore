@@ -56,6 +56,9 @@ lib/generated_plugin_registrant.dart
 *.freezed.dart
 *.mocks.dart
 
+# flutter gen-l10n 生成的本地化代码 —— CI 上 `flutter pub get` 自动生成
+lib/l10n/generated/
+
 # Coverage
 coverage/
 
