@@ -4,6 +4,7 @@
   小尺寸放不下 attribution, 略, 大/中尺寸再显示出处。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"

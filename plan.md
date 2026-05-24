@@ -47,6 +47,42 @@
 
 ## 版本日志
 
+### v0.15.5 — Issue #6 子任务 3 (小组件点击启动 app 到屏保)
+
+Issue #6 4 个子任务进度:
+1. ✅ 去"金"字 (v0.15.4)
+2. ✅ 出处放右下角 (v0.15.4)
+3. ✅ 点击切换金库 — **本版**: 实现为"点击启动 app 到 /display 屏保",
+   用户能立即看到金句轮播 + 在屏保里手动切换。完整的 widget 端原地
+   advance (不启动 app) 需要 home_widget BackgroundIntent + WorkManager,
+   而 v0.14.1 刚因为 WorkManager 在 Android 16 启动崩才把它 strip 掉,
+   所以选最稳的"启动 app"方案。
+4. ⏳ 支持选颜色 (留 v0.15.6)
+
+实施细节:
+
+- `docs/android_widget/app/src/main/res/layout/quote_widget_*.xml`:
+  3 个 layout 的 root `LinearLayout` 加 `android:id="@+id/widget_root"`,
+  让 `setOnClickPendingIntent` 有 target view 可挂。
+- `docs/android_widget/app/src/main/kotlin/app/folio/widget/QuoteWidgetProvider.kt`:
+  `onUpdate` 里用 `HomeWidgetLaunchIntent.getActivity(ctx, MainActivity, Uri)`
+  封装 `PendingIntent`, URI 用 `folio://display` scheme;
+  `setOnClickPendingIntent(R.id.widget_root, ...)` 挂到根容器, 整张
+  widget 点击都触发。HomeWidgetLaunchIntent 内部已处理 API 23+ 的
+  `FLAG_IMMUTABLE` 兼容, minSdk 21 不踩坑。
+- `lib/presentation/widget_sync_bridge.dart`:
+  initState 起 `HomeWidget.initiallyLaunchedFromHomeWidget()` (冷启动
+  缓存的 URI) + `HomeWidget.widgetClicked` Stream (热启动后续点击),
+  URI host=`display` 时用 `WidgetsBinding.instance.addPostFrameCallback`
+  + `ref.read(routerProvider).go('/display')` 跳路由。
+  - post-frame 调度避开 "navigator not yet attached" — router delegate
+    在 MaterialApp.router 绑定前不能 `.go()`。
+- Web / iOS / Desktop: bridge 仍执行 (HomeWidget API 在不支持平台是
+  no-op), 不会崩。
+
+参考 skill: 无 UI 改动 (沿用 v0.15.4 已经按 widgets.jsx 视觉重构过的
+3 个 layout)。
+
 ### v0.15.4 — Issue #6 子任务 1+2 (小组件去"金"印 + 出处右下角)
 
 用户 Issue #6 是个组合诉求, 含 4 个子任务:
@@ -161,38 +197,7 @@
 参考 skill: 无 UI 改动, _VersionFooter 视觉沿用 v0.1.0 对照
 `screens.jsx` SettingsScreen footer 的实现。
 
-### v0.15.0 — 恢复 drift 满足 L12 (重启 v0.13.0 的尝试)
-
-v0.14.1 用 adb 定位 #5 真因是 home_widget WorkManager (跟 drift 无关)
-之后, v0.13.4 切除 drift 的决定就是没必要的。这版恢复:
-
-- `pubspec.yaml` 重新加 `drift ^2.20.0` + `sqlite3_flutter_libs ^0.5.24`
-  + dev `drift_dev` + `build_runner`
-- `lib/data/drift/quotes_database.dart` (从 git history 取回, 含 v0.13.1
-  加的 LazyDatabase 父目录预创建): 表声明 + openDefault/memory + load/save
-- `lib/data/drift_quote_repository_io.dart`: 重写 bootstrap 路径, 数据来源
-  优先级 **prefs → JSON → seed**:
-  1. v0.13.4 ~ v0.14.1 时代用户写在 SharedPreferences 的 quotes 通过
-     `bootstrapQuotes` 参数喂进来, drift 库空时直接 import + 清掉 prefs key
-  2. 没有 prefs → 检查 v0.12.x 残留的 `${supportDir}/quotes.json`,
-     解析后 saveAll + rename 备份
-  3. 都没有 → seed quotes
-- `lib/data/drift_quote_repository_stub.dart`: 加 `bootstrapQuotes` 参数
-  匹配 conditional import 签名
-- `lib/data/quote_repository.dart`: native 分支 `_drainPrefs(prefs)` →
-  `buildDriftQuoteRepository(bootstrapQuotes: ...)`, try/catch 失败 fallback
-  到 `_PrefsQuoteRepository` (兜底保活)
-- 删除 v0.13.5 抽出的 `lib/data/legacy_quotes_migration.dart` +
-  `test/legacy_quotes_migration_test.dart` — JSON 迁移现在直接在 drift
-  bootstrap 路径里做, helper 反而冗余
-- CI: `flutter-setup` composite action 已有 `if grep drift_dev: → build_runner`
-  step, 不动
-
-**L12 状态 [ ] → [x]**, 长期规划 16/17 → 17/17。
-
-参考 skill: 无 UI 改动。
-
-### 早期版本汇总 (v0.1.0 ~ v0.14.1)
+### 早期版本汇总 (v0.1.0 ~ v0.15.0)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -339,6 +344,14 @@ native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
 → prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
 抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
 已恢复, 这版的切除决定整体来看是误修。
+
+**v0.15.0** 恢复 drift 满足 L12 (重启 v0.13.0): v0.14.1 定位真因后切除决定
+没必要。pubspec 重新加 drift ^2.20.0 + sqlite3_flutter_libs ^0.5.24 + dev
+drift_dev + build_runner; `lib/data/drift/quotes_database.dart` (含 v0.13.1
+LazyDatabase 父目录预创建) + `drift_quote_repository_io.dart` 重写 bootstrap
+按 prefs → JSON → seed 三级优先, 救 v0.13.4~v0.14.1 时代 prefs 用户数据;
+删 v0.13.5 抽的 legacy_quotes_migration helper (JSON 迁移并入 drift bootstrap
+路径); CI flutter-setup composite action 自动 build_runner step。L12 [ ] → [x]。
 
 **v0.14.1** 修 Issue #5 真因 (home_widget WorkManager 在 Android 16 init 失败):
 用户 HONOR AAK-AN00 (MagicOS Android 16 / SDK 36) 真机 adb 抓栈, 真因栈是
