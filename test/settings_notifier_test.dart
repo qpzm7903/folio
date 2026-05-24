@@ -29,6 +29,9 @@ void main() {
       await c
           .read(settingsProvider.notifier)
           .setBackgroundImagePath('/tmp/bg.jpg');
+      await c
+          .read(settingsProvider.notifier)
+          .setWidgetColorTheme(WidgetColorTheme.bamboo);
 
       // 验证 state
       final AppSettings s = c.read(settingsProvider);
@@ -37,6 +40,7 @@ void main() {
       expect(s.shuffleNoRepeat, isFalse);
       expect(s.showAttribution, isFalse);
       expect(s.backgroundImagePath, '/tmp/bg.jpg');
+      expect(s.widgetColorTheme, WidgetColorTheme.bamboo);
 
       // 验证落盘: 重新建一个 container, 应该 load 出同样的值
       c.dispose();

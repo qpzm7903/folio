@@ -3,6 +3,7 @@ import 'package:home_widget/home_widget.dart';
 import '../core/logger.dart';
 import '../core/platform_capabilities.dart';
 import 'quote.dart';
+import 'widget_color_theme.dart';
 
 /// 跟桌面小组件 (home_widget plugin) 的桥接。
 ///
@@ -30,19 +31,26 @@ class WidgetSyncService {
     }
   }
 
-  /// 把 [today] (今日金句) 写到 widget 共享数据 + 触发刷新。
-  /// 调用方应该在 quotesProvider 变化时调一次。
-  Future<void> syncToday(Quote? today) async {
+  /// 把 [today] (今日金句) + [colorTheme] 写到 widget 共享数据 + 触发刷新。
+  /// 调用方应该在 quotesProvider 或 widgetColorTheme 变化时调一次。
+  Future<void> syncToday(Quote? today, {WidgetColorTheme? colorTheme}) async {
     if (!_supported) return;
     try {
       await HomeWidget.saveWidgetData<String>('todayQuote', today?.text ?? '');
       await HomeWidget.saveWidgetData<String>('todayTag', today?.tag ?? '');
+      if (colorTheme != null) {
+        await HomeWidget.saveWidgetData<String>(
+          'widgetColorTheme',
+          colorTheme.name,
+        );
+      }
       await HomeWidget.updateWidget(
         androidName: _kAndroidProvider,
         iOSName: _kIosWidgetKind,
       );
       AppLogger.instance.debug(
-        'widget synced, todayQuote.len=${today?.text.length ?? 0}',
+        'widget synced, todayQuote.len=${today?.text.length ?? 0}, '
+        'colorTheme=${colorTheme?.name ?? "(unchanged)"}',
       );
     } catch (e, st) {
       AppLogger.instance.handle(e, st, 'widget sync failed');

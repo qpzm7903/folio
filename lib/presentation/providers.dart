@@ -91,8 +91,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     ),
   );
 
-  /// 共用的"写 state + 落盘"流程。5 个 setter 各自需要做的差异只是
-  /// copyWith 的具体字段, 这一行 helper 把样板压到一处。
+  Future<void> setWidgetColorTheme(WidgetColorTheme t) =>
+      _apply(state.copyWith(widgetColorTheme: t));
+
+  /// 共用的"写 state + 落盘"流程, copyWith 差异收到 setter 各自一行 transform。
   Future<void> _apply(AppSettings next) async {
     state = next;
     await _repo.save(next);

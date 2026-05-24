@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  翠竹 widget 背景 (v0.15.7 Issue #6 子任务 4 新增):
+  bamboo-500 soft 单色 (#A6B27A 对应 colors_and_type.css), radius xl,
+  无 stroke 让色块更"实", 跟 paper/night 形成视觉差异。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/xjk_bamboo_500"/>
+    <corners android:radius="22dp"/>
+</shape>

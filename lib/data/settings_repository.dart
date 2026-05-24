@@ -17,6 +17,7 @@ class SettingsRepository {
   static const String _kShowSrc = 'folio.settings.showAttribution';
   static const String _kCadence = 'folio.settings.cadenceMinutes';
   static const String _kBgImage = 'folio.settings.backgroundImagePath';
+  static const String _kWidgetColor = 'folio.settings.widgetColorTheme';
 
   AppSettings load() {
     final String? bg = _prefs.getString(_kBgImage);
@@ -26,6 +27,7 @@ class SettingsRepository {
       showAttribution: _prefs.getBool(_kShowSrc) ?? true,
       cadenceMinutes: _prefs.getInt(_kCadence) ?? 30,
       backgroundImagePath: (bg != null && bg.isNotEmpty) ? bg : null,
+      widgetColorTheme: _decodeWidgetColor(_prefs.getString(_kWidgetColor)),
     );
   }
 
@@ -39,12 +41,20 @@ class SettingsRepository {
     } else {
       await _prefs.setString(_kBgImage, s.backgroundImagePath!);
     }
+    await _prefs.setString(_kWidgetColor, s.widgetColorTheme.name);
   }
 
   AppThemeMode _decodeTheme(String? name) {
     return AppThemeMode.values.firstWhere(
       (AppThemeMode m) => m.name == name,
       orElse: () => AppThemeMode.system,
+    );
+  }
+
+  WidgetColorTheme _decodeWidgetColor(String? name) {
+    return WidgetColorTheme.values.firstWhere(
+      (WidgetColorTheme t) => t.name == name,
+      orElse: () => WidgetColorTheme.paper,
     );
   }
 }

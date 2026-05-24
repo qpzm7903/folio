@@ -14,6 +14,7 @@ import '../widgets/top_bar.dart';
 import 'background_picker.dart';
 import 'cadence_wheel_sheet.dart';
 import 'export_import_sheets.dart';
+import 'widget_color_picker.dart';
 
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
 ///
@@ -118,10 +119,30 @@ class _RotationSection extends ConsumerWidget {
               onTap: () =>
                   showBackgroundPicker(context, ref, s.backgroundImagePath),
             ),
+            SettingRow(
+              label: '小组件配色',
+              sub: '桌面 widget 背景色',
+              value: s.widgetColorTheme.displayLabel,
+              onTap: () => _pickWidgetColor(context, ref, s.widgetColorTheme),
+            ),
           ],
         ),
       ],
     );
+  }
+
+  Future<void> _pickWidgetColor(
+    BuildContext context,
+    WidgetRef ref,
+    WidgetColorTheme current,
+  ) async {
+    final WidgetColorTheme? next = await showWidgetColorPicker(
+      context: context,
+      current: current,
+    );
+    if (next != null) {
+      await ref.read(settingsProvider.notifier).setWidgetColorTheme(next);
+    }
   }
 
   Future<void> _pickCadence(

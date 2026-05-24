@@ -32,6 +32,14 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             ?: context.getString(R.string.widget_default_quote)
         val tag = prefs.getString("todayTag", null)?.takeIf { it.isNotBlank() }
 
+        // v0.15.7 Issue #6 子任务 4: 读 widgetColorTheme 选 background drawable;
+        // 未知值 / null → paper (默认浅底)。
+        val bgDrawable = when (prefs.getString("widgetColorTheme", null)) {
+            "night" -> R.drawable.xjk_widget_bg_dark
+            "bamboo" -> R.drawable.xjk_widget_bg_bamboo
+            else -> R.drawable.xjk_widget_bg_light
+        }
+
         // 点击 widget root → 启动 app MainActivity, URI scheme 让 Dart 端
         // 跳到 /display 路径; HomeWidgetLaunchIntent 内部已处理 API 23+ 强制
         // 要求的 PendingIntent.FLAG_IMMUTABLE 兼容性, 不要手撸。
@@ -66,6 +74,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                 if (tag != null && layoutId != R.layout.quote_widget_small) {
                     setTextViewText(R.id.widget_tag, "— $tag")
                 }
+                setInt(R.id.widget_root, "setBackgroundResource", bgDrawable)
                 setOnClickPendingIntent(R.id.widget_root, clickIntent)
             }
             appWidgetManager.updateAppWidget(id, views)

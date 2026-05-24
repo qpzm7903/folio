@@ -3,6 +3,10 @@
 /// 不耦合 [SharedPreferences]; IO 适配在 `settings_repository.dart` 里。
 library;
 
+import 'widget_color_theme.dart';
+
+export 'widget_color_theme.dart' show WidgetColorTheme;
+
 enum AppThemeMode { system, paper, night }
 
 extension AppThemeModeLabel on AppThemeMode {
@@ -26,6 +30,7 @@ class AppSettings {
     required this.showAttribution,
     required this.cadenceMinutes,
     required this.backgroundImagePath,
+    required this.widgetColorTheme,
   });
 
   final AppThemeMode themeMode;
@@ -36,6 +41,9 @@ class AppSettings {
   /// 屏保 photo 模式下显示的背景图绝对路径; `null` 表示用默认渐变。
   final String? backgroundImagePath;
 
+  /// 桌面小组件配色 (Issue #6 子任务 4, v0.15.7 起)。
+  final WidgetColorTheme widgetColorTheme;
+
   AppSettings copyWith({
     AppThemeMode? themeMode,
     bool? shuffleNoRepeat,
@@ -43,6 +51,7 @@ class AppSettings {
     int? cadenceMinutes,
     String? backgroundImagePath,
     bool clearBackgroundImage = false,
+    WidgetColorTheme? widgetColorTheme,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -52,6 +61,7 @@ class AppSettings {
       backgroundImagePath: clearBackgroundImage
           ? null
           : (backgroundImagePath ?? this.backgroundImagePath),
+      widgetColorTheme: widgetColorTheme ?? this.widgetColorTheme,
     );
   }
 
@@ -61,6 +71,7 @@ class AppSettings {
     showAttribution: true,
     cadenceMinutes: 30,
     backgroundImagePath: null,
+    widgetColorTheme: WidgetColorTheme.paper,
   );
 
   @override
@@ -71,7 +82,8 @@ class AppSettings {
           other.shuffleNoRepeat == shuffleNoRepeat &&
           other.showAttribution == showAttribution &&
           other.cadenceMinutes == cadenceMinutes &&
-          other.backgroundImagePath == backgroundImagePath);
+          other.backgroundImagePath == backgroundImagePath &&
+          other.widgetColorTheme == widgetColorTheme);
 
   @override
   int get hashCode => Object.hash(
@@ -80,5 +92,6 @@ class AppSettings {
     showAttribution,
     cadenceMinutes,
     backgroundImagePath,
+    widgetColorTheme,
   );
 }

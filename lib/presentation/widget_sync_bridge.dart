@@ -7,6 +7,7 @@ import 'package:home_widget/home_widget.dart';
 import '../core/logger.dart';
 import '../core/router.dart';
 import '../data/quote.dart';
+import '../data/settings_repository.dart';
 import 'providers.dart';
 
 /// 无 UI 的桥接器: 启动时 configure home widget, 之后监听 quotes 第一句变化
@@ -83,7 +84,29 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
       final Quote? today = (data != null && data.isNotEmpty)
           ? data.first
           : null;
-      unawaited(ref.read(widgetSyncServiceProvider).syncToday(today));
+      final WidgetColorTheme color = ref
+          .read(settingsProvider)
+          .widgetColorTheme;
+      unawaited(
+        ref.read(widgetSyncServiceProvider).syncToday(today, colorTheme: color),
+      );
+    });
+    ref.listen<AppSettings>(settingsProvider, (
+      AppSettings? prev,
+      AppSettings next,
+    ) {
+      // 只在 widgetColorTheme 真变化时同步, 避免其他设置改动触发不必要的
+      // widget 刷新 (跟原 quotes 同步语义独立)。
+      if (prev?.widgetColorTheme == next.widgetColorTheme) return;
+      final List<Quote>? data = ref.read(quotesProvider).value;
+      final Quote? today = (data != null && data.isNotEmpty)
+          ? data.first
+          : null;
+      unawaited(
+        ref
+            .read(widgetSyncServiceProvider)
+            .syncToday(today, colorTheme: next.widgetColorTheme),
+      );
     });
     return widget.child;
   }

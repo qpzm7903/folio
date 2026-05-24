@@ -47,6 +47,52 @@
 
 ## 版本日志
 
+### v0.15.7 — Issue #6 子任务 4 (小组件选颜色), Issue #6 闭环
+
+Issue #6 4 个子任务全部完成 (v0.15.4 + v0.15.5 + v0.15.7):
+1. ✅ 去"金"字 (v0.15.4)
+2. ✅ 出处放右下角 (v0.15.4)
+3. ✅ 点击切换金库 → 启动 app 到屏保 (v0.15.5)
+4. ✅ 支持选颜色 (**本版**): 3 个预设青纸/林夜/翠竹
+
+实施 (跨 Dart + native + 持久化 3 层):
+
+- `lib/data/widget_color_theme.dart` 新建 enum (paper/night/bamboo)
+  含 `displayLabel` ("青纸"/"林夜"/"翠竹") + `displaySub` ("Paper · 浅底"
+  等英文小字)。
+- `lib/data/app_settings.dart` 加 `widgetColorTheme` 字段, copyWith /
+  defaults (paper) / operator== / hashCode 全跟着加; `export 'widget_color_theme.dart'
+  show WidgetColorTheme;` 让 settings_repository.dart 的下游不必加新 import。
+- `lib/data/settings_repository.dart` 加 `_kWidgetColor` SharedPreferences
+  key + load/save + `_decodeWidgetColor` (未知值 fallback 到 paper)。
+- `lib/presentation/providers.dart` SettingsNotifier 加 `setWidgetColorTheme`。
+- `lib/data/widget_sync_service.dart` `syncToday` 加 `colorTheme` 可选参数,
+  通过 `HomeWidget.saveWidgetData<String>('widgetColorTheme', name)` 透传。
+- `lib/presentation/widget_sync_bridge.dart` 加第二个 `ref.listen<AppSettings>`,
+  只在 `widgetColorTheme` 真变化时触发 sync (避免其他设置改动也强刷 widget)。
+- `lib/presentation/settings/widget_color_picker.dart` 新建 BottomSheet,
+  3 张色卡 ListTile (32×32 圆点 leading + 中文 title + 英文 italic subtitle
+  + 选中带 `Icons.check` trailing); 复用 `showModalBottomSheet` + `showDragHandle`,
+  视觉跟 option_picker 同质。
+- `lib/presentation/settings/settings_screen.dart` `_RotationSection` 加
+  SettingRow "小组件配色", `_pickWidgetColor` 走 `showWidgetColorPicker`。
+- `docs/android_widget/app/src/main/res/drawable/xjk_widget_bg_bamboo.xml`
+  新增: bamboo-500 (#B8A866) solid, 22dp radius, 无 stroke。
+- `docs/android_widget/app/src/main/res/values/colors_folio.xml` 加
+  `xjk_bamboo_500` color resource (skill `colors_and_type.css:38`)。
+- `docs/android_widget/.../QuoteWidgetProvider.kt` 读 prefs 的
+  `widgetColorTheme` key (null → paper), `setInt(R.id.widget_root,
+  "setBackgroundResource", resId)` runtime 覆盖 layout 默认 background。
+- `test/settings_notifier_test.dart` 加 `setWidgetColorTheme(bamboo)` 调用,
+  既验证 state 也验证 prefs 持久化 round-trip。
+
+iOS Widget Extension 端的 colorTheme 透传留后续 (CI 当前不构建 iOS),
+跟 v0.15.4 视觉调整保持一致的 iOS pending 状态。
+
+参考 skill: `colors_and_type.css:36-39` (bamboo-500 = #B8A866);
+widget 色卡视觉是按用户 Issue #6 自由发挥, skill 原 widgets.jsx 没有
+颜色选择面板设计。
+
 ### v0.15.6 — 修 v0.15.5 Kotlin 编译报错 (workflow 红牌 PATCH)
 
 v0.15.5 CI build android apk fail, Kotlin 编译两条 error:
