@@ -34,20 +34,32 @@ else
   echo "↪ inject widget receiver fragment to $MANIFEST"
   FRAGMENT="docs/android_widget/AndroidManifest_widget_fragment.xml"
   python3 - "$MANIFEST" "$FRAGMENT" <<'PY'
-import sys, pathlib
+import sys, pathlib, re
 manifest_path = pathlib.Path(sys.argv[1])
 fragment_path = pathlib.Path(sys.argv[2])
 manifest = manifest_path.read_text(encoding='utf-8')
 fragment_raw = fragment_path.read_text(encoding='utf-8')
 # 跳过 fragment 顶部的 <!-- ... --> 注释
-import re
 fragment = re.sub(r'^\s*<!--.*?-->\s*', '', fragment_raw, count=1, flags=re.S).rstrip() + '\n'
+
+# Flutter create 的默认 AndroidManifest.xml 只声明 xmlns:android,
+# 没有 xmlns:tools。fragment 里的 tools:node="remove" 需要 tools 命名空间
+# (用于禁用 WorkManager startup, v0.14.1 修 #5)。补上。
+if 'xmlns:tools' not in manifest:
+    manifest = re.sub(
+        r'(<manifest\s)',
+        r'\1xmlns:tools="http://schemas.android.com/tools" ',
+        manifest,
+        count=1,
+    )
+    print('✓ added xmlns:tools to <manifest>')
+
 needle = '</application>'
 if needle not in manifest:
     raise SystemExit('✗ <application> close tag not found in manifest')
 new = manifest.replace(needle, fragment + '    ' + needle, 1)
 manifest_path.write_text(new, encoding='utf-8')
-print('✓ injected widget receiver before </application>')
+print('✓ injected widget receiver + startup-disable before </application>')
 PY
 fi
 
