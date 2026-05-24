@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 中尺寸 (2x1, ~320x160dp): 金句主体 + 底部 attribution + "金" 印 -->
+<!--
+  中尺寸 (2x1, ~320x160dp): v0.15.4 Issue #6 去掉 "金" 印,
+  出处 (widget_tag) 改为右下角对齐。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -19,30 +22,16 @@
         android:textColor="@color/xjk_fg_1"
         android:textSize="16sp"/>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/widget_tag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <TextView
-            android:id="@+id/widget_tag"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/xjk_fg_3"
-            android:textSize="12sp"
-            android:textStyle="italic"
-            android:text=""/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/widget_brand_seal"
-            android:textColor="@color/xjk_mark"
-            android:textSize="16sp"/>
-    </LinearLayout>
+        android:gravity="end"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/xjk_fg_3"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        android:text=""/>
 </LinearLayout>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 大尺寸 (2x2, ~320x320dp): leaf-700 → dark-quote-bg 渐变, 浅色字, 强调展示 -->
+<!--
+  大尺寸 (2x2, ~320x320dp): leaf-700 → dark-quote-bg 渐变, 浅色字。
+  v0.15.4 Issue #6 去掉顶部 "金" + 品牌 seal-row, 出处 (widget_tag)
+  改为右下角对齐。
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,37 +11,14 @@
     android:padding="22dp"
     android:background="@drawable/xjk_widget_bg_dark">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-        <TextView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="@drawable/xjk_widget_seal_bg_dark"
-            android:gravity="center"
-            android:text="@string/widget_brand_seal"
-            android:textColor="@color/xjk_mark"
-            android:textSize="14sp"/>
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp"
-            android:text="@string/widget_brand"
-            android:textColor="@color/xjk_mark"
-            android:textSize="13sp"/>
-    </LinearLayout>
-
     <TextView
         android:id="@+id/widget_quote"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="18dp"
+        android:gravity="center_vertical"
         android:ellipsize="end"
-        android:maxLines="6"
+        android:maxLines="7"
         android:lineSpacingMultiplier="1.85"
         android:text="@string/widget_default_quote"
         android:textColor="@color/xjk_dark_quote_text"
@@ -47,7 +28,8 @@
         android:id="@+id/widget_tag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/xjk_dark_quote_text"

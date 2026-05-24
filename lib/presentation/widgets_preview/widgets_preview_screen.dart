@@ -9,7 +9,8 @@ import '../widgets/top_bar.dart';
 
 /// 组件预览屏 —— 真实 Android widget 在 v0.11.0 (L07) 已落地,
 /// iOS 在 v0.12.0 (L08) 已落地; 这屏保留为"主屏添加引导 + 视觉预览"。
-/// 视觉直接照搬 skill `ui_kits/android-widgets/widgets.jsx` 的小/中/大三尺寸。
+///
+/// v0.15.4 Issue #6: 视觉跟 Android widget 同步去掉 "金" 印, 出处改为右下角。
 class WidgetsPreviewScreen extends ConsumerWidget {
   const WidgetsPreviewScreen({super.key});
 
@@ -80,41 +81,18 @@ class _SmallWidgetMock extends StatelessWidget {
         border: Border.all(color: t.border1),
         boxShadow: t.shadow2,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 28,
-            height: 28,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: t.bamboo500.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              '金',
-              style: TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 16,
-                color: t.mark,
-              ),
-            ),
+      child: Center(
+        child: Text(
+          quote.text,
+          maxLines: 5,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontFamily: XJKTokens.serifDisplay,
+            fontSize: 12.5,
+            height: 1.6,
+            color: t.fg1,
           ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: Text(
-              quote.text,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 12.5,
-                height: 1.6,
-                color: t.fg1,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -138,7 +116,7 @@ class _MediumWidgetMock extends StatelessWidget {
         boxShadow: t.shadow2,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Expanded(
             child: Text(
@@ -154,28 +132,17 @@ class _MediumWidgetMock extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  '— ${quote.tag}',
-                  style: TextStyle(
-                    fontFamily: XJKTokens.serifItalic,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 12,
-                    color: t.fg3,
-                  ),
-                ),
-              ),
-              Text(
-                '金',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 16,
-                  color: t.mark,
-                ),
-              ),
-            ],
+          Text(
+            '— ${quote.tag}',
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: XJKTokens.serifItalic,
+              fontStyle: FontStyle.italic,
+              fontSize: 12,
+              color: t.fg3,
+            ),
           ),
         ],
       ),
@@ -204,63 +171,28 @@ class _LargeWidgetMock extends StatelessWidget {
         boxShadow: t.shadow3,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                width: 28,
-                height: 28,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: t.bamboo500.withValues(alpha: 0.22),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '金',
-                  style: TextStyle(
-                    fontFamily: XJKTokens.serifDisplay,
-                    fontSize: 14,
-                    color: t.bamboo500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '小金库 · ',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 13,
-                  color: t.bamboo500,
-                ),
-              ),
-              Text(
-                'Folio',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifItalic,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                  color: t.bamboo500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
           Expanded(
-            child: Text(
-              quote.text,
-              maxLines: 6,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 18,
-                height: 1.85,
-                color: Color(0xFFEDF2DC),
+            child: Center(
+              child: Text(
+                quote.text,
+                maxLines: 7,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: XJKTokens.serifDisplay,
+                  fontSize: 18,
+                  height: 1.85,
+                  color: Color(0xFFEDF2DC),
+                ),
               ),
             ),
           ),
           Text(
             '— ${quote.tag}',
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontFamily: XJKTokens.serifItalic,
               fontStyle: FontStyle.italic,

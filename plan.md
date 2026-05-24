@@ -47,6 +47,39 @@
 
 ## 版本日志
 
+### v0.15.4 — Issue #6 子任务 1+2 (小组件去"金"印 + 出处右下角)
+
+用户 Issue #6 是个组合诉求, 含 4 个子任务:
+1. ✅ 去"金"字
+2. ✅ 出处放右下角
+3. ⏳ 点击切换金库 (留 v0.15.5)
+4. ⏳ 支持选颜色 (留 v0.15.5)
+
+本版完成视觉调整部分 (1+2), 改动面 Android RemoteViews + in-app preview:
+
+- `docs/android_widget/app/src/main/res/values/strings_widget.xml`:
+  删 `widget_brand_seal` 字符串。
+- 三个 layout (`quote_widget_small/medium/large.xml`):
+  - small: 删顶部 28dp seal 圆印, 金句改全屏垂直居中。
+  - medium: 删底部 row 里的"金"印 TextView, 留 `widget_tag`,
+    `android:gravity="end"` 让出处右对齐到 row 末尾。
+  - large: 删顶部整块 `seal-row` (含"金"印 + "小金库" brand),
+    底部出处 `gravity="end"` + maxLines=1。
+- `lib/presentation/widgets_preview/widgets_preview_screen.dart`:
+  in-app preview 三个 mock 跟 native 视觉保持一致, 去"金"印,
+  attribution `textAlign: TextAlign.end` 右对齐。
+
+不动的部分:
+- `xjk_widget_seal_bg.xml` / `xjk_widget_seal_bg_dark.xml` drawable
+  暂留 (没引用, 但下版恢复 "selectable seal" 时可能复用), 体积可忽略。
+- iOS Widget Extension (`docs/ios_widget/Swift/QuoteWidget.swift`)
+  也含"金"字, 但 CI 当前不构建 iOS (L08 等开发者证书),
+  跟子任务 3+4 一起在 v0.15.5 同步, 避免本轮改动面过大。
+
+参考 skill: `ui_kits/android-widgets/widgets.jsx` (本轮的"去金/出处右下"
+属于按用户反馈对设计稿做的修正, 偏离 skill 原版 seal 设计是有意的;
+其余布局间距 / 字号 / 字体 / 圆角仍严格沿用 skill `colors_and_type.css`)。
+
 ### v0.15.3 — Issue #7 更换频率改成双滚轮 (小时+分钟自由选)
 
 用户 Issue #7: "更换频率切换成类似时间滚轮, 让用户自己选时间频率"。
@@ -159,48 +192,7 @@ v0.14.1 用 adb 定位 #5 真因是 home_widget WorkManager (跟 drift 无关)
 
 参考 skill: 无 UI 改动。
 
-### v0.14.1 — 修 Issue #5 真因 (WorkManager startup disable)
-
-用户 HONOR AAK-AN00 (MagicOS Android 16 / SDK 36) 真机 adb 抓栈,
-**真因跟 drift / sqlite3 完全无关**。完整栈:
-
-```
-java.lang.RuntimeException: Unable to get provider
-  androidx.startup.InitializationProvider: java.lang.RuntimeException:
-  Failed to create an instance of androidx.work.impl.WorkDatabase
-    at androidx.work.WorkManagerInitializer.b(...:95)
-    at androidx.startup.InitializationProvider.onCreate(...:55)
-    at android.content.ContentProvider.attachInfo(...)
-```
-
-`InitializationProvider` 在 `ActivityThread.installContentProviders` 阶段
-跑, 早于 `MainActivity.onCreate`, 早于 Flutter / Dart VM 启动。所以 v0.13.1
-装的 `runZonedGuarded` + `FlutterError.onError` + `_BootstrapErrorApp`
-全没机会执行 — 进程在 Dart 起来前已经被 SIGKILL。这也解释了为什么
-`getApplicationSupportDirectory()/logs/folio.log` 是空的: logger 自己
-都没初始化。
-
-`home_widget` plugin 通过 transitive dep 拉进 `androidx.work`, Android 16
-SDK 36 上 Room 创建 `WorkDatabase` 抛 `RuntimeException` (R8 obfuscation
-后看不到更深一层 cause)。folio 实际不用 WorkManager 后台任务 (widget
-sync 走前台 `HomeWidget.updateWidget` + Android `AppWidgetProvider` 系统
-广播), 直接 disable WorkManager 的 startup 入口即可。
-
-修法:
-- `docs/android_widget/AndroidManifest_widget_fragment.xml` 加 `<provider
-  androidx.startup.InitializationProvider tools:node="merge">` 块, 在
-  里面 `tools:node="remove"` 掉 `androidx.work.WorkManagerInitializer`
-  meta-data。`tool/inject_android_widget.sh` 已经把整个 fragment 注入到
-  `</application>` 之前, 不需要改脚本。
-
-**v0.13.4 反思**: 我当时把 Issue #5 误判为 drift / sqlite3 native SIGSEGV,
-把 drift 整条切除 (L12 [x] → [ ])。adb 抓栈后真因是 home_widget +
-WorkManager + Android 16 兼容性, drift 完全没问题。v0.15.0 会重新引入
-drift 恢复 L12。
-
-参考 skill: 无 UI 改动。
-
-### 早期版本汇总 (v0.1.0 ~ v0.14.0)
+### 早期版本汇总 (v0.1.0 ~ v0.14.1)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -347,6 +339,16 @@ native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
 → prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
 抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
 已恢复, 这版的切除决定整体来看是误修。
+
+**v0.14.1** 修 Issue #5 真因 (home_widget WorkManager 在 Android 16 init 失败):
+用户 HONOR AAK-AN00 (MagicOS Android 16 / SDK 36) 真机 adb 抓栈, 真因栈是
+`androidx.startup.InitializationProvider → WorkManagerInitializer → WorkDatabase
+RuntimeException`, 在 `installContentProviders` 阶段 (Dart VM 未启动前) 直接
+SIGKILL, v0.13.1 装的 `runZonedGuarded` Dart 兜底完全没机会执行。folio 不用
+WorkManager 后台任务, 修法是 `docs/android_widget/AndroidManifest_widget_fragment.xml`
+加 `tools:node="merge"` 的 InitializationProvider 块 + `tools:node="remove"`
+掉 WorkManagerInitializer meta-data。同时反思 v0.13.4 把 drift 误诊误切的决定,
+v0.15.0 恢复 drift 满足 L12。
 
 **v0.14.0** 收藏列表屏 (兑现 v0.13.3 接入 bookmark toggle 时承诺):
 新建 `lib/presentation/favorites/favorites_screen.dart` watch
