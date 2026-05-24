@@ -7,8 +7,8 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.14.1** — 修 Issue #5 真因 (home_widget WorkManager 在 Android 16 上 init 失败).
-长期规划 16/17, L12 留 v0.15.0 恢复 drift (真因不是 drift)。
+最新版本: **v0.15.0** — 恢复 drift 满足 L12 (含 prefs/JSON → drift 迁移).
+长期规划 **17/17 完成**。
 
 ## 截图
 

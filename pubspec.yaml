@@ -3,7 +3,7 @@ description: "小金库 · 一句话停一停 — 用来再次遇见你自己摘
 publish_to: "none"
 
 # 版本号: MAJOR.MINOR.PATCH+BUILD
-version: 0.14.1+38
+version: 0.15.0+39
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -25,15 +25,19 @@ dependencies:
   file_selector: ^1.0.3
   go_router: ^14.6.2
   home_widget: ^0.7.0
-  # drift + sqlite3_flutter_libs 在 v0.13.4 暂移除: 用户机型上 libsqlite3.so
-  # 加载触发 native SIGSEGV (Issue #5), Dart try/catch 兜不住。L12 状态打回
-  # [ ], 等真因定位后再重新引入。
+  # v0.15.0 重新引入: v0.14.1 用 adb 抓栈定位 Issue #5 真因是 home_widget
+  # 拉进来的 androidx.work WorkManagerInitializer 在 Android 16 上 init 失败,
+  # 跟 drift / sqlite3 无关。v0.13.4 切除是误诊误修, 这里恢复以满足 L12。
+  drift: ^2.20.0
+  sqlite3_flutter_libs: ^0.5.24
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   fake_async: ^1.3.1
+  drift_dev: ^2.20.0
+  build_runner: ^2.4.13
 
 flutter:
   uses-material-design: true

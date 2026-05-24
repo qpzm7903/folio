@@ -20,7 +20,7 @@
 - [x] L09 · 自定义背景图 (用户相册 + 内置纯色 + 纸纹叠加) — v0.7.0 (file_selector 选图 + protection gradient; Web 暂不支持)
 - [x] L10 · 金句导出 / 导入 (剪贴板 JSON, 跨设备复制粘贴) — v0.3.0
 - [x] L11 · 全文搜索 + 标签管理 + 智能分组 — v0.2.0 搜索 + v0.6.0 标签管理 (智能分组按"句数倒序自动归组")
-- [ ] L12 · drift 持久化迁移 (替换 JSON 文件存储) — v0.13.0 引入 drift, v0.13.4 因 #5 native SIGSEGV 临时切除回 SharedPreferences, 等真因定位再恢复
+- [x] L12 · drift 持久化迁移 (替换 JSON 文件存储) — v0.13.0 首次引入, v0.13.4 因误判 #5 切除, v0.14.1 用 adb 抓栈定位真因是 home_widget WorkManager, v0.15.0 恢复 drift (含 prefs → drift 迁移路径)
 - [x] L13 · go_router 路由 + Web 深链 — v0.10.0 (StatefulShellRoute + URL 深链)
 - [x] L14 · 响应式适配 (手机 / 折叠屏 / 平板 / 桌面 / Web) — v0.5.0 max-width 640
 - [x] L15 · 国际化 (中文为主，预留 en 框架) — v0.8.0 (gen-l10n + ARB + LibraryScreen 切样, 剩余文案后续 PATCH 分批迁)
@@ -46,6 +46,37 @@
 ---
 
 ## 版本日志
+
+### v0.15.0 — 恢复 drift 满足 L12 (重启 v0.13.0 的尝试)
+
+v0.14.1 用 adb 定位 #5 真因是 home_widget WorkManager (跟 drift 无关)
+之后, v0.13.4 切除 drift 的决定就是没必要的。这版恢复:
+
+- `pubspec.yaml` 重新加 `drift ^2.20.0` + `sqlite3_flutter_libs ^0.5.24`
+  + dev `drift_dev` + `build_runner`
+- `lib/data/drift/quotes_database.dart` (从 git history 取回, 含 v0.13.1
+  加的 LazyDatabase 父目录预创建): 表声明 + openDefault/memory + load/save
+- `lib/data/drift_quote_repository_io.dart`: 重写 bootstrap 路径, 数据来源
+  优先级 **prefs → JSON → seed**:
+  1. v0.13.4 ~ v0.14.1 时代用户写在 SharedPreferences 的 quotes 通过
+     `bootstrapQuotes` 参数喂进来, drift 库空时直接 import + 清掉 prefs key
+  2. 没有 prefs → 检查 v0.12.x 残留的 `${supportDir}/quotes.json`,
+     解析后 saveAll + rename 备份
+  3. 都没有 → seed quotes
+- `lib/data/drift_quote_repository_stub.dart`: 加 `bootstrapQuotes` 参数
+  匹配 conditional import 签名
+- `lib/data/quote_repository.dart`: native 分支 `_drainPrefs(prefs)` →
+  `buildDriftQuoteRepository(bootstrapQuotes: ...)`, try/catch 失败 fallback
+  到 `_PrefsQuoteRepository` (兜底保活)
+- 删除 v0.13.5 抽出的 `lib/data/legacy_quotes_migration.dart` +
+  `test/legacy_quotes_migration_test.dart` — JSON 迁移现在直接在 drift
+  bootstrap 路径里做, helper 反而冗余
+- CI: `flutter-setup` composite action 已有 `if grep drift_dev: → build_runner`
+  step, 不动
+
+**L12 状态 [ ] → [x]**, 长期规划 16/17 → 17/17。
+
+参考 skill: 无 UI 改动。
 
 ### v0.14.1 — 修 Issue #5 真因 (WorkManager startup disable)
 
@@ -164,42 +195,8 @@ v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
 
 不动 UI, 无新增 skill 参考。
 
-### v0.13.3 — 修 #3 #4 (4 个子问题)
 
-合并修 Issue #3 (Windows v0.13.0 三处) + #4 (屏保收藏无效):
-
-- **#3.1 TagsScreen 无法退回**: 之前 TopBar 没 leading,Settings push
-  过去后用户只能靠系统手势退回 (桌面端没有)。给 `TagsScreen` 的
-  `XJKTopBar` 加 `leading: XJKIconButton(icon: 'chevron-left', ...)`,
-  跟 skill `ui_kits/android-app/screens.jsx:170` DisplayScreen 的
-  back 视觉一致; onTap 优先 `context.canPop() → context.pop()`,
-  兜底 `context.go('/library')`。
-
-- **#3.2 cadence 加 1/2/3 分钟**: `kCadenceChoices` 由
-  `[5, 15, 30, 60, 120, 240]` 改成 `[1, 2, 3, 5, 15, 30, 60, 120, 240]`。
-  DisplayScreen 已经 `cadenceMin.clamp(1, 60*24)`, 无需改限。
-
-- **#3.3 Widgets tab 文案过时**: widgets_preview_screen.dart 副标题
-  "三种尺寸 · v0.4 起会真正接入 Android 桌面" 改成
-  "三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面"。
-  顶部 doc 注释同步说明 L07 (v0.11.0) / L08 (v0.12.0) 已落地。
-
-- **#4 屏保收藏功能可用**: 之前 bookmark 按钮 `onPressed: null`
-  显示 "收藏 (即将上线)"。新建 `lib/data/favorites_repository.dart`
-  用 SharedPreferences 存 `Set<String>` 收藏过的 quote id (key
-  `folio.favorites.ids.v1`), 故意不动 drift schema, PATCH 范围内
-  无数据库迁移; `providers.dart` 新增 `FavoritesNotifier` + provider,
-  Display 屏 bookmark 按钮包 Consumer toggle, icon opacity 切实/虚 +
-  tooltip 切换 + SnackBar 反馈。"收藏列表入口屏" 留到 v0.14.0 MINOR。
-
-新增 `test/favorites_repository_test.dart` 三条不变量: 空 prefs load /
-save→load 回环 / save 空集后清空。
-
-参考 skill 文件: `ui_kits/android-app/screens.jsx` (back button 视觉,
-DisplayScreen bottom controls 三按钮布局), `assets/icons/chevron-left.svg`
-+ `bookmark.svg`。
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.2)
+### 早期版本汇总 (v0.1.0 ~ v0.13.3)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -331,3 +328,9 @@ awk 解析 pubspec version, 产物重命名 folio-&lt;v&gt;-&lt;p&gt;.&lt;ext&gt
 改用 `grep '^version:' | sed -E 's/^version:[[:space:]]*//; s/[+].*$//'`,
 `[+]` 字符类避开 BSD sed 在 `-E` 模式下报 "repetition-operator operand
 invalid"。产物文件名才真正带版本号。
+
+**v0.13.3** 修 #3 #4 (4 个子问题): TagsScreen 加 chevron-left 返回按钮
+(canPop → context.pop, 兜底 go /library); kCadenceChoices 加 1/2/3 分钟
+档位; widgets_preview 副标题文案更新; 屏保 bookmark 按钮真正接入
+FavoritesRepository (SharedPreferences Set&lt;String&gt; ids), Display 屏
+Consumer toggle + icon opacity 切实/虚 + tooltip 切换 + SnackBar 反馈。
