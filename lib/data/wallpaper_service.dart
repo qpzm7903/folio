@@ -18,7 +18,7 @@ import '../core/platform_capabilities.dart';
 ///
 /// iOS / Web / Desktop 上 [isSupported] 是 false, UI 入口需自行隐藏。
 class WallpaperService {
-  WallpaperService();
+  const WallpaperService();
 
   static const String _channelName = 'app.folio/wallpaper';
   static const MethodChannel _channel = MethodChannel(_channelName);

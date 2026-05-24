@@ -10,6 +10,7 @@ import '../data/favorites_repository.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
+import '../data/wallpaper_service.dart';
 import '../data/widget_sync_service.dart';
 
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
@@ -30,6 +31,12 @@ final Provider<BackgroundImageService> backgroundImageServiceProvider =
 
 final Provider<WidgetSyncService> widgetSyncServiceProvider =
     Provider<WidgetSyncService>((Ref ref) => const WidgetSyncService());
+
+/// v0.15.9 Issue #8 起新增。v0.15.10 重构: 从 DisplayScreen widget state
+/// 里直接 `new WallpaperService()` 抽到 provider, 跟其他 service 一致,
+/// 让测试能 `overrideWithValue(_MockWallpaperService())` 不触真 MethodChannel。
+final Provider<WallpaperService> wallpaperServiceProvider =
+    Provider<WallpaperService>((Ref ref) => const WallpaperService());
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {

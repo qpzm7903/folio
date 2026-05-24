@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.15.9** — Issue #8 屏保设为 Android 系统壁纸 (WallpaperManager.setBitmap).
+最新版本: **v0.15.10** — 重构 PATCH: WallpaperService 接入 Riverpod provider.
 长期规划 **17/17 完成**。
 
 ## 截图

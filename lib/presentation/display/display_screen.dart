@@ -40,7 +40,6 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   // 截图用的 RepaintBoundary key —— 只包背景 + quote 内容,
   // 不包按钮 row, 让设为壁纸的图不带按钮装饰。
   final GlobalKey _boundaryKey = GlobalKey();
-  final WallpaperService _wallpaperService = WallpaperService();
 
   @override
   void dispose() {
@@ -73,13 +72,14 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   Future<void> _setAsWallpaper() async {
     if (_settingWallpaper) return;
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final WallpaperService service = ref.read(wallpaperServiceProvider);
     setState(() => _settingWallpaper = true);
     try {
       final RenderObject? ro = _boundaryKey.currentContext?.findRenderObject();
       if (ro is! RenderRepaintBoundary) {
         throw const WallpaperFailedException('boundary not mounted yet');
       }
-      await _wallpaperService.setWallpaperFromBoundary(ro);
+      await service.setWallpaperFromBoundary(ro);
       if (!mounted) return;
       messenger.showSnackBar(
         const SnackBar(
@@ -317,7 +317,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                       ),
                       // v0.15.9 Issue #8: 设为系统壁纸 — 仅 Android 端显示
                       // (iOS / Web / Desktop 没对等 API)。
-                      if (_wallpaperService.isSupported)
+                      if (ref.watch(wallpaperServiceProvider).isSupported)
                         XJKIconButton(
                           icon: 'download',
                           onPressed: _settingWallpaper ? null : _setAsWallpaper,

@@ -47,6 +47,40 @@
 
 ## 版本日志
 
+### v0.15.10 — 重构 PATCH (WallpaperService 接入 Riverpod provider)
+
+兑现 prompt.md 优先级 #3 "当前 MINOR 没有重构 PATCH 必须立即规划"。
+v0.15.x MINOR (v0.15.0 起) 9 个 PATCH 全是 issue 修复 / workflow 修复,
+没有专门重构。这版补上。
+
+**重构目标**: v0.15.9 我新加的 `WallpaperService` 是唯一**直接在 widget
+state 里 `new WallpaperService()` 实例化**的 service, 跟代码库其他 service
+(WidgetSync / BackgroundImage / SettingsRepository / FavoritesRepository /
+QuoteRepository) 都走 Riverpod `Provider<T>` 注入的 pattern 不一致。
+后果: 没法在测试里 `overrideWithValue(_MockWallpaperService())`, 测 UI
+会调真 MethodChannel 失败。
+
+修法:
+
+- `lib/data/wallpaper_service.dart`: 构造函数从 `WallpaperService()` 改成
+  `const WallpaperService()`, 跟 `WidgetSyncService` / `BackgroundImageService`
+  对齐, 让 provider 可以返回 const singleton。
+- `lib/presentation/providers.dart`: 加 `wallpaperServiceProvider`,
+  `Provider<WallpaperService>((Ref ref) => const WallpaperService())`,
+  紧跟 `widgetSyncServiceProvider`。
+- `lib/presentation/display/display_screen.dart`: 删 `_wallpaperService`
+  field, `_setAsWallpaper` 里 `ref.read(wallpaperServiceProvider)` 取实例;
+  按钮可见性判断 `if (ref.watch(wallpaperServiceProvider).isSupported)`
+  (用 watch 让未来 override 切换能触发 rebuild)。
+- `test/wallpaper_service_test.dart` 新增: 锁住三条不变量:
+  1. `isSupported` 在非 Android host 为 false (CI Linux / 本地 macOS)
+  2. provider cache: 两次 read 拿到同一实例
+  3. `overrideWithValue(_StubWallpaperService())` 链路可用
+
+不动业务行为。下次有新 service 时跟着 provider 走, 防止再积累不一致。
+
+参考 skill: 无 UI 改动。
+
 ### v0.15.9 — Issue #8 屏保设为 Android 系统壁纸
 
 用户 Issue #8 "屏保应该真的影响屏幕壁纸, 而不是只要应用没有一个界面"。
@@ -192,43 +226,7 @@ Issue #6 子任务 4 (选颜色) 仍留 v0.15.7。
 
 参考 skill: 无 UI 改动。
 
-### v0.15.5 — Issue #6 子任务 3 (小组件点击启动 app 到屏保)
-
-Issue #6 4 个子任务进度:
-1. ✅ 去"金"字 (v0.15.4)
-2. ✅ 出处放右下角 (v0.15.4)
-3. ✅ 点击切换金库 — **本版**: 实现为"点击启动 app 到 /display 屏保",
-   用户能立即看到金句轮播 + 在屏保里手动切换。完整的 widget 端原地
-   advance (不启动 app) 需要 home_widget BackgroundIntent + WorkManager,
-   而 v0.14.1 刚因为 WorkManager 在 Android 16 启动崩才把它 strip 掉,
-   所以选最稳的"启动 app"方案。
-4. ⏳ 支持选颜色 (留 v0.15.6)
-
-实施细节:
-
-- `docs/android_widget/app/src/main/res/layout/quote_widget_*.xml`:
-  3 个 layout 的 root `LinearLayout` 加 `android:id="@+id/widget_root"`,
-  让 `setOnClickPendingIntent` 有 target view 可挂。
-- `docs/android_widget/app/src/main/kotlin/app/folio/widget/QuoteWidgetProvider.kt`:
-  `onUpdate` 里用 `HomeWidgetLaunchIntent.getActivity(ctx, MainActivity, Uri)`
-  封装 `PendingIntent`, URI 用 `folio://display` scheme;
-  `setOnClickPendingIntent(R.id.widget_root, ...)` 挂到根容器, 整张
-  widget 点击都触发。HomeWidgetLaunchIntent 内部已处理 API 23+ 的
-  `FLAG_IMMUTABLE` 兼容, minSdk 21 不踩坑。
-- `lib/presentation/widget_sync_bridge.dart`:
-  initState 起 `HomeWidget.initiallyLaunchedFromHomeWidget()` (冷启动
-  缓存的 URI) + `HomeWidget.widgetClicked` Stream (热启动后续点击),
-  URI host=`display` 时用 `WidgetsBinding.instance.addPostFrameCallback`
-  + `ref.read(routerProvider).go('/display')` 跳路由。
-  - post-frame 调度避开 "navigator not yet attached" — router delegate
-    在 MaterialApp.router 绑定前不能 `.go()`。
-- Web / iOS / Desktop: bridge 仍执行 (HomeWidget API 在不支持平台是
-  no-op), 不会崩。
-
-参考 skill: 无 UI 改动 (沿用 v0.15.4 已经按 widgets.jsx 视觉重构过的
-3 个 layout)。
-
-### 早期版本汇总 (v0.1.0 ~ v0.15.4)
+### 早期版本汇总 (v0.1.0 ~ v0.15.5)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -392,6 +390,15 @@ L17 (多平台 CI 产物) 状态保持 [x] — 工程能力仍在, git history �
 实时大字预览, 替换之前 9 档预设 `[1,2,3,5,15,30,60,120,240]`
 showOptionPicker。导出 formatCadenceText/Short 纯函数, cadence_label_test
 覆盖 7 个边界分支。视觉对照 skill ImportSheet 骨架。
+
+**v0.15.5** Issue #6 子任务 3 小组件点击启动 app: 3 个 layout root LinearLayout
+加 `@+id/widget_root`; QuoteWidgetProvider.onUpdate 用 HomeWidgetLaunchIntent
+.getActivity 包 PendingIntent (URI=folio://display, 内部处理 FLAG_IMMUTABLE 兼容),
+setOnClickPendingIntent 挂到 root; widget_sync_bridge.dart 加
+HomeWidget.initiallyLaunchedFromHomeWidget() (冷启动) +
+HomeWidget.widgetClicked stream (热启动), URI host=display 时
+postFrame `ref.read(routerProvider).go('/display')`。选启动 app 而非
+原地 advance 是因为后者要 BackgroundIntent + WorkManager, v0.14.1 已 strip。
 
 **v0.15.4** Issue #6 子任务 1+2 (小组件去"金"印 + 出处右下角):
 strings_widget.xml 删 widget_brand_seal; 3 个 layout 删 seal TextView / 顶部
