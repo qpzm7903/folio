@@ -47,6 +47,42 @@
 
 ## 版本日志
 
+### v0.15.6 — 修 v0.15.5 Kotlin 编译报错 (workflow 红牌 PATCH)
+
+v0.15.5 CI build android apk fail, Kotlin 编译两条 error:
+
+```
+QuoteWidgetProvider.kt:37:65 Cannot infer type for type parameter 'T'.
+QuoteWidgetProvider.kt:39:13 Argument type mismatch: 'Class<CapturedType(*)>!' vs 'Class<uninferred T>'
+```
+
+`HomeWidgetLaunchIntent.getActivity` 签名是 `<T : Activity> getActivity
+(ctx, Class<T>, Uri)`, 我 v0.15.5 直接传 `Class.forName(...)` 拿到的是
+`Class<*>` (类型擦除), Kotlin 推不出 T。MainActivity 类是 `flutter create`
+注入到 `android/app/src/main/kotlin/.../MainActivity.kt` 的, widget
+provider 模块编译时不在 classpath 里, 没法用 `MainActivity::class.java`
+直接拿。
+
+修法: `Class.forName(...)` 后显式 cast 成 `Class<Activity>`,
+`@Suppress("UNCHECKED_CAST")` 标注故意做 unchecked cast (MainActivity
+确实 extends Activity, 运行期不会 ClassCastException):
+
+```kotlin
+@Suppress("UNCHECKED_CAST")
+val mainActivityClass = Class.forName("${context.packageName}.MainActivity")
+    as Class<Activity>
+val clickIntent = HomeWidgetLaunchIntent.getActivity(
+    context, mainActivityClass, Uri.parse("folio://display")
+)
+```
+
+import 加 `android.app.Activity`。
+
+PATCH 不动 Dart 行为, 单纯让 v0.15.5 的子任务 3 实现编出来。
+Issue #6 子任务 4 (选颜色) 仍留 v0.15.7。
+
+参考 skill: 无 UI 改动。
+
 ### v0.15.5 — Issue #6 子任务 3 (小组件点击启动 app 到屏保)
 
 Issue #6 4 个子任务进度:

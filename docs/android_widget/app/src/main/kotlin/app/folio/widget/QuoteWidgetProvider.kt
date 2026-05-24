@@ -1,5 +1,6 @@
 package app.folio.widget
 
+import android.app.Activity
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -34,9 +35,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         // 点击 widget root → 启动 app MainActivity, URI scheme 让 Dart 端
         // 跳到 /display 路径; HomeWidgetLaunchIntent 内部已处理 API 23+ 强制
         // 要求的 PendingIntent.FLAG_IMMUTABLE 兼容性, 不要手撸。
+        //
+        // Class.forName 返回 Class<*>, Kotlin 推不出 getActivity<T : Activity>
+        // 的 T, 必须显式 cast 成 Class<Activity>。
+        @Suppress("UNCHECKED_CAST")
+        val mainActivityClass = Class.forName("${context.packageName}.MainActivity")
+            as Class<Activity>
         val clickIntent: PendingIntent = HomeWidgetLaunchIntent.getActivity(
             context,
-            Class.forName("${context.packageName}.MainActivity"),
+            mainActivityClass,
             Uri.parse("folio://display")
         )
 
