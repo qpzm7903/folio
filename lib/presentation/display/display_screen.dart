@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/logger.dart';
 import '../../core/platform_capabilities.dart';
 import '../../data/quote.dart';
 import '../../data/settings_repository.dart';
+import '../../data/wallpaper_service.dart';
 import '../../domain/rotation_controller.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
@@ -17,7 +20,8 @@ import '../widgets/xjk_icon.dart';
 /// - 无重复随机轮播 [NoRepeatShuffle]
 /// - 640ms 交叉淡入 + 8px 向上漂移
 /// - 顶左返回按钮 (在 IndexedStack 模式下没有路由可返回, 隐藏即可)
-/// - 底部 3 个工具按钮: shuffle / image (切换深底) / bookmark (v0.13.3 起 toggle 收藏)
+/// - 底部 4 个工具按钮: shuffle / image (切换深底) / bookmark (v0.13.3 收藏) /
+///   download (v0.15.9 Issue #8 设为系统壁纸, 仅 Android 可见)
 class DisplayScreen extends ConsumerStatefulWidget {
   const DisplayScreen({this.onBack, super.key});
 
@@ -31,6 +35,12 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
   RotationController? _rotation;
   int _fadeKey = 0;
   bool _withPhoto = false;
+  bool _settingWallpaper = false;
+
+  // 截图用的 RepaintBoundary key —— 只包背景 + quote 内容,
+  // 不包按钮 row, 让设为壁纸的图不带按钮装饰。
+  final GlobalKey _boundaryKey = GlobalKey();
+  final WallpaperService _wallpaperService = WallpaperService();
 
   @override
   void dispose() {
@@ -38,9 +48,6 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
     super.dispose();
   }
 
-  /// 把"按句子数 + 配置频率"算出当前应有的 controller; 第一次创建, 后续 reconfigure。
-  /// 在 build() 里调用安全, 因为 reconfigure 内部只在真正变化时才重起 timer,
-  /// 不会因为每帧 rebuild 而疯狂 cancel/start。
   void _syncRotation(int itemCount, int cadenceMin) {
     final Duration cadence = Duration(minutes: cadenceMin.clamp(1, 60 * 24));
     if (_rotation == null) {
@@ -54,15 +61,42 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
     _rotation!.reconfigure(newItemCount: itemCount, newCadence: cadence);
   }
 
-  /// Timer 回调 —— 仅刷新 fade key, shuffle 的 next 已经在 controller 里做了。
   void _onTick() {
     if (!mounted) return;
     setState(() => _fadeKey++);
   }
 
-  /// 用户点 shuffle: 委托给 [RotationController.advance], 它会 invoke [_onTick] 重画。
   void _advance() {
     _rotation?.advance();
+  }
+
+  Future<void> _setAsWallpaper() async {
+    if (_settingWallpaper) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    setState(() => _settingWallpaper = true);
+    try {
+      final RenderObject? ro = _boundaryKey.currentContext?.findRenderObject();
+      if (ro is! RenderRepaintBoundary) {
+        throw const WallpaperFailedException('boundary not mounted yet');
+      }
+      await _wallpaperService.setWallpaperFromBoundary(ro);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(
+          duration: Duration(milliseconds: 1800),
+          content: Text('已设为系统主屏 + 锁屏壁纸。'),
+        ),
+      );
+    } on WallpaperUnsupportedException catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    } catch (e, st) {
+      AppLogger.instance.handle(e, st, 'setAsWallpaper');
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('设置壁纸失败: $e')));
+    } finally {
+      if (mounted) setState(() => _settingWallpaper = false);
+    }
   }
 
   @override
@@ -91,113 +125,122 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
         final bool hasUserBg =
             _withPhoto && bgPath != null && !PlatformCapabilities.isWeb;
 
+        // RepaintBoundary 只包背景 + 文字, 不含按钮 → 截图洁净。
+        final Widget snapshotArea = RepaintBoundary(
+          key: _boundaryKey,
+          child: Stack(
+            children: <Widget>[
+              if (hasUserBg)
+                Positioned.fill(
+                  child: Image.file(
+                    File(bgPath),
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (BuildContext _, Object __, StackTrace? ___) =>
+                            ColoredBox(color: t.bgPage),
+                  ),
+                )
+              else
+                AnimatedContainer(
+                  duration: XJKTokens.durSlow,
+                  decoration: BoxDecoration(
+                    gradient: _withPhoto
+                        ? LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: <Color>[t.ink500, t.ink700, t.ink900],
+                          )
+                        : null,
+                    color: _withPhoto ? null : t.bgPage,
+                  ),
+                ),
+              if (hasUserBg)
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: <double>[0.0, 0.3, 0.7, 1.0],
+                        colors: <Color>[
+                          Color(0x80000000),
+                          Color(0x00000000),
+                          Color(0x00000000),
+                          Color(0x80000000),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned.fill(
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 80,
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: XJKTokens.durPage,
+                      transitionBuilder:
+                          (Widget child, Animation<double> anim) {
+                            final Animation<Offset> slide =
+                                Tween<Offset>(
+                                  begin: const Offset(0, 0.04),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: anim,
+                                    curve: XJKTokens.easePaper,
+                                  ),
+                                );
+                            return FadeTransition(
+                              opacity: anim,
+                              child: SlideTransition(
+                                position: slide,
+                                child: child,
+                              ),
+                            );
+                          },
+                      child: Column(
+                        key: ValueKey<int>(_fadeKey),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            current.text,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: XJKTokens.serifDisplay,
+                              fontSize: XJKTokens.fsQuoteHero,
+                              height: XJKTokens.leadingLoose,
+                              color: textColor,
+                            ),
+                          ),
+                          if (settings.showAttribution &&
+                              current.tag.isNotEmpty) ...<Widget>[
+                            const SizedBox(height: 28),
+                            Text(
+                              '— ${current.tag}',
+                              style: TextStyle(
+                                fontFamily: XJKTokens.serifItalic,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 14,
+                                color: subColor,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
         return Stack(
           children: <Widget>[
-            // 背景: 用户图 > 深绿渐变 > bgPage
-            if (hasUserBg)
-              Positioned.fill(
-                child: Image.file(
-                  File(bgPath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (BuildContext _, Object __, StackTrace? ___) =>
-                      ColoredBox(color: t.bgPage),
-                ),
-              )
-            else
-              AnimatedContainer(
-                duration: XJKTokens.durSlow,
-                decoration: BoxDecoration(
-                  gradient: _withPhoto
-                      ? LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: <Color>[t.ink500, t.ink700, t.ink900],
-                        )
-                      : null,
-                  color: _withPhoto ? null : t.bgPage,
-                ),
-              ),
-
-            // Protection gradient —— 用户图必须配,
-            // skill README.md:110 的硬规则, 保证文字可读
-            if (hasUserBg)
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: <double>[0.0, 0.3, 0.7, 1.0],
-                      colors: <Color>[
-                        Color(0x80000000),
-                        Color(0x00000000),
-                        Color(0x00000000),
-                        Color(0x80000000),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Quote 内容 (淡入 + 上漂)
-            Positioned.fill(
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 28,
-                    vertical: 80,
-                  ),
-                  child: AnimatedSwitcher(
-                    duration: XJKTokens.durPage,
-                    transitionBuilder: (Widget child, Animation<double> anim) {
-                      final Animation<Offset> slide =
-                          Tween<Offset>(
-                            begin: const Offset(0, 0.04),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: anim,
-                              curve: XJKTokens.easePaper,
-                            ),
-                          );
-                      return FadeTransition(
-                        opacity: anim,
-                        child: SlideTransition(position: slide, child: child),
-                      );
-                    },
-                    child: Column(
-                      key: ValueKey<int>(_fadeKey),
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          current.text,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: XJKTokens.serifDisplay,
-                            fontSize: XJKTokens.fsQuoteHero,
-                            height: XJKTokens.leadingLoose,
-                            color: textColor,
-                          ),
-                        ),
-                        if (settings.showAttribution &&
-                            current.tag.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 28),
-                          Text(
-                            '— ${current.tag}',
-                            style: TextStyle(
-                              fontFamily: XJKTokens.serifItalic,
-                              fontStyle: FontStyle.italic,
-                              fontSize: 14,
-                              color: subColor,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            Positioned.fill(child: snapshotArea),
 
             // 顶部返回 (只在外层 push 进入时显示)
             if (widget.onBack != null)
@@ -211,7 +254,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                 ),
               ),
 
-            // 底部 3 控制
+            // 底部控制条
             Positioned(
               left: 0,
               right: 0,
@@ -272,6 +315,17 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                           );
                         },
                       ),
+                      // v0.15.9 Issue #8: 设为系统壁纸 — 仅 Android 端显示
+                      // (iOS / Web / Desktop 没对等 API)。
+                      if (_wallpaperService.isSupported)
+                        XJKIconButton(
+                          icon: 'download',
+                          onPressed: _settingWallpaper ? null : _setAsWallpaper,
+                          color: _settingWallpaper
+                              ? textColor.withValues(alpha: 0.4)
+                              : textColor,
+                          tooltip: _settingWallpaper ? '正在设置壁纸…' : '设为系统壁纸',
+                        ),
                     ],
                   ),
                 ),

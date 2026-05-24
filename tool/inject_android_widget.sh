@@ -26,6 +26,13 @@ cp "$SRC/res/drawable/"*.xml "$DST/res/drawable/"
 mkdir -p "$DST/kotlin/app/folio/widget"
 cp "$SRC/kotlin/app/folio/widget/"*.kt "$DST/kotlin/app/folio/widget/"
 
+# v0.15.9 Issue #8: 自定义 MainActivity (含 wallpaper MethodChannel handler)
+# 覆盖 `flutter create` 默认空 MainActivity。
+if [ -f "$SRC/kotlin/app/folio/MainActivity.kt" ]; then
+  echo "↪ overwrite MainActivity.kt with custom (wallpaper channel)"
+  cp "$SRC/kotlin/app/folio/MainActivity.kt" "$DST/kotlin/app/folio/MainActivity.kt"
+fi
+
 # 注入 receiver 到 AndroidManifest.xml 的 </application> 之前
 MANIFEST="android/app/src/main/AndroidManifest.xml"
 if grep -q "QuoteWidgetProvider" "$MANIFEST"; then
@@ -53,6 +60,18 @@ if 'xmlns:tools' not in manifest:
         count=1,
     )
     print('✓ added xmlns:tools to <manifest>')
+
+# v0.15.9 Issue #8: SET_WALLPAPER 权限 (normal permission, Android 6+ install-time
+# 自动授予, 无需 runtime request)。要让 MainActivity 的
+# WallpaperManager.setBitmap 不报 SecurityException 必须 declare。
+if 'android.permission.SET_WALLPAPER' not in manifest:
+    manifest = re.sub(
+        r'(<manifest\b[^>]*>)',
+        r'\1\n    <uses-permission android:name="android.permission.SET_WALLPAPER" />',
+        manifest,
+        count=1,
+    )
+    print('✓ added SET_WALLPAPER uses-permission')
 
 needle = '</application>'
 if needle not in manifest:

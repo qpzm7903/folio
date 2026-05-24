@@ -47,6 +47,49 @@
 
 ## 版本日志
 
+### v0.15.9 — Issue #8 屏保设为 Android 系统壁纸
+
+用户 Issue #8 "屏保应该真的影响屏幕壁纸, 而不是只要应用没有一个界面"。
+理解为: 把屏保画面 (当前 quote + 背景) 一键设成 Android 系统 +
+锁屏壁纸, 让"屏保"真正影响桌面。Android 三种"屏保"概念里
+(WallpaperManager.setBitmap / Daydream service / Live Wallpaper),
+选最直接的 `setBitmap`, 工程量最小且对用户最直观。
+
+不引入新 plugin (v0.14.1 教训), 走自写 MethodChannel + 自定义
+MainActivity 路线:
+
+- **native** (`docs/android_widget/app/src/main/kotlin/app/folio/MainActivity.kt`):
+  自定义 MainActivity 覆盖 `flutter create` 默认空版,
+  `configureFlutterEngine` 注册 channel `app.folio/wallpaper`,
+  `setWallpaperFromFile(path, flag)` 调 `WallpaperManager.setBitmap`,
+  默认 `FLAG_SYSTEM or FLAG_LOCK` 同时设主屏 + 锁屏。
+- **inject 脚本** (`tool/inject_android_widget.sh`):
+  1. cp 自定义 MainActivity.kt 到 android/app/src/main/kotlin/app/folio/
+  2. python patch AndroidManifest.xml 顶层加
+     `<uses-permission android:name="android.permission.SET_WALLPAPER" />`
+     (normal permission, Android 6+ install-time 自动授予, 不需要
+     runtime request)。
+- **Dart 端** (`lib/data/wallpaper_service.dart`):
+  `setWallpaperFromBoundary(RenderRepaintBoundary)`:
+  `boundary.toImage(pixelRatio: 2.5)` → PNG bytes → 写到
+  `getApplicationSupportDirectory()/wallpapers/quote-<ts>.png` →
+  channel `setWallpaperFromFile(path)`。`isSupported`
+  根据 `PlatformCapabilities.isAndroid` 判断, 其他平台 UI 隐藏入口。
+- **DisplayScreen** (`lib/presentation/display/display_screen.dart`):
+  重构 Stack 分两层 — 内层 RepaintBoundary 只包背景 + 文字
+  (key=_boundaryKey), 外层 Stack 加按钮 row → 截图自然不含按钮。
+  底部按钮 row 加第 4 个 IconButton (icon=`download`, tooltip=
+  `设为系统壁纸`), `_setAsWallpaper` 走 wallpaper service +
+  SnackBar 反馈成功/失败。`_settingWallpaper` flag 防双击。
+
+跨平台:
+- Android: 走 native 路径, setBitmap 成功后系统壁纸立即更新。
+- iOS / Web / Desktop: `WallpaperService.isSupported = false`,
+  download 按钮直接不渲染, 不会误触。
+
+参考 skill: 无新 UI 视觉, button 沿用 XJKIconButton + 复用现有
+`download.svg` 图标 (assets/icons/), tooltip 中文文案。
+
 ### v0.15.8 — 修 v0.15.7 XML 注释 `--` 让 aapt 报错 (workflow 红牌 PATCH)
 
 v0.15.7 CI build android apk fail:
@@ -185,121 +228,7 @@ Issue #6 4 个子任务进度:
 参考 skill: 无 UI 改动 (沿用 v0.15.4 已经按 widgets.jsx 视觉重构过的
 3 个 layout)。
 
-### v0.15.4 — Issue #6 子任务 1+2 (小组件去"金"印 + 出处右下角)
-
-用户 Issue #6 是个组合诉求, 含 4 个子任务:
-1. ✅ 去"金"字
-2. ✅ 出处放右下角
-3. ⏳ 点击切换金库 (留 v0.15.5)
-4. ⏳ 支持选颜色 (留 v0.15.5)
-
-本版完成视觉调整部分 (1+2), 改动面 Android RemoteViews + in-app preview:
-
-- `docs/android_widget/app/src/main/res/values/strings_widget.xml`:
-  删 `widget_brand_seal` 字符串。
-- 三个 layout (`quote_widget_small/medium/large.xml`):
-  - small: 删顶部 28dp seal 圆印, 金句改全屏垂直居中。
-  - medium: 删底部 row 里的"金"印 TextView, 留 `widget_tag`,
-    `android:gravity="end"` 让出处右对齐到 row 末尾。
-  - large: 删顶部整块 `seal-row` (含"金"印 + "小金库" brand),
-    底部出处 `gravity="end"` + maxLines=1。
-- `lib/presentation/widgets_preview/widgets_preview_screen.dart`:
-  in-app preview 三个 mock 跟 native 视觉保持一致, 去"金"印,
-  attribution `textAlign: TextAlign.end` 右对齐。
-
-不动的部分:
-- `xjk_widget_seal_bg.xml` / `xjk_widget_seal_bg_dark.xml` drawable
-  暂留 (没引用, 但下版恢复 "selectable seal" 时可能复用), 体积可忽略。
-- iOS Widget Extension (`docs/ios_widget/Swift/QuoteWidget.swift`)
-  也含"金"字, 但 CI 当前不构建 iOS (L08 等开发者证书),
-  跟子任务 3+4 一起在 v0.15.5 同步, 避免本轮改动面过大。
-
-参考 skill: `ui_kits/android-widgets/widgets.jsx` (本轮的"去金/出处右下"
-属于按用户反馈对设计稿做的修正, 偏离 skill 原版 seal 设计是有意的;
-其余布局间距 / 字号 / 字体 / 圆角仍严格沿用 skill `colors_and_type.css`)。
-
-### v0.15.3 — Issue #7 更换频率改成双滚轮 (小时+分钟自由选)
-
-用户 Issue #7: "更换频率切换成类似时间滚轮, 让用户自己选时间频率"。
-之前 settings 屏频率 picker 是 9 档预设 `[1,2,3,5,15,30,60,120,240]`,
-用 `showOptionPicker` 列出固定项, 用户不能选 7 分钟 / 1 小时 45 分钟
-这种"中间值"。
-
-实施:
-
-- 新建 `lib/presentation/settings/cadence_wheel_sheet.dart`:
-  双 `ListWheelScrollView` (小时 0-12 + 分钟 0-59), 实时大字预览
-  `每 X 小时 Y 分钟换一句`, 保存按钮当总分钟数 ≥ 1 才可点。
-  - 视觉对照 skill `screens.jsx:244-273` 的 ImportSheet 骨架:
-    grabber (40×4 px) + h2 衬线标题 + 副标题斜体 + 内容区 + 主按钮 (accent
-    底色 + radius-lg)。
-  - 滚轮中央选中行用 `accentSoft × 0.35` 软高亮 (skill --accent-soft),
-    diameterRatio 1.6 + perspective 0.003 让圆筒接近平面感, 配合衬线字体
-    远端 opacity 衰减实现纸感。
-  - 避开 `CupertinoTimerPicker` (iOS 蓝跟青纸/林夜衬线冲突)。
-  - 顶部导出两个纯函数 `formatCadenceText` (滚轮大字预览) +
-    `formatCadenceShort` (SettingRow value 列), 边界规则:
-    `<60` → "X 分钟", `整小时` → "X 小时", `混合` → "X 小时 Y 分钟"。
-- `lib/presentation/settings/settings_screen.dart`: `_pickCadence` 改调
-  `showCadenceWheelSheet`; SettingRow value 改用 `formatCadenceShort`;
-  删 `kCadenceChoices` 常量和 `cadenceLabel(int)` 函数 (已被滚轮 +
-  format 函数替代, 不再有"九选一"的概念)。
-- `test/cadence_label_test.dart` 重写: 覆盖 `formatCadenceText` 4 个分支
-  (0/纯分/纯时/混合) + `formatCadenceShort` 3 个分支。
-
-参考 skill: `colors_and_type.css:85-104` (字号/间距/radius token),
-`ui_kits/android-app/screens.jsx:244-273` (ImportSheet 骨架)。
-
-### v0.15.2 — Issue #10 暂停其他平台 CI, 只发 Android APK
-
-用户 Issue #10: "版本可以先只发 apk 的, 待彻底稳定后再出其他的"。
-鉴于近期 #5 (Android 16 启动崩) / #6 (小组件) / #7 (频率选择)
-/ #8 (壁纸) 都是 Android 端体验问题, 收敛火力 makes sense。
-
-实施:
-
-- `.github/workflows/build.yml`: 删除 `build-web` / `build-linux` /
-  `build-windows` / `build-macos` 4 个 job (每次省 ~3-5 分钟 CI 时间);
-  `release` job 的 `needs:` 从 5 个改成只依赖 `[build-android]`,
-  `files:` 只挂 APK。git history 保留, 想恢复跑
-  `git show v0.15.1:.github/workflows/build.yml` 拿回原文件即可。
-- workflow 顶部加 banner 注释说明 Issue #10 决策, 以及恢复路径。
-- README "构建产物" 一节同步: 列表只剩 Android APK, 附 git show 恢复指令。
-
-**长期规划影响**: L17 (多平台 CI 产物) 长期规划状态保持 `[x]` —
-工程能力 (脚本 / setup composite action / 字体 fetch) 仍在, 只是发布
-管线短期不挂非 Android 产物。等 Android 端验完 #6/#7/#8 再恢复。
-
-`pubspec.yaml` 0.15.1+40 → 0.15.2+41, `kAppVersion` 同步。
-
-参考 skill: 无 UI 改动。
-
-### v0.15.1 — 修 Issue #9 (设置屏版本号显示陈旧)
-
-用户报 Issue #9: "设置里面最下面显示的版本号不对"。根因是
-`settings_screen.dart:30` 的 `_versionLabel = 'v 0.13'` 是个手维护字符串,
-跟 `pubspec.yaml` 的 `version: 0.15.0+39` 是**双源真相**, 我从 v0.13
-之后 5 次 bump pubspec 都漏改这一处。
-
-修法不是改字符串, 而是引入**单一可信源**:
-
-- 新建 `lib/core/app_version.dart` 导出 `const String kAppVersion`,
-  每次发版只改这一处和 pubspec, 其它代码 (settings footer / 未来日志
-  里的 banner / about 屏) 全从它派生。
-- 不引入 `package_info_plus` 读运行时 native bundle 版本 — v0.14.1 刚因
-  `home_widget` 拉进 `androidx.work` 在 Android 16 上启动崩 (Issue #5),
-  教训告诉我们能用编译期常量解决就不要再加 native 插件依赖。
-- `settings_screen.dart` 把 `_versionLabel` 改成 `'v $kAppVersion'`。
-- 新增 `test/app_version_test.dart` 解析 `pubspec.yaml` 锁住 `kAppVersion`
-  与 `version:` 字段的 MAJOR.MINOR.PATCH 部分一致, 漏改一处 CI 红牌。
-  这是这个修复的**防回归核心**, 比修字符串本身更重要。
-
-`pubspec.yaml` bump 到 `0.15.1+40`。
-
-参考 skill: 无 UI 改动, _VersionFooter 视觉沿用 v0.1.0 对照
-`screens.jsx` SettingsScreen footer 的实现。
-
-### 早期版本汇总 (v0.1.0 ~ v0.15.0)
+### 早期版本汇总 (v0.1.0 ~ v0.15.4)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -446,6 +375,29 @@ native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
 → prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
 抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
 已恢复, 这版的切除决定整体来看是误修。
+
+**v0.15.1** 修 Issue #9 设置屏版本号显示陈旧: `settings_screen.dart:30`
+`_versionLabel = 'v 0.13'` 跟 pubspec.yaml `version: 0.15.0+39` 是双源真相
+漏改。修法是新建 `lib/core/app_version.dart` 单一可信源 `kAppVersion`,
++ `test/app_version_test.dart` 解析 pubspec 锁一致性防回归。不引入
+`package_info_plus` (v0.14.1 home_widget 教训)。
+
+**v0.15.2** Issue #10 暂停其他平台 CI 只发 APK: workflow 删 build-web/
+linux/windows/macos 4 个 job, release job 只依赖 [build-android]。
+L17 (多平台 CI 产物) 状态保持 [x] — 工程能力仍在, git history 保留
+可 `git show v0.15.1:.github/workflows/build.yml` 恢复。
+
+**v0.15.3** Issue #7 更换频率改成双滚轮 (小时+分钟自由选): 新建
+`cadence_wheel_sheet.dart` 双 ListWheelScrollView (0-12h + 0-59m) +
+实时大字预览, 替换之前 9 档预设 `[1,2,3,5,15,30,60,120,240]`
+showOptionPicker。导出 formatCadenceText/Short 纯函数, cadence_label_test
+覆盖 7 个边界分支。视觉对照 skill ImportSheet 骨架。
+
+**v0.15.4** Issue #6 子任务 1+2 (小组件去"金"印 + 出处右下角):
+strings_widget.xml 删 widget_brand_seal; 3 个 layout 删 seal TextView / 顶部
+seal-row; medium/large widget_tag 改 `android:gravity="end"`;
+widgets_preview in-app preview 同步 textAlign.end。属于按用户反馈对
+skill 原版 seal 设计的修正。
 
 **v0.15.0** 恢复 drift 满足 L12 (重启 v0.13.0): v0.14.1 定位真因后切除决定
 没必要。pubspec 重新加 drift ^2.20.0 + sqlite3_flutter_libs ^0.5.24 + dev
