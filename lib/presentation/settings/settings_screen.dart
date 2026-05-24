@@ -12,13 +12,8 @@ import '../widgets/option_picker.dart';
 import '../widgets/setting_row.dart';
 import '../widgets/top_bar.dart';
 import 'background_picker.dart';
+import 'cadence_wheel_sheet.dart';
 import 'export_import_sheets.dart';
-
-/// 频率选项的可读标签 —— 抽出来便于以后 i18n / 单测。
-String cadenceLabel(int minutes) => '每 $minutes 分钟换一句';
-
-/// settings 屏可选的频率档位 (分钟)。
-const List<int> kCadenceChoices = <int>[1, 2, 3, 5, 15, 30, 60, 120, 240];
 
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
 ///
@@ -97,7 +92,7 @@ class _RotationSection extends ConsumerWidget {
             SettingRow(
               label: '更换频率',
               sub: '一句话停留多久',
-              value: '${s.cadenceMinutes} 分钟',
+              value: formatCadenceShort(s.cadenceMinutes),
               onTap: () => _pickCadence(context, ref, s.cadenceMinutes),
             ),
             SettingRow(
@@ -134,12 +129,9 @@ class _RotationSection extends ConsumerWidget {
     WidgetRef ref,
     int current,
   ) async {
-    final int? next = await showOptionPicker<int>(
+    final int? next = await showCadenceWheelSheet(
       context: context,
-      current: current,
-      options: <PickerOption<int>>[
-        for (final int m in kCadenceChoices) (value: m, label: cadenceLabel(m)),
-      ],
+      currentMinutes: current,
     );
     if (next != null) {
       await ref.read(settingsProvider.notifier).setCadenceMinutes(next);

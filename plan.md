@@ -47,6 +47,38 @@
 
 ## 版本日志
 
+### v0.15.3 — Issue #7 更换频率改成双滚轮 (小时+分钟自由选)
+
+用户 Issue #7: "更换频率切换成类似时间滚轮, 让用户自己选时间频率"。
+之前 settings 屏频率 picker 是 9 档预设 `[1,2,3,5,15,30,60,120,240]`,
+用 `showOptionPicker` 列出固定项, 用户不能选 7 分钟 / 1 小时 45 分钟
+这种"中间值"。
+
+实施:
+
+- 新建 `lib/presentation/settings/cadence_wheel_sheet.dart`:
+  双 `ListWheelScrollView` (小时 0-12 + 分钟 0-59), 实时大字预览
+  `每 X 小时 Y 分钟换一句`, 保存按钮当总分钟数 ≥ 1 才可点。
+  - 视觉对照 skill `screens.jsx:244-273` 的 ImportSheet 骨架:
+    grabber (40×4 px) + h2 衬线标题 + 副标题斜体 + 内容区 + 主按钮 (accent
+    底色 + radius-lg)。
+  - 滚轮中央选中行用 `accentSoft × 0.35` 软高亮 (skill --accent-soft),
+    diameterRatio 1.6 + perspective 0.003 让圆筒接近平面感, 配合衬线字体
+    远端 opacity 衰减实现纸感。
+  - 避开 `CupertinoTimerPicker` (iOS 蓝跟青纸/林夜衬线冲突)。
+  - 顶部导出两个纯函数 `formatCadenceText` (滚轮大字预览) +
+    `formatCadenceShort` (SettingRow value 列), 边界规则:
+    `<60` → "X 分钟", `整小时` → "X 小时", `混合` → "X 小时 Y 分钟"。
+- `lib/presentation/settings/settings_screen.dart`: `_pickCadence` 改调
+  `showCadenceWheelSheet`; SettingRow value 改用 `formatCadenceShort`;
+  删 `kCadenceChoices` 常量和 `cadenceLabel(int)` 函数 (已被滚轮 +
+  format 函数替代, 不再有"九选一"的概念)。
+- `test/cadence_label_test.dart` 重写: 覆盖 `formatCadenceText` 4 个分支
+  (0/纯分/纯时/混合) + `formatCadenceShort` 3 个分支。
+
+参考 skill: `colors_and_type.css:85-104` (字号/间距/radius token),
+`ui_kits/android-app/screens.jsx:244-273` (ImportSheet 骨架)。
+
 ### v0.15.2 — Issue #10 暂停其他平台 CI, 只发 Android APK
 
 用户 Issue #10: "版本可以先只发 apk 的, 待彻底稳定后再出其他的"。
@@ -168,30 +200,7 @@ drift 恢复 L12。
 
 参考 skill: 无 UI 改动。
 
-### v0.14.0 — 收藏列表屏
-
-v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
-"收藏列表入口屏留到 v0.14.0 MINOR"。这版兑现。
-
-- 新建 `lib/presentation/favorites/favorites_screen.dart`:
-  watch `quotesProvider` + `favoritesProvider`, 过滤出收藏中的
-  quotes; 复用 `QuoteCard` (LibraryScreen 同款卡片) + `XJKSectionHeader`,
-  TopBar 加 `chevron-left` 返回; 空态文案 "在屏保里点 bookmark 试试"。
-- 卡片 onTap → `context.push('/editor/${q.id}')` 直接进编辑器,
-  跟 LibraryScreen 行为一致。
-- `lib/core/router.dart`: 加 `FolioRoutes.favorites = '/favorites'`
-  顶层路由。
-- `lib/presentation/settings/settings_screen.dart`: `_TagsSection`
-  改名 "标签与收藏", 增加"我的收藏" 行入口, sub 文案随 favorites
-  数量动态变 ("$count 句" / 提示)。
-- 新增 `test/favorites_notifier_test.dart` 锁 3 条不变量:
-  初始为空 / toggle 同 id 两次回环 / 跨 ProviderContainer 持久化。
-
-参考 skill: `ui_kits/android-app/screens.jsx` (LibraryScreen 卡片
-+ section header 视觉), `assets/icons/chevron-left.svg` /
-`bookmark.svg`。
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.5)
+### 早期版本汇总 (v0.1.0 ~ v0.14.0)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -338,6 +347,15 @@ native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
 → prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
 抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
 已恢复, 这版的切除决定整体来看是误修。
+
+**v0.14.0** 收藏列表屏 (兑现 v0.13.3 接入 bookmark toggle 时承诺):
+新建 `lib/presentation/favorites/favorites_screen.dart` watch
+`quotesProvider` + `favoritesProvider` 过滤出收藏 quotes, 复用 QuoteCard
++ XJKSectionHeader, TopBar 加 chevron-left 返回, 空态 "在屏保里点
+bookmark 试试"; 卡片 onTap → `/editor/:id`; router 加 `/favorites`
+顶层路由; settings `_TagsSection` 改名 "标签与收藏" 加"我的收藏" 行;
+新增 `favorites_notifier_test.dart` 锁 3 条不变量。参考 skill
+`screens.jsx` LibraryScreen + chevron-left/bookmark SVG。
 
 **v0.13.5** 重构 PATCH 让 v0.13.x 拿到重构: top-level `_maybeMigrateLegacyJson`
 抽到 `lib/data/legacy_quotes_migration.dart` (跟 repo 的 load/save 语义独立,
