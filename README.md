@@ -7,7 +7,7 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.15.1** — 修 Issue #9 设置屏版本号显示陈旧.
+最新版本: **v0.15.2** — Issue #10 暂停其他平台 CI, 只发 Android APK.
 长期规划 **17/17 完成**。
 
 ## 截图
@@ -35,16 +35,14 @@ flutter run -d <device>    # Android
 
 每个 tag (`v*`) 推送都会触发 GitHub Actions, 生成以下产物并挂到 GitHub Release:
 
-所有产物文件名带版本号 (v0.13.1+ 起):
+**v0.15.2 起 (Issue #10)** 暂时只发 Android APK, 待 Android 端彻底稳定后再恢复其他平台构建:
 
 - Android APK (`folio-<version>-android.apk`)
-- Web bundle (`folio-<version>-web.zip`)
-- Linux x64 (`folio-<version>-linux-x64.tar.gz`)
-- Windows x64 (`folio-<version>-windows-x64.zip`)
-- macOS (`folio-<version>-macos.zip`, 不签名, 首次打开需 ctrl+click 绕过 Gatekeeper)
 
-iOS IPA 暂不构建 (需要 Apple 开发者证书, L08 一并处理)。
-流水线在 `.github/workflows/build.yml` 。
+历史版本 (v0.4.0 ~ v0.15.1) 还包含 Web bundle / Linux / Windows / macOS,
+对应 workflow 见 `git show v0.15.1:.github/workflows/build.yml`。
+iOS IPA 一直未构建 (需要 Apple 开发者证书, L08 一并处理)。
+流水线在 `.github/workflows/build.yml`。
 
 ## 设计
 

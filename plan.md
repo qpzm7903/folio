@@ -47,6 +47,30 @@
 
 ## 版本日志
 
+### v0.15.2 — Issue #10 暂停其他平台 CI, 只发 Android APK
+
+用户 Issue #10: "版本可以先只发 apk 的, 待彻底稳定后再出其他的"。
+鉴于近期 #5 (Android 16 启动崩) / #6 (小组件) / #7 (频率选择)
+/ #8 (壁纸) 都是 Android 端体验问题, 收敛火力 makes sense。
+
+实施:
+
+- `.github/workflows/build.yml`: 删除 `build-web` / `build-linux` /
+  `build-windows` / `build-macos` 4 个 job (每次省 ~3-5 分钟 CI 时间);
+  `release` job 的 `needs:` 从 5 个改成只依赖 `[build-android]`,
+  `files:` 只挂 APK。git history 保留, 想恢复跑
+  `git show v0.15.1:.github/workflows/build.yml` 拿回原文件即可。
+- workflow 顶部加 banner 注释说明 Issue #10 决策, 以及恢复路径。
+- README "构建产物" 一节同步: 列表只剩 Android APK, 附 git show 恢复指令。
+
+**长期规划影响**: L17 (多平台 CI 产物) 长期规划状态保持 `[x]` —
+工程能力 (脚本 / setup composite action / 字体 fetch) 仍在, 只是发布
+管线短期不挂非 Android 产物。等 Android 端验完 #6/#7/#8 再恢复。
+
+`pubspec.yaml` 0.15.1+40 → 0.15.2+41, `kAppVersion` 同步。
+
+参考 skill: 无 UI 改动。
+
 ### v0.15.1 — 修 Issue #9 (设置屏版本号显示陈旧)
 
 用户报 Issue #9: "设置里面最下面显示的版本号不对"。根因是
@@ -167,30 +191,7 @@ v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
 + section header 视觉), `assets/icons/chevron-left.svg` /
 `bookmark.svg`。
 
-### v0.13.5 — 重构 PATCH (legacy_quotes_migration + bootstrap_error_screen)
-
-让 v0.13.x 拿到重构 PATCH。
-
-- **quote_repository.dart 拆分** (103 → 76 行): top-level
-  `_maybeMigrateLegacyJson` 抽到独立 `lib/data/legacy_quotes_migration.dart`
-  的 `LegacyQuotesMigration` 类。理由: 这是个独立关注点 (历史文件格式
-  → 当前存储的一次性迁移), 跟 repo 的 load/save 语义无关; 抽出后 repo
-  文件专注 "接口 + Prefs 实现 + InMemory 兜底" 三件事, 而 migration
-  自身可以独立单测 (旧文件不存在 / 存在 + prefs 空 / prefs 已有 / 旧文件
-  损坏 4 个分支), 不必走真实 SharedPreferences/path_provider mock 链。
-- **main.dart 拆分** (98 → 56 行): 内联的 `_BootstrapErrorApp` 抽到
-  `lib/presentation/bootstrap_error_screen.dart` 的 `BootstrapErrorScreen`
-  公开 widget。理由: main.dart 应该只关心 "process entry + 全局错误兜底
-  路由 + runApp" 三件事; 错误屏的渲染细节是 UI 关注点, 跟 presentation/
-  目录的其它屏并列。抽出后 BootstrapErrorScreen 还能在 widget book / 设计
-  review 时单独 preview。
-- **测试**: 新增 `test/legacy_quotes_migration_test.dart` 用 `_FakePathProvider`
-  (PathProviderPlatform.instance override) + temp dir 锁 4 个不变量;
-  in_memory test group 标题更新, 不再写"drift 失败兜底" (已过时)。
-
-不动业务行为。
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.4)
+### 早期版本汇总 (v0.1.0 ~ v0.13.5)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -337,3 +338,12 @@ native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
 → prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
 抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
 已恢复, 这版的切除决定整体来看是误修。
+
+**v0.13.5** 重构 PATCH 让 v0.13.x 拿到重构: top-level `_maybeMigrateLegacyJson`
+抽到 `lib/data/legacy_quotes_migration.dart` (跟 repo 的 load/save 语义独立,
+可单测 4 个分支); `main.dart` 内联 `_BootstrapErrorApp` 抽到
+`lib/presentation/bootstrap_error_screen.dart` (main 缩到 56 行只关心
+entry + 错误路由 + runApp)。新增 `legacy_quotes_migration_test.dart` 用
+`_FakePathProvider` + temp dir 锁 4 个不变量。v0.15.0 重新引入 drift 后
+`legacy_quotes_migration.dart` 又被删了 (JSON 迁移现在直接在 drift
+bootstrap 路径里做, helper 反而冗余) — 这版的 main.dart 拆分留下来。
