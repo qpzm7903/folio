@@ -63,7 +63,7 @@ class FavoritesScreen extends ConsumerWidget {
                     return ListView(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                       children: <Widget>[
-                        XJKSectionHeader(
+                        SectionHeader(
                           title: '你收藏过的',
                           count: favorites.length,
                         ),
