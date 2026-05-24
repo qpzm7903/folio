@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_version.dart';
 import '../../core/router.dart';
 import '../../data/settings_repository.dart';
 import '../../theme/tokens.dart';
@@ -26,8 +27,9 @@ const List<int> kCadenceChoices = <int>[1, 2, 3, 5, 15, 30, 60, 120, 240];
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  /// footer 上的版本标签 —— 跟 pubspec 同步, 手动维护 (每个 MINOR 改一次)。
-  static const String _versionLabel = 'v 0.13';
+  /// footer 上的版本标签 —— 从 [kAppVersion] (唯一可信源) 派生,
+  /// `app_version_test.dart` 锁住跟 pubspec 一致。
+  static const String _versionLabel = 'v $kAppVersion';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

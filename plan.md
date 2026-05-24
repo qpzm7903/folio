@@ -47,6 +47,31 @@
 
 ## 版本日志
 
+### v0.15.1 — 修 Issue #9 (设置屏版本号显示陈旧)
+
+用户报 Issue #9: "设置里面最下面显示的版本号不对"。根因是
+`settings_screen.dart:30` 的 `_versionLabel = 'v 0.13'` 是个手维护字符串,
+跟 `pubspec.yaml` 的 `version: 0.15.0+39` 是**双源真相**, 我从 v0.13
+之后 5 次 bump pubspec 都漏改这一处。
+
+修法不是改字符串, 而是引入**单一可信源**:
+
+- 新建 `lib/core/app_version.dart` 导出 `const String kAppVersion`,
+  每次发版只改这一处和 pubspec, 其它代码 (settings footer / 未来日志
+  里的 banner / about 屏) 全从它派生。
+- 不引入 `package_info_plus` 读运行时 native bundle 版本 — v0.14.1 刚因
+  `home_widget` 拉进 `androidx.work` 在 Android 16 上启动崩 (Issue #5),
+  教训告诉我们能用编译期常量解决就不要再加 native 插件依赖。
+- `settings_screen.dart` 把 `_versionLabel` 改成 `'v $kAppVersion'`。
+- 新增 `test/app_version_test.dart` 解析 `pubspec.yaml` 锁住 `kAppVersion`
+  与 `version:` 字段的 MAJOR.MINOR.PATCH 部分一致, 漏改一处 CI 红牌。
+  这是这个修复的**防回归核心**, 比修字符串本身更重要。
+
+`pubspec.yaml` bump 到 `0.15.1+40`。
+
+参考 skill: 无 UI 改动, _VersionFooter 视觉沿用 v0.1.0 对照
+`screens.jsx` SettingsScreen footer 的实现。
+
 ### v0.15.0 — 恢复 drift 满足 L12 (重启 v0.13.0 的尝试)
 
 v0.14.1 用 adb 定位 #5 真因是 home_widget WorkManager (跟 drift 无关)
@@ -165,38 +190,7 @@ v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
 
 不动业务行为。
 
-### v0.13.4 — bypass drift, native 走 prefs (Issue #5)
-
-用户反馈 v0.13.2 APK 仍闪退 (Issue #5)。我 v0.13.1 装的
-`runZonedGuarded` + `FlutterError.onError` + `_BootstrapErrorApp`
-只能兜 **Dart 层** 异常; 用户机型上 `libsqlite3.so` 加载触发
-**native SIGSEGV**, Dart try/catch 在进程被内核 kill 之前根本
-不会执行 → 我的 in-memory fallback 永远到不了。
-
-**根治**: 完全 bypass drift native 调用, 让所有平台都走
-`_PrefsQuoteRepository` (跟 web 一致, v0.12.x 之前的 native 也是
-存到文件, prefs 同性质):
-
-- `lib/data/quote_repository.dart`: 去掉 conditional import +
-  `drift_impl.buildDriftQuoteRepository()` 调用; native 端启动时
-  若 `${getApplicationSupportDirectory()}/quotes.json` 存在 + prefs
-  无 quotes 数据 → 一次性导入 + rename 备份 (`migrate-<ts>`),
-  不丢 v0.12.x 用户数据。
-- 删除 `lib/data/drift/` + `drift_quote_repository_io.dart` +
-  `drift_quote_repository_stub.dart` + `test/drift_quotes_database_test.dart`。
-- `pubspec.yaml`: 移除 `drift` / `sqlite3_flutter_libs` /
-  `drift_dev` / `build_runner` 4 个 dep (sqlite3 native libs
-  不再进 APK, 体积减少 ~10 MB)。CI flutter-setup 的 build_runner
-  step 自动 no-op (它本来就 `grep drift_dev` 才跑)。
-
-**长期规划影响**: L12 状态从 [x] 打回 [ ], 长期规划 16/17。
-等收集到 #5 用户机型/Android 版本信息, 定位是 sqlite3_flutter_libs
-的 commit 问题还是更深的兼容性问题, 再规划 v0.14+ 重新引入。
-
-不动 UI, 无新增 skill 参考。
-
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.3)
+### 早期版本汇总 (v0.1.0 ~ v0.13.4)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -334,3 +328,12 @@ invalid"。产物文件名才真正带版本号。
 档位; widgets_preview 副标题文案更新; 屏保 bookmark 按钮真正接入
 FavoritesRepository (SharedPreferences Set&lt;String&gt; ids), Display 屏
 Consumer toggle + icon opacity 切实/虚 + tooltip 切换 + SnackBar 反馈。
+
+**v0.13.4** Issue #5 误诊版: 当时把 #5 闪退判为 drift / sqlite3 native
+SIGSEGV (Dart 层 try/catch 兜不住), 切除 drift 全套 (移除 drift /
+sqlite3_flutter_libs / drift_dev / build_runner 4 个 dep, 删
+drift_quote_repository_io/stub + drift/quotes_database.dart),
+native 改走 `_PrefsQuoteRepository` 同 web 路径, 启动时 quotes.json
+→ prefs 一次性迁移 + rename 备份。L12 [x] 打回 [ ]。v0.14.1 用 adb
+抓栈才发现真因是 home_widget WorkManager, drift 完全没问题, v0.15.0
+已恢复, 这版的切除决定整体来看是误修。
