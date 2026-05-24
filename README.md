@@ -7,8 +7,8 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.15.10** — 重构 PATCH: WallpaperService 接入 Riverpod provider.
-长期规划 **17/17 完成**。
+最新版本: **v0.16.1** — 桌面小组件按 cadence 自动刷新 (Android AlarmManager, 下限 15min).
+长期规划 **19/19 完成**。
 
 ## 截图
 

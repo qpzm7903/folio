@@ -27,9 +27,11 @@
 - [x] L16 · 完整测试覆盖 (单元 + Widget + 集成) — v0.9.0 (test_harness + 屏级 widget 测试框架到位; 剩余屏后续 PATCH 持续覆盖)
 - [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
   iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
-- [ ] L18 · 桌面小组件按 cadence 自动刷新 (Android AlarmManager + Dart 预生成 timeline) — v0.16.0
-  规划; iOS WidgetKit TimelineProvider 镜像实现留 L08 后续 (CI 暂不构建 iOS)
-- [ ] L19 · 壁纸保持手动一次性: 用户在屏保点 "设为壁纸" 触发, 不做后台自动轮换 (明确决定不做, 见 v0.16.0 设计说明)
+- [x] L18 · 桌面小组件按 cadence 自动刷新 — v0.16.0 实现 (因 kAppVersion 漏改实际以 v0.16.1 兜底发布):
+  Android AlarmManager.setInexactRepeating + Dart 预生成 N=20 timeline + cursor 推进。iOS
+  WidgetKit TimelineProvider 镜像实现留 L08 后续 (CI 暂不构建 iOS)
+- [x] L19 · 壁纸保持手动一次性 — v0.16.0 明确决定不做: 用户在屏保点 "设为壁纸"
+  触发, 不做后台自动轮换 (功耗 + 后台 init 风险)
 
 ---
 
@@ -74,7 +76,7 @@ v0.16.1 即可。
 
 参考 skill: 无 UI 改动。
 
-### v0.16.0 — 桌面小组件按 cadence 自动刷新 (规划中)
+### v0.16.0 — 桌面小组件按 cadence 自动刷新 (因 kAppVersion 漏改实际以 v0.16.1 兜底发布)
 
 **版本号**: `0.16.0+50` (上一版 `0.15.10+49`, MINOR bump 因为是新功能)。
 
