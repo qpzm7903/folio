@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../data/quote.dart';
 import '../presentation/display/display_screen.dart';
 import '../presentation/editor/editor_screen.dart';
+import '../presentation/favorites/favorites_screen.dart';
 import '../presentation/library/library_screen.dart';
 import '../presentation/library/search_screen.dart';
 import '../presentation/providers.dart';
@@ -29,6 +30,7 @@ class FolioRoutes {
   static const String editorEdit = '/editor/:id';
   static const String search = '/search';
   static const String tags = '/tags';
+  static const String favorites = '/favorites';
 }
 
 /// 把 tab 跟 router path / shell branch index 绑成一个权威映射。
@@ -153,6 +155,10 @@ GoRouter _buildRouter() {
       GoRoute(
         path: FolioRoutes.tags,
         builder: (BuildContext _, GoRouterState __) => const TagsScreen(),
+      ),
+      GoRoute(
+        path: FolioRoutes.favorites,
+        builder: (BuildContext _, GoRouterState __) => const FavoritesScreen(),
       ),
     ],
   );

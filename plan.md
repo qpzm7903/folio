@@ -47,6 +47,29 @@
 
 ## 版本日志
 
+### v0.14.0 — 收藏列表屏
+
+v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
+"收藏列表入口屏留到 v0.14.0 MINOR"。这版兑现。
+
+- 新建 `lib/presentation/favorites/favorites_screen.dart`:
+  watch `quotesProvider` + `favoritesProvider`, 过滤出收藏中的
+  quotes; 复用 `QuoteCard` (LibraryScreen 同款卡片) + `XJKSectionHeader`,
+  TopBar 加 `chevron-left` 返回; 空态文案 "在屏保里点 bookmark 试试"。
+- 卡片 onTap → `context.push('/editor/${q.id}')` 直接进编辑器,
+  跟 LibraryScreen 行为一致。
+- `lib/core/router.dart`: 加 `FolioRoutes.favorites = '/favorites'`
+  顶层路由。
+- `lib/presentation/settings/settings_screen.dart`: `_TagsSection`
+  改名 "标签与收藏", 增加"我的收藏" 行入口, sub 文案随 favorites
+  数量动态变 ("$count 句" / 提示)。
+- 新增 `test/favorites_notifier_test.dart` 锁 3 条不变量:
+  初始为空 / toggle 同 id 两次回环 / 跨 ProviderContainer 持久化。
+
+参考 skill: `ui_kits/android-app/screens.jsx` (LibraryScreen 卡片
++ section header 视觉), `assets/icons/chevron-left.svg` /
+`bookmark.svg`。
+
 ### v0.13.5 — 重构 PATCH (legacy_quotes_migration + bootstrap_error_screen)
 
 让 v0.13.x 拿到重构 PATCH。
@@ -152,36 +175,7 @@ field, `$2` 是空字符串 → 5 个平台产物落地都叫 `folio--<platform>
 
 5 个平台 job + workflow 文件全部同步。bump pubspec 0.13.1+32 → 0.13.2+33。
 
-### v0.13.1 — 闪退兜底 + release 包带版本号 (PATCH for #1 #2)
-
-修两个 issue:
-
-- **#1 v0.13.0 APK 闪退**: drift `NativeDatabase.createInBackground` 在
-  部分 Android ROM 上首次冷启动时父目录尚未由系统创建, db 打开抛
-  SQLite Exception, 未捕获冒到 root 把进程拉死。
-  - `lib/data/drift/quotes_database.dart`: 在 `LazyDatabase` 里
-    `createSync(recursive: true)` 预创建 `getApplicationSupportDirectory()`。
-  - `lib/data/quote_repository.dart`: `buildQuoteRepository` 在 native
-    分支 try/catch 包 drift 初始化, 失败时 fallback 到
-    新增的 `InMemoryQuoteRepository` (跑种子金句, app 至少打得开)。
-  - `lib/main.dart`: 用 `runZonedGuarded` 包住 Bootstrap + runApp,
-    装 `FlutterError.onError` + `PlatformDispatcher.onError` 把任何
-    未捕获异常都路由到 logger; Bootstrap 自身失败时显示
-    `_BootstrapErrorApp` 屏幕代替黑屏闪退。
-  - `test/in_memory_quote_repository_test.dart`: 锁住兜底仓库
-    load/save/防御性 copy 三条不变量。
-
-- **#2 release 包名缺版本号**: GitHub Actions artifact 沿用 Flutter
-  默认的 `app-release.apk` / `folio-web.zip` 等通用名, release 资产无
-  法区分版本。
-  - `.github/workflows/build.yml`: 5 个平台 job 各加一步
-    `Resolve app version` (awk 解析 pubspec `version:` 行取 SemVer 部分,
-    不含 build_number), 把所有产物重命名为
-    `folio-<version>-<platform>.<ext>`; release job 用 glob 收集。
-
-不动 UI, 无新增 skill 参考。
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.0)
+### 早期版本汇总 (v0.1.0 ~ v0.13.1)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -299,3 +293,12 @@ sqlite3_flutter_libs ^0.5.24 + dev drift_dev + build_runner; native 端
 rename 备份; Web 仍走 SharedPreferences。L12 在 v0.13.0 标 [x] 但
 v0.13.4 因 Issue #5 native SIGSEGV 切除 drift 后打回 [ ], drift 路径
 完全删除等真因定位后再以 v0.14+ 重新引入。
+
+**v0.13.1** 闪退兜底 + release 包带版本号 (#1 #2 首次尝试):
+drift LazyDatabase 预创建 supportDir; buildQuoteRepository try/catch
+fallback 到 InMemoryQuoteRepository; main.dart 用 runZonedGuarded +
+FlutterError.onError + PlatformDispatcher.onError 路由未捕获异常到
+logger, Bootstrap 失败时显示错误屏代替黑屏。CI 5 个平台 job 加
+awk 解析 pubspec version, 产物重命名 folio-&lt;v&gt;-&lt;p&gt;.&lt;ext&gt;。
+(awk FS 集合 bug 让 #2 没真修, v0.13.2 用 grep+sed 才真正修好;
+#1 的 Dart 层兜底也救不了 native SIGSEGV, v0.13.4 才彻底解决。)

@@ -195,21 +195,27 @@ class _AppearanceSection extends ConsumerWidget {
 }
 
 /// 标签: 入口到 TagsScreen。
-class _TagsSection extends StatelessWidget {
+class _TagsSection extends ConsumerWidget {
   const _TagsSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int favCount = ref.watch(favoritesProvider).length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const _SectionLabel('标签'),
+        const _SectionLabel('标签与收藏'),
         SettingsGroup(
           children: <Widget>[
             SettingRow(
               label: '标签管理',
               sub: '重命名 / 取下整组标签',
               onTap: () => context.push(FolioRoutes.tags),
+            ),
+            SettingRow(
+              label: '我的收藏',
+              sub: favCount > 0 ? '$favCount 句' : '在屏保里点 bookmark',
+              onTap: () => context.push(FolioRoutes.favorites),
             ),
           ],
         ),
