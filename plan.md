@@ -51,6 +51,29 @@ v0.16.0 任务清单见下方"版本日志 / v0.16.0"区段。
 
 ## 版本日志
 
+### v0.16.1 — 修 v0.16.0 kAppVersion 漏改 (workflow 红牌 PATCH)
+
+v0.16.0 push 后 CI `app_version_test.dart: kAppVersion 与 pubspec.yaml
+的 version 字段一致` 失败:
+```
+Expected: '0.16.0'
+Actual: '0.15.10'
+```
+
+我 bump 了 `pubspec.yaml` 到 `0.16.0+50` 但忘改 `lib/core/app_version.dart`
+里的 `kAppVersion = '0.15.10'`。这正是 v0.15.1 引入这个测试要防的双源
+真相场景, 测试守住了红线工作正确, 但开发者 (我) 仍踩了同一个坑。
+
+修法是同步 `kAppVersion = '0.16.1'`, 这版直接走 PATCH 兜底 v0.16.0
+的发布。v0.16.0 tag 已 push 到 GitHub 但 CI 在 analyze+test 阶段
+失败没产出 APK, 该 tag 对应的 release 不存在, 跳过 v0.16.0 直接发
+v0.16.1 即可。
+
+教训: 改 pubspec 时必须同步 `lib/core/app_version.dart`。考虑后续给
+开发流程加 pre-commit grep, 或把测试运行提前到 push 前。
+
+参考 skill: 无 UI 改动。
+
 ### v0.16.0 — 桌面小组件按 cadence 自动刷新 (规划中)
 
 **版本号**: `0.16.0+50` (上一版 `0.15.10+49`, MINOR bump 因为是新功能)。
