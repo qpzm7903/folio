@@ -12,3 +12,34 @@
         android:name="android.appwidget.provider"
         android:resource="@xml/quote_widget_info" />
 </receiver>
+
+<!--
+  禁用 androidx.work.WorkManagerInitializer (v0.14.1 修 Issue #5 真因)。
+
+  Honor MagicOS Android 16 (SDK 36) 上 androidx.startup.InitializationProvider
+  跑 WorkManagerInitializer → Room 创建 WorkDatabase 抛 RuntimeException →
+  ContentProvider.onCreate 失败 → 整个 app process 在 Dart 启动前被 SIGKILL。
+
+  完整闪退栈 (无更深 cause 因 R8 obfuscation):
+    Caused by: java.lang.RuntimeException: Failed to create an instance of
+      androidx.work.impl.WorkDatabase
+        at f1.m.<init>(...:592)
+        at androidx.work.WorkManagerInitializer.b(...:95)
+
+  v0.13.0 ~ v0.14.0 都是这个 crash, 跟 drift / sqlite3 完全无关 (v0.13.4
+  的"切除 drift"是误诊误修)。
+
+  folio 实际不用 WorkManager 后台任务 (widget sync 走前台 HomeWidget.updateWidget
+  跟 Android AppWidgetProvider 系统广播), 直接 disable startup 入口即可。
+  home_widget plugin 把 androidx.work 拉进来是 transitive dep, 不强制使用。
+-->
+<provider
+    android:name="androidx.startup.InitializationProvider"
+    android:authorities="${applicationId}.androidx-startup"
+    android:exported="false"
+    tools:node="merge">
+    <meta-data
+        android:name="androidx.work.WorkManagerInitializer"
+        android:value="androidx.startup"
+        tools:node="remove" />
+</provider>

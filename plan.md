@@ -47,6 +47,47 @@
 
 ## 版本日志
 
+### v0.14.1 — 修 Issue #5 真因 (WorkManager startup disable)
+
+用户 HONOR AAK-AN00 (MagicOS Android 16 / SDK 36) 真机 adb 抓栈,
+**真因跟 drift / sqlite3 完全无关**。完整栈:
+
+```
+java.lang.RuntimeException: Unable to get provider
+  androidx.startup.InitializationProvider: java.lang.RuntimeException:
+  Failed to create an instance of androidx.work.impl.WorkDatabase
+    at androidx.work.WorkManagerInitializer.b(...:95)
+    at androidx.startup.InitializationProvider.onCreate(...:55)
+    at android.content.ContentProvider.attachInfo(...)
+```
+
+`InitializationProvider` 在 `ActivityThread.installContentProviders` 阶段
+跑, 早于 `MainActivity.onCreate`, 早于 Flutter / Dart VM 启动。所以 v0.13.1
+装的 `runZonedGuarded` + `FlutterError.onError` + `_BootstrapErrorApp`
+全没机会执行 — 进程在 Dart 起来前已经被 SIGKILL。这也解释了为什么
+`getApplicationSupportDirectory()/logs/folio.log` 是空的: logger 自己
+都没初始化。
+
+`home_widget` plugin 通过 transitive dep 拉进 `androidx.work`, Android 16
+SDK 36 上 Room 创建 `WorkDatabase` 抛 `RuntimeException` (R8 obfuscation
+后看不到更深一层 cause)。folio 实际不用 WorkManager 后台任务 (widget
+sync 走前台 `HomeWidget.updateWidget` + Android `AppWidgetProvider` 系统
+广播), 直接 disable WorkManager 的 startup 入口即可。
+
+修法:
+- `docs/android_widget/AndroidManifest_widget_fragment.xml` 加 `<provider
+  androidx.startup.InitializationProvider tools:node="merge">` 块, 在
+  里面 `tools:node="remove"` 掉 `androidx.work.WorkManagerInitializer`
+  meta-data。`tool/inject_android_widget.sh` 已经把整个 fragment 注入到
+  `</application>` 之前, 不需要改脚本。
+
+**v0.13.4 反思**: 我当时把 Issue #5 误判为 drift / sqlite3 native SIGSEGV,
+把 drift 整条切除 (L12 [x] → [ ])。adb 抓栈后真因是 home_widget +
+WorkManager + Android 16 兼容性, drift 完全没问题。v0.15.0 会重新引入
+drift 恢复 L12。
+
+参考 skill: 无 UI 改动。
+
 ### v0.14.0 — 收藏列表屏
 
 v0.13.3 在屏保里接入了 bookmark toggle (Issue #4), 当时承诺
@@ -158,24 +199,7 @@ save→load 回环 / save 空集后清空。
 DisplayScreen bottom controls 三按钮布局), `assets/icons/chevron-left.svg`
 + `bookmark.svg`。
 
-### v0.13.2 — 修 v0.13.1 awk 解析空版本号 (#2 回归)
-
-v0.13.1 用 `awk -F'[ :+]'` 把 `:`/space/`+` 全当分隔符切 pubspec
-`version: 0.13.1+32`。问题: 集合 FS 在连续分隔符 (`': '`) 处插入空
-field, `$2` 是空字符串 → 5 个平台产物落地都叫 `folio--<platform>.<ext>`
-版本号位置为空, #2 实际未修。
-
-改用 `grep '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/[+].*$//'`:
-- grep 只挑 version 行
-- sed 第一段剥前缀 + 空格
-- 第二段切 `+` 之后的 build_number, 用 `[+]` 字符类避免 BSD sed
-  在 `-E` 模式下报 "repetition-operator operand invalid"
-  (Linux GNU sed 容忍裸 `+`, BSD 不容忍, 跨平台保险写法)
-- 本地 macOS BSD sed 验证: 输出 `0.13.1`, 跟期望一致
-
-5 个平台 job + workflow 文件全部同步。bump pubspec 0.13.1+32 → 0.13.2+33。
-
-### 早期版本汇总 (v0.1.0 ~ v0.13.1)
+### 早期版本汇总 (v0.1.0 ~ v0.13.2)
 
 **v0.1.0** 首版核心: skill colors_and_type.css → XJKTokens 双主题
 (青纸/林夜); 金库 / 屏保 / 组件 / 设置 四 Tab + 编辑器 + 批量导入
@@ -302,3 +326,8 @@ logger, Bootstrap 失败时显示错误屏代替黑屏。CI 5 个平台 job 加
 awk 解析 pubspec version, 产物重命名 folio-&lt;v&gt;-&lt;p&gt;.&lt;ext&gt;。
 (awk FS 集合 bug 让 #2 没真修, v0.13.2 用 grep+sed 才真正修好;
 #1 的 Dart 层兜底也救不了 native SIGSEGV, v0.13.4 才彻底解决。)
+
+**v0.13.2** 修 v0.13.1 awk 集合 FS 在连续分隔符处插空 field 的 bug:
+改用 `grep '^version:' | sed -E 's/^version:[[:space:]]*//; s/[+].*$//'`,
+`[+]` 字符类避开 BSD sed 在 `-E` 模式下报 "repetition-operator operand
+invalid"。产物文件名才真正带版本号。

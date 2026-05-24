@@ -7,8 +7,8 @@ Flutter 跨平台应用 —— 收集你读到的金句, 让它们以屏保、�
 
 ## 状态
 
-最新版本: **v0.14.0** — 收藏列表屏 (Settings → 我的收藏).
-长期规划 16/17 (L12 drift 持久化临时打回, 等用户机型/SIGSEGV 真因定位再恢复)。
+最新版本: **v0.14.1** — 修 Issue #5 真因 (home_widget WorkManager 在 Android 16 上 init 失败).
+长期规划 16/17, L12 留 v0.15.0 恢复 drift (真因不是 drift)。
 
 ## 截图
 
