@@ -2,6 +2,7 @@ package app.folio
 
 import android.app.WallpaperManager
 import android.graphics.BitmapFactory
+import app.folio.widget.WidgetAlarmScheduler
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -15,20 +16,35 @@ import io.flutter.plugin.common.MethodChannel
  * 不引入新 plugin (v0.14.1 教训: home_widget 拉 androidx.work 在 Android 16
  * 启动崩), 自己写 platform channel 是最稳的方式。
  *
+ * v0.16.0: 第二条 channel `app.folio/widget_alarm` 让 Dart 调 native
+ * [WidgetAlarmScheduler] 按 cadence 排程 AlarmManager, 实现小组件自动换句。
+ *
  * SET_WALLPAPER 是 install-time normal permission (Android 6+ 自动授予),
  * inject 脚本会在 AndroidManifest.xml 顶层加 `<uses-permission>` 声明。
  */
 class MainActivity : FlutterActivity() {
     companion object {
-        private const val CHANNEL = "app.folio/wallpaper"
+        private const val CHANNEL_WALLPAPER = "app.folio/wallpaper"
+        private const val CHANNEL_WIDGET_ALARM = "app.folio/widget_alarm"
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_WALLPAPER)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "setWallpaperFromFile" -> handleSetWallpaper(call, result)
+                    else -> result.notImplemented()
+                }
+            }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_WIDGET_ALARM)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "schedule" -> handleScheduleAlarm(call, result)
+                    "cancel" -> {
+                        WidgetAlarmScheduler.cancel(applicationContext)
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -52,6 +68,20 @@ class MainActivity : FlutterActivity() {
             result.success(true)
         } catch (e: Throwable) {
             result.error("WALLPAPER_FAIL", e.message ?: e.javaClass.simpleName, null)
+        }
+    }
+
+    private fun handleScheduleAlarm(
+        call: io.flutter.plugin.common.MethodCall,
+        result: MethodChannel.Result
+    ) {
+        try {
+            val cadenceMin = call.argument<Int>("cadenceMinutes")
+                ?: return result.error("ARG", "missing 'cadenceMinutes'", null)
+            WidgetAlarmScheduler.schedule(applicationContext, cadenceMin)
+            result.success(null)
+        } catch (e: Throwable) {
+            result.error("ALARM_FAIL", e.message ?: e.javaClass.simpleName, null)
         }
     }
 }

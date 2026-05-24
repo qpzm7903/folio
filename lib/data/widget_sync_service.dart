@@ -1,23 +1,38 @@
+import 'dart:math' as math;
+
+import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 
 import '../core/logger.dart';
 import '../core/platform_capabilities.dart';
+import '../domain/widget_timeline.dart';
 import 'quote.dart';
 import 'widget_color_theme.dart';
 
-/// 跟桌面小组件 (home_widget plugin) 的桥接。
+/// 跟桌面小组件 (home_widget plugin + AlarmManager) 的桥接。
 ///
-/// 目前仅 Android 端被 native widget provider 消费; iOS WidgetKit 留作 L08。
-/// Web / Desktop 上是 no-op。
+/// v0.16.0 之前: 只把 quotes.first 写成 `todayQuote` 静态贴在 widget 上。
+/// v0.16.0 起: 把"未来 N 条" timeline 预生成写 prefs, native 端
+/// AlarmManager 按用户配的 cadence (下限 15min) 推进 cursor 自动换句。
+///
+/// Android: 走 `app.folio/widget_alarm` MethodChannel 调度
+/// AlarmManager.setInexactRepeating。iOS WidgetKit 自动刷新留 L08 后续。
+/// Web / Desktop 上 [_supported] = false, 全 no-op。
 class WidgetSyncService {
   const WidgetSyncService();
 
   static const String _kAppGroup = 'app.folio';
   static const String _kAndroidProvider =
       'app.folio.widget.QuoteWidgetProvider';
-
-  /// iOS WidgetKit 端 widget extension 的 kind, 跟 Swift QuoteWidget.kind 保持一致。
   static const String _kIosWidgetKind = 'QuoteWidget';
+
+  static const String _alarmChannelName = 'app.folio/widget_alarm';
+  static const MethodChannel _alarmChannel = MethodChannel(_alarmChannelName);
+
+  /// 小组件刷新下限 (分钟)。AlarmManager doze 模式下实际能保证的最小间隔
+  /// 约在 10-15 分钟, 而且 widget 1 分钟切一次会被用户当电池杀手卸载。
+  /// 详细取舍见 plan.md / v0.16.0 设计取舍 #1。
+  static const int kWidgetCadenceFloorMin = 15;
 
   bool get _supported => PlatformCapabilities.supportsHomeWidget;
 
@@ -31,13 +46,35 @@ class WidgetSyncService {
     }
   }
 
-  /// 把 [today] (今日金句) + [colorTheme] 写到 widget 共享数据 + 触发刷新。
-  /// 调用方应该在 quotesProvider 或 widgetColorTheme 变化时调一次。
-  Future<void> syncToday(Quote? today, {WidgetColorTheme? colorTheme}) async {
+  /// 把 [quotes] 预生成的 timeline 写到 widget 共享存储, 并按
+  /// [cadenceMinutes] 让 native 调度 alarm 推进 cursor。
+  ///
+  /// [colorTheme] 为 null 表示"颜色没变, 别覆盖", 仍走 alarm reschedule。
+  /// 调用方应该在 quotes / cadence / colorTheme 任一变化时调一次。
+  Future<void> syncTimeline(
+    List<Quote> quotes, {
+    int cadenceMinutes = kWidgetCadenceFloorMin,
+    WidgetColorTheme? colorTheme,
+  }) async {
     if (!_supported) return;
+    final int effectiveCadence = math.max(cadenceMinutes, kWidgetCadenceFloorMin);
     try {
-      await HomeWidget.saveWidgetData<String>('todayQuote', today?.text ?? '');
-      await HomeWidget.saveWidgetData<String>('todayTag', today?.tag ?? '');
+      final List<Quote> timeline = WidgetTimeline.generate(quotes);
+      final String timelineJson = WidgetTimeline.serialize(timeline);
+      await HomeWidget.saveWidgetData<String>('widgetTimeline', timelineJson);
+      // cursor / cadence 用 String 存避免 home_widget plugin 跨平台 int 类型
+      // 不一致 (iOS UserDefaults vs Android SharedPreferences putInt/putLong),
+      // native Kotlin 直接 toIntOrNull 解析就行。
+      await HomeWidget.saveWidgetData<String>('widgetTimelineCursor', '0');
+      await HomeWidget.saveWidgetData<String>(
+        'widgetCadenceMinutes',
+        effectiveCadence.toString(),
+      );
+      // 兼容字段: 老版本 widget layout 若 fallback 读 todayQuote/todayTag
+      // 仍能拿到第一句。新的 QuoteWidgetProvider 优先走 timeline[cursor]。
+      final Quote? first = timeline.isNotEmpty ? timeline.first : null;
+      await HomeWidget.saveWidgetData<String>('todayQuote', first?.text ?? '');
+      await HomeWidget.saveWidgetData<String>('todayTag', first?.tag ?? '');
       if (colorTheme != null) {
         await HomeWidget.saveWidgetData<String>(
           'widgetColorTheme',
@@ -48,12 +85,37 @@ class WidgetSyncService {
         androidName: _kAndroidProvider,
         iOSName: _kIosWidgetKind,
       );
+      await _scheduleAlarm(effectiveCadence);
       AppLogger.instance.debug(
-        'widget synced, todayQuote.len=${today?.text.length ?? 0}, '
+        'widget timeline synced, len=${timeline.length}, '
+        'cadence=${effectiveCadence}min, '
         'colorTheme=${colorTheme?.name ?? "(unchanged)"}',
       );
     } catch (e, st) {
-      AppLogger.instance.handle(e, st, 'widget sync failed');
+      AppLogger.instance.handle(e, st, 'widget timeline sync failed');
+    }
+  }
+
+  /// 取消 alarm — quotes 变空时调用, 避免 native 一直在没数据时跑 onUpdate。
+  Future<void> cancelAlarm() async {
+    if (!_supported) return;
+    if (!PlatformCapabilities.isAndroid) return;
+    try {
+      await _alarmChannel.invokeMethod<void>('cancel');
+    } on PlatformException catch (e, st) {
+      AppLogger.instance.handle(e, st, 'widget alarm cancel failed');
+    }
+  }
+
+  Future<void> _scheduleAlarm(int cadenceMin) async {
+    if (!PlatformCapabilities.isAndroid) return;
+    try {
+      await _alarmChannel.invokeMethod<void>(
+        'schedule',
+        <String, Object>{'cadenceMinutes': cadenceMin},
+      );
+    } on PlatformException catch (e, st) {
+      AppLogger.instance.handle(e, st, 'widget alarm schedule failed');
     }
   }
 }

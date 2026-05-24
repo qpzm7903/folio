@@ -9,15 +9,22 @@ import android.net.Uri
 import android.widget.RemoteViews
 import app.folio.R
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
+import org.json.JSONArray
 
 /**
  * 小金库 Android 桌面小组件 provider —— 跟 lib/data/widget_sync_service.dart
- * 通过 home_widget plugin 的 SharedPreferences 共享数据 (key: todayQuote / todayTag)。
+ * 通过 home_widget plugin 的 SharedPreferences 共享数据。
  *
  * 单一 provider 覆盖小 / 中 / 大三种尺寸: 根据 widget cell 数量动态选 layout。
  *
  * v0.15.5 Issue #6 子任务 3: 点击 widget 启动 app 到 /display (屏保) 路径,
  * 用户能立即看到金句轮播 / 手动切换。
+ *
+ * v0.16.0: 数据源从静态 `todayQuote` 改成 `widgetTimeline` JSON +
+ * `widgetTimelineCursor` index 推进。Dart 端预生成 N=20 条 (NoRepeatShuffle 顺序),
+ * native AlarmManager (`QuoteWidgetAlarmReceiver` + `WidgetAlarmScheduler`) 按用户
+ * 配的 cadence 推 cursor。todayQuote / todayTag 作为兼容字段保留, 当 timeline
+ * 缺失或解析失败时 fallback。
  */
 class QuoteWidgetProvider : AppWidgetProvider() {
 
@@ -27,10 +34,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         val prefs = es.antonborri.home_widget.HomeWidgetPlugin.getData(context)
-        val quote = prefs.getString("todayQuote", null)
-            ?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.widget_default_quote)
-        val tag = prefs.getString("todayTag", null)?.takeIf { it.isNotBlank() }
+
+        // v0.16.0: 优先从 timeline[cursor] 读; 解析失败 / 缺数据回落 todayQuote。
+        val (quote, tag) = readCurrentEntry(prefs)
+            ?: Pair(
+                prefs.getString("todayQuote", null)
+                    ?.takeIf { it.isNotBlank() }
+                    ?: context.getString(R.string.widget_default_quote),
+                prefs.getString("todayTag", null)?.takeIf { it.isNotBlank() },
+            )
 
         // v0.15.7 Issue #6 子任务 4: 读 widgetColorTheme 选 background drawable;
         // 未知值 / null → paper (默认浅底)。
@@ -89,5 +101,35 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     ) {
         // 用户拖拽改大小后, 重新触发一次 onUpdate
         onUpdate(context, appWidgetManager, intArrayOf(appWidgetId))
+    }
+
+    override fun onDisabled(context: Context) {
+        // 最后一个 widget 实例被移除时, 取消 alarm 不再空转。
+        WidgetAlarmScheduler.cancel(context)
+        super.onDisabled(context)
+    }
+
+    /**
+     * 从 prefs 读 timeline JSON + cursor, 返回当前应展示的 (text, tag) 对。
+     * 任何解析失败 / 空数据返回 null 让调用方回落 todayQuote 兼容字段。
+     */
+    private fun readCurrentEntry(
+        prefs: android.content.SharedPreferences,
+    ): Pair<String, String?>? {
+        val json = prefs.getString("widgetTimeline", null)
+            ?.takeIf { it.isNotBlank() }
+            ?: return null
+        return try {
+            val arr = JSONArray(json)
+            if (arr.length() == 0) return null
+            val cursor = (prefs.getString("widgetTimelineCursor", "0")
+                ?.toIntOrNull() ?: 0).coerceAtLeast(0) % arr.length()
+            val item = arr.getJSONObject(cursor)
+            val q = item.optString("q", "").takeIf { it.isNotBlank() } ?: return null
+            val s = item.optString("s", "").takeIf { it.isNotBlank() }
+            Pair(q, s)
+        } catch (_: Throwable) {
+            null
+        }
     }
 }

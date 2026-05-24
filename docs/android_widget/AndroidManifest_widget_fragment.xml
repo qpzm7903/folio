@@ -14,6 +14,21 @@
 </receiver>
 
 <!--
+  v0.16.0: AlarmManager 触发的 BroadcastReceiver, 推进 timeline cursor
+  让小组件按用户配的 cadence (下限 15 分钟) 自动换句。
+
+  exported=false: 只接受 setPackage 限定的内部 broadcast, 不允许其他 app
+  伪造 WIDGET_TICK 强刷 widget。
+-->
+<receiver
+    android:name="app.folio.widget.QuoteWidgetAlarmReceiver"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="app.folio.action.WIDGET_TICK" />
+    </intent-filter>
+</receiver>
+
+<!--
   禁用 androidx.work.WorkManagerInitializer (v0.14.1 修 Issue #5 真因)。
 
   Honor MagicOS Android 16 (SDK 36) 上 androidx.startup.InitializationProvider

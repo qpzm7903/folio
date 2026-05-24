@@ -27,6 +27,9 @@
 - [x] L16 · 完整测试覆盖 (单元 + Widget + 集成) — v0.9.0 (test_harness + 屏级 widget 测试框架到位; 剩余屏后续 PATCH 持续覆盖)
 - [x] L17 · 多平台 CI 产物 — v0.4.0/v0.4.1 实现 Android + Web + Linux + Windows + macOS;
   iOS IPA 因 Apple 签名证书复杂留 L08 后续单独处理
+- [ ] L18 · 桌面小组件按 cadence 自动刷新 (Android AlarmManager + Dart 预生成 timeline) — v0.16.0
+  规划; iOS WidgetKit TimelineProvider 镜像实现留 L08 后续 (CI 暂不构建 iOS)
+- [ ] L19 · 壁纸保持手动一次性: 用户在屏保点 "设为壁纸" 触发, 不做后台自动轮换 (明确决定不做, 见 v0.16.0 设计说明)
 
 ---
 
@@ -38,14 +41,145 @@
 - v0.4 · Android 桌面小组件
 - v0.5 · 全文搜索 + 标签管理
 - v0.6 · 响应式适配 + Web 深链
+- v0.16 · 桌面小组件按 cadence 自动刷新 (Android AlarmManager + timeline 契约)
 
-## 短期规划 (Short-term, 当前 MINOR 内)
+## 短期规划 (Short-term, 当前 MINOR v0.16.x 内)
 
-见下方 v0.1.0 任务清单。
+v0.16.0 任务清单见下方"版本日志 / v0.16.0"区段。
 
 ---
 
 ## 版本日志
+
+### v0.16.0 — 桌面小组件按 cadence 自动刷新 (规划中)
+
+**版本号**: `0.16.0+50` (上一版 `0.15.10+49`, MINOR bump 因为是新功能)。
+
+**优先级判定**:
+- 无 open issue (`gh issue list --state open` 空)
+- workflow 全绿 (v0.15.10 / v0.15.9 push 均 success)
+- v0.15.x MINOR 已有重构 PATCH v0.15.10
+- → 应规划新 MINOR, 开 L18 这条长期项
+
+**用户痛点**: cadence 设置目前**只影响 app 内 DisplayScreen 屏保**, 桌面
+小组件只在 quotes 列表 / 配色变化或 app 启动时被动同步一次, 静态停在
+`quotes.first` (排序后第一句), 不随用户配的 1min/5min/30min 节奏滚动。
+表面上"小组件 = app 的延伸", 实际上是个 stale snapshot, 跟用户预期严重
+错位。
+
+**设计取舍 (已确认)**:
+
+1. **cadence 来源**: 复用 `AppSettings.cadenceMinutes`, 但**小组件下限
+   15 分钟** (`max(cadenceMinutes, 15)`)。理由: AlarmManager doze 模式下
+   实际能保证的最小间隔就在 10-15 分钟; 而且小组件 1 分钟切一次会被
+   用户当电池杀手卸载, 不接受单独加 widgetCadenceMinutes 让设置屏更复杂。
+2. **重启恢复**: **不**申请 `RECEIVE_BOOT_COMPLETED`。重启后 alarm 丢失,
+   小组件停在最后一句, 等用户下次打开 app 由 `WidgetSyncBridge` 重新
+   schedule。理由: 部分定制 ROM (小米/华为) 对 boot receiver 有额外
+   自启限制, UX 体验依赖用户授权, 不如直接接受静止 + 明确恢复路径。
+3. **"下一句是什么" 契约**: Dart 端预生成 N=20 条 timeline 写 prefs,
+   native 推 cursor index。跟 iOS WidgetKit `TimelineProvider` 同构,
+   L08 iOS 自动刷新可以**直接复用同一份契约**, 不必为两平台各设计一套。
+   Native Kotlin 不参与 shuffle 逻辑, 保证 app 屏保和小组件显示完全
+   同一份 NoRepeatShuffle 序列。
+
+**技术实现 (分 7 个小提交)**:
+
+1. **`lib/domain/widget_timeline.dart` (新建)**: 纯函数 `WidgetTimeline
+   .generate(List<Quote> quotes, {int length = 20, int? seed})`, 复用
+   `NoRepeatShuffle` 语义产出 `List<Quote>`。`serialize` / `deserialize`
+   走 JSON (跟 `QuoteCodec` 同 pattern, 但因为 widget 只读 text+tag 简化
+   字段)。单测覆盖空列表 / quotes < 20 / quotes >> 20 / 重复 quote 4 个
+   边界。
+
+2. **`lib/data/widget_sync_service.dart` (扩)**: `syncToday` 改造为
+   `syncTimeline(List<Quote> quotes, {WidgetColorTheme? colorTheme,
+   int cadenceMinutes})`:
+   - 调 `WidgetTimeline.generate` 生成 20 条
+   - `HomeWidget.saveWidgetData<String>('widgetTimeline', json)`
+   - `HomeWidget.saveWidgetData<int>('widgetTimelineCursor', 0)`
+   - `HomeWidget.saveWidgetData<int>('widgetCadenceMinutes',
+     max(cadenceMinutes, 15))`
+   - 然后调新 method channel `app.folio/widget_alarm.schedule(cadenceMin)`
+     让 native 安排 AlarmManager
+   - **保留** `todayQuote` / `todayTag` 兼容字段 (拿 timeline[0]), 让
+     旧版 widget layout 不挂
+
+3. **`docs/android_widget/app/src/main/kotlin/app/folio/widget/QuoteWidgetAlarmReceiver.kt`
+   (新建)**: `BroadcastReceiver` 收 `app.folio.action.WIDGET_TICK`:
+   - 读 prefs cursor, `cursor = (cursor + 1) % timelineLength`, 写回
+   - 触发所有 `QuoteWidgetProvider` instance 的 `onUpdate` 重新读 prefs
+     渲染 (走 `AppWidgetManager.notifyAppWidgetViewDataChanged` 或
+     直接 `sendBroadcast(ACTION_APPWIDGET_UPDATE)`)
+
+4. **`docs/android_widget/app/src/main/kotlin/app/folio/widget/WidgetAlarmScheduler.kt`
+   (新建)**: 单例对外暴露 `schedule(context, cadenceMin)` /
+   `cancel(context)`:
+   - `AlarmManager.setInexactRepeating(AlarmManager.RTC, triggerAt,
+     intervalMillis, pendingIntent)` (无需 SCHEDULE_EXACT_ALARM 权限,
+     doze 友好)
+   - `intervalMillis = max(cadenceMin, 15) * 60_000`
+   - PendingIntent 复用 (FLAG_UPDATE_CURRENT) 防止泄漏
+
+5. **`docs/android_widget/app/src/main/kotlin/app/folio/MainActivity.kt`
+   (扩)**: `configureFlutterEngine` 注册第二条 channel
+   `app.folio/widget_alarm`, 路由 `schedule(cadenceMin)` / `cancel()`
+   到 `WidgetSchedulerAlarmScheduler` (跟现有 `app.folio/wallpaper` channel
+   并列)
+
+6. **`docs/android_widget/AndroidManifest_widget_fragment.xml` (扩)**:
+   注册 `QuoteWidgetAlarmReceiver` 监听 `app.folio.action.WIDGET_TICK`
+   intent。**不**加 BOOT_COMPLETED filter (按上面取舍 2)
+
+7. **`lib/presentation/widget_sync_bridge.dart` (扩)**: 把 `quotesProvider`
+   / `settingsProvider` 两个 listener 的 `syncToday(today, colorTheme:...)`
+   全部改成 `syncTimeline(allQuotes, colorTheme:..., cadenceMinutes:
+   settings.cadenceMinutes)`。**新加** `cadenceMinutes` 字段的变化检测,
+   只在 cadence 真变化时重新 schedule alarm (节省 alarm churn)
+
+**测试**:
+
+- `test/widget_timeline_test.dart`: 4 个 generate 边界 + 1 个 serialize
+  round-trip
+- `test/widget_sync_service_test.dart`: `syncTimeline` mock HomeWidget
+  channel, 锁住 prefs 4 个 key 都被写 + cadenceMin 应用 15 min floor
+- `test/widget_sync_bridge_test.dart` (新建): pump WidgetSyncBridge
+  with `_StubWidgetSyncService`, 验证 quotes 变化 / cadence 变化 /
+  colorTheme 变化各自只触发一次相应同步
+- Native 端 (Kotlin) 因为没 CI Android instrumentation test 框架, 暂
+  不写 native test, 用 adb logcat 真机 smoke 验证 (跟 v0.15.5 widget click
+  同策略)
+
+**风险与缓解**:
+
+- **风险 A**: `AlarmManager.setInexactRepeating` 在 Android 12+ 实际下限
+  被推到 ~15 分钟, 用户配 30min 实际可能 35-40min 切。**缓解**: doc 里
+  明确"小组件刷新间隔为系统最佳努力, 实际可能稍晚"。
+- **风险 B**: PendingIntent FLAG_IMMUTABLE 在 Android 12+ 强制要求,
+  v0.15.5 已踩过坑 (HomeWidgetLaunchIntent 内部处理), 这次自己写
+  WidgetAlarmScheduler 不能漏。**缓解**: 直接 `PendingIntent.FLAG_IMMUTABLE
+  or PendingIntent.FLAG_UPDATE_CURRENT`, code review 时盯死。
+- **风险 C**: `home_widget` plugin 的 `saveWidgetData` 对大 JSON (20 条
+  quote 序列化) 性能未知, 但单条 quote 即使含中文也就 ~200 bytes, 20 条
+  ~4KB 没问题, SharedPreferences 上限 250KB。
+- **风险 D**: 用户关掉 app 后台后 native receiver 仍能收到 alarm 吗?
+  → AlarmManager 的 receiver 注册在 Manifest, 系统进程托管, 不依赖 app
+  进程存活。但用户在系统设置里彻底"强制停止"folio 后 alarm 会失效, 这
+  是 Android 平台行为, 跟"重启丢失"同性质, 接受。
+
+**明确不做**:
+
+- ❌ 壁纸自动刷新 (按用户决定保持 v0.15.9 的手动一次性)
+- ❌ iOS widget 自动刷新 (CI 不构建 iOS, 留 L08 后续)
+- ❌ RECEIVE_BOOT_COMPLETED 权限
+- ❌ Foreground service
+- ❌ WorkManager (v0.14.1 永久 strip, 不回头)
+- ❌ 让 cadence 在 widget 层无下限 (15min floor 写死)
+
+**参考 skill**: 无新 UI 视觉。设置屏不加新行 (复用 cadence)。widgets_preview
+副标题文案可微调说明"小组件按所选频率自动更换 (最低 15 分钟)"。
+
+---
 
 ### v0.15.10 — 重构 PATCH (WallpaperService 接入 Riverpod provider)
 
