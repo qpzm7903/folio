@@ -47,6 +47,26 @@
 
 ## 版本日志
 
+### v0.15.8 — 修 v0.15.7 XML 注释 `--` 让 aapt 报错 (workflow 红牌 PATCH)
+
+v0.15.7 CI build android apk fail:
+```
+colors_folio.xml:13:52: Error: The string "--" is not permitted within comments.
+```
+
+XML 1.0 规范禁止注释里出现 `--` (因为它是 `-->` 终止符的前缀,
+parser 不允许)。我 v0.15.7 在 `colors_folio.xml` 写注释
+`(skill --bamboo-500)` 引用 skill css 变量名时直接复制了 CSS 的双连字符,
+aapt2 校验 XML 严格按规范走。Android build 工具链刚开始 v0.15.7 不会
+crash, 但到 `packageReleaseResources` 阶段会校验 resource XML 合规性。
+
+修法: 把 `(skill --bamboo-500)` 改成 `(skill bamboo-500 token)`,
+去掉前缀 `--`。
+
+PATCH 不改业务行为, 让 v0.15.7 的 Issue #6 子任务 4 实际产出 APK。
+
+参考 skill: 无 UI 改动。
+
 ### v0.15.7 — Issue #6 子任务 4 (小组件选颜色), Issue #6 闭环
 
 Issue #6 4 个子任务全部完成 (v0.15.4 + v0.15.5 + v0.15.7):

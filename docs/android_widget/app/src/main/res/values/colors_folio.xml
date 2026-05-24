@@ -10,6 +10,6 @@
     <color name="xjk_leaf_700">#4A6B35</color>
     <color name="xjk_dark_quote_bg">#2C3D27</color>
     <color name="xjk_dark_quote_text">#EDF2DC</color>
-    <!-- v0.15.7 Issue #6 子任务 4 新增: 翠竹背景色 (skill --bamboo-500). -->
+    <!-- v0.15.7 Issue #6 子任务 4 新增: 翠竹背景色 (skill bamboo-500 token). -->
     <color name="xjk_bamboo_500">#B8A866</color>
 </resources>
