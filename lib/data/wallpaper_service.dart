@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -24,7 +23,7 @@ class WallpaperService {
   static const MethodChannel _channel = MethodChannel(_channelName);
 
   /// 当前平台是否能设系统壁纸。
-  bool get isSupported => PlatformCapabilities.isAndroid;
+  bool get isSupported => PlatformCapabilities.supportsSetWallpaper;
 
   /// 把 [boundary] 渲染成 PNG, 保存到临时目录, 通过 channel 让 native
   /// 调 `WallpaperManager.setBitmap` 设为系统 + 锁屏壁纸。
@@ -36,8 +35,7 @@ class WallpaperService {
     }
     final File png = await _renderBoundaryToFile(boundary);
     try {
-      final bool ok =
-          await _channel.invokeMethod<bool>(
+      final bool ok = await _channel.invokeMethod<bool>(
             'setWallpaperFromFile',
             <String, Object>{'path': png.path},
           ) ??

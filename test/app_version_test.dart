@@ -13,18 +13,17 @@ void main() {
       expect(pubspec.existsSync(), isTrue, reason: '测试必须在仓库根目录跑');
       final List<String> lines = pubspec.readAsLinesSync();
       // pubspec 里形如 `version: 0.15.1+40`, 取冒号后的 MAJOR.MINOR.PATCH 部分
-      final String? line = lines.firstWhere(
+      final String line = lines.firstWhere(
         (String l) => l.startsWith('version:'),
         orElse: () => '',
       );
       expect(line, isNotEmpty, reason: 'pubspec.yaml 缺 version 字段');
-      final String raw = line!.substring('version:'.length).trim();
+      final String raw = line.substring('version:'.length).trim();
       final String semver = raw.split('+').first.trim();
       expect(
         semver,
         kAppVersion,
-        reason:
-            'lib/core/app_version.dart 的 kAppVersion ($kAppVersion) '
+        reason: 'lib/core/app_version.dart 的 kAppVersion ($kAppVersion) '
             '与 pubspec.yaml 的 version ($semver) 不一致, '
             '必须两处同步 bump (Issue #9 根因防回归)',
       );

@@ -87,11 +87,11 @@ class AppSettings {
 
   @override
   int get hashCode => Object.hash(
-    themeMode,
-    shuffleNoRepeat,
-    showAttribution,
-    cadenceMinutes,
-    backgroundImagePath,
-    widgetColorTheme,
-  );
+        themeMode,
+        shuffleNoRepeat,
+        showAttribution,
+        cadenceMinutes,
+        backgroundImagePath,
+        widgetColorTheme,
+      );
 }

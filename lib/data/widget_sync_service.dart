@@ -57,7 +57,8 @@ class WidgetSyncService {
     WidgetColorTheme? colorTheme,
   }) async {
     if (!_supported) return;
-    final int effectiveCadence = math.max(cadenceMinutes, kWidgetCadenceFloorMin);
+    final int effectiveCadence =
+        math.max(cadenceMinutes, kWidgetCadenceFloorMin);
     try {
       final List<Quote> timeline = WidgetTimeline.generate(quotes);
       final String timelineJson = WidgetTimeline.serialize(timeline);
@@ -99,7 +100,7 @@ class WidgetSyncService {
   /// 取消 alarm — quotes 变空时调用, 避免 native 一直在没数据时跑 onUpdate。
   Future<void> cancelAlarm() async {
     if (!_supported) return;
-    if (!PlatformCapabilities.isAndroid) return;
+    if (!PlatformCapabilities.supportsWidgetAlarm) return;
     try {
       await _alarmChannel.invokeMethod<void>('cancel');
     } on PlatformException catch (e, st) {
@@ -108,7 +109,7 @@ class WidgetSyncService {
   }
 
   Future<void> _scheduleAlarm(int cadenceMin) async {
-    if (!PlatformCapabilities.isAndroid) return;
+    if (!PlatformCapabilities.supportsWidgetAlarm) return;
     try {
       await _alarmChannel.invokeMethod<void>(
         'schedule',

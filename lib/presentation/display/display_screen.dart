@@ -117,9 +117,8 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
         _syncRotation(quotes.length, settings.cadenceMinutes);
         final Quote current = quotes[_rotation!.currentIndex];
         final Color textColor = _withPhoto ? const Color(0xFFF7F8ED) : t.fg1;
-        final Color subColor = _withPhoto
-            ? const Color(0xFFF7F8ED).withValues(alpha: 0.7)
-            : t.fg3;
+        final Color subColor =
+            _withPhoto ? const Color(0xFFF7F8ED).withValues(alpha: 0.7) : t.fg3;
 
         final String? bgPath = settings.backgroundImagePath;
         final bool hasUserBg =
@@ -183,24 +182,23 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                       duration: XJKTokens.durPage,
                       transitionBuilder:
                           (Widget child, Animation<double> anim) {
-                            final Animation<Offset> slide =
-                                Tween<Offset>(
-                                  begin: const Offset(0, 0.04),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: anim,
-                                    curve: XJKTokens.easePaper,
-                                  ),
-                                );
-                            return FadeTransition(
-                              opacity: anim,
-                              child: SlideTransition(
-                                position: slide,
-                                child: child,
-                              ),
-                            );
-                          },
+                        final Animation<Offset> slide = Tween<Offset>(
+                          begin: const Offset(0, 0.04),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: anim,
+                            curve: XJKTokens.easePaper,
+                          ),
+                        );
+                        return FadeTransition(
+                          opacity: anim,
+                          child: SlideTransition(
+                            position: slide,
+                            child: child,
+                          ),
+                        );
+                      },
                       child: Column(
                         key: ValueKey<int>(_fadeKey),
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -85,10 +85,10 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
     final AppSettings settings = ref.read(settingsProvider);
     unawaited(
       ref.read(widgetSyncServiceProvider).syncTimeline(
-        quotes,
-        cadenceMinutes: settings.cadenceMinutes,
-        colorTheme: includeColor ? settings.widgetColorTheme : null,
-      ),
+            quotes,
+            cadenceMinutes: settings.cadenceMinutes,
+            colorTheme: includeColor ? settings.widgetColorTheme : null,
+          ),
     );
   }
 
@@ -106,8 +106,7 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
       AppSettings? prev,
       AppSettings next,
     ) {
-      final bool colorChanged =
-          prev?.widgetColorTheme != next.widgetColorTheme;
+      final bool colorChanged = prev?.widgetColorTheme != next.widgetColorTheme;
       final bool cadenceChanged = prev?.cadenceMinutes != next.cadenceMinutes;
       if (!colorChanged && !cadenceChanged) return;
       _sync(includeColor: colorChanged);

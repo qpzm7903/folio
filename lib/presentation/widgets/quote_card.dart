@@ -47,9 +47,8 @@ class QuoteCard extends StatelessWidget {
           );
 
     final Color textColor = isDark ? const Color(0xFFEDF2DC) : t.fg1;
-    final Color metaColor = isDark
-        ? const Color(0xFFEDF2DC).withValues(alpha: 0.7)
-        : t.fg3;
+    final Color metaColor =
+        isDark ? const Color(0xFFEDF2DC).withValues(alpha: 0.7) : t.fg3;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

@@ -23,7 +23,7 @@ void main() {
     });
 
     test('overrideWithValue 注入 fake (测试可替换 MethodChannel 调用)', () {
-      final _StubWallpaperService stub = _StubWallpaperService();
+      const _StubWallpaperService stub = _StubWallpaperService();
       final ProviderContainer c = ProviderContainer(
         overrides: <Override>[wallpaperServiceProvider.overrideWithValue(stub)],
       );

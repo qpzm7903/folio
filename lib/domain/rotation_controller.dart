@@ -15,9 +15,9 @@ class RotationController {
     required Duration cadence,
     required this.onAdvance,
     Random? random,
-  }) : _shuffle = NoRepeatShuffle(itemCount: itemCount, random: random),
-       _itemCount = itemCount,
-       _cadence = cadence {
+  })  : _shuffle = NoRepeatShuffle(itemCount: itemCount, random: random),
+        _itemCount = itemCount,
+        _cadence = cadence {
     _startTimer();
   }
 

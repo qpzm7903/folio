@@ -12,7 +12,8 @@ void main() {
       expect(WidgetSyncService.kWidgetCadenceFloorMin, 15);
     });
 
-    test('host 测试环境 (非 Android / iOS) 调 syncTimeline 不抛, 不真 call channel', () async {
+    test('host 测试环境 (非 Android / iOS) 调 syncTimeline 不抛, 不真 call channel',
+        () async {
       // _supported 走 PlatformCapabilities.supportsHomeWidget, host 上是 false,
       // 所有方法应该静默 return 不 throw, 不真 call MethodChannel / HomeWidget。
       const WidgetSyncService service = WidgetSyncService();

@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 内存版 QuoteRepository —— widget 测试用, 不动文件 / prefs。
 class FakeQuoteRepository implements QuoteRepository {
   FakeQuoteRepository([List<Quote>? seed, this.loadDelay = Duration.zero])
-    : _data = List<Quote>.of(seed ?? <Quote>[]);
+      : _data = List<Quote>.of(seed ?? <Quote>[]);
 
   List<Quote> _data;
 

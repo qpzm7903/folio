@@ -32,6 +32,18 @@
   WidgetKit TimelineProvider 镜像实现留 L08 后续 (CI 暂不构建 iOS)
 - [x] L19 · 壁纸保持手动一次性 — v0.16.0 明确决定不做: 用户在屏保点 "设为壁纸"
   触发, 不做后台自动轮换 (功耗 + 后台 init 风险)
+- [ ] L20 · 鸿蒙 6.0 适配 (OpenHarmony Flutter fork, 决策见 docs/adr/0001) — 规划 v0.17:
+  v1 只含纯 Dart 核心功能 (金库 + 屏保 + 主题 + 搜索标签 + 导入导出)。里程碑:
+  ① 环境搭建 (Command Line Tools + AGC 调试签名, 不装 DevEco) + 空壳 hap 上 Mate 80 真机;
+  ② 关键依赖编译验证 (sqlite3 不过则仓储降级 prefs 工厂分流; file_selector 缺位则
+  隐藏选图入口、保留内置纯色背景);
+  ③ 完整 app 跑通 + PlatformCapabilities.isOhos 能力开关收尾。
+  ohos/ 工程直接进仓库 (签名材料 gitignore), 鸿蒙构建 v1 不进 CI。
+  过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
+  wiki 以对外分享为目标写作: 可复现步骤 + 工具/SDK 版本号 + 失败现象与修法;
+  对外发布前脱敏 (不含 p12/证书/UDID/账号信息)
+- [ ] L21 · 鸿蒙服务卡片 (ArkTS 重写 L18 timeline 刷新机制) — 待 L20 落地后排期。
+  "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
 
 ---
 
@@ -44,14 +56,39 @@
 - v0.5 · 全文搜索 + 标签管理
 - v0.6 · 响应式适配 + Web 深链
 - v0.16 · 桌面小组件按 cadence 自动刷新 (Android AlarmManager + timeline 契约)
+- v0.17 · 鸿蒙 6.0 适配 (L20, OpenHarmony Flutter fork + 纯 Dart 核心功能)
 
-## 短期规划 (Short-term, 当前 MINOR v0.16.x 内)
+## 短期规划 (Short-term)
 
-v0.16.0 任务清单见下方"版本日志 / v0.16.0"区段。
+- v0.16.2 (已完成) · 重构 PATCH: 平台判断收敛为能力开关 (为 L20 铺路) + lint 清零
+- v0.17 = L20 鸿蒙 6.0 适配, 里程碑 ①②③ 见长期规划 L20 条目。
+  每完成一个里程碑, 同步归档一篇 wiki 到 docs/wiki/ohos/。
 
 ---
 
 ## 版本日志
+
+### v0.16.2 — 重构 PATCH: 能力开关收敛 + lint 清零 (L20 铺路)
+
+按开发流程规则 (当前 MINOR 缺一个重构优化 PATCH), 在开 v0.17 鸿蒙 MINOR
+之前做的纯重构, 行为零变化:
+
+- `PlatformCapabilities` 新增三个能力开关 (TDD, 先红后绿):
+  - `isOhos` — 用 `Platform.operatingSystem == 'ohos'` 判断, 不用 fork 专属
+    getter, 保证同一份代码在官方 SDK 和鸿蒙化 fork 上都能编译;
+  - `supportsSetWallpaper` — `WallpaperService.isSupported` 改读它,
+    替掉裸 `isAndroid`;
+  - `supportsWidgetAlarm` — `WidgetSyncService` 两处裸 `isAndroid` 替换。
+  原则: UI/service 只问能力、不问平台, 鸿蒙差异以后全部走能力开关表达。
+- lint 清零: 本地升到 Flutter 3.44.2 后 analyze 报 4 个 info
+  (unnecessary_import / 可空声明 / 下划线局部名 / prefer_const), 全部修掉,
+  `flutter analyze` 恢复 0 issue。
+- `dart format` 以 3.44 风格重排了 24 个文件 (tall-style), 属格式噪音,
+  CI format 是 apply-only 不会冲突。
+- 本地开发环境从零搭建: 官方 Flutter 3.44.2 stable (`~/sdks/flutter-stable`)
+  + 鸿蒙化 fork oh-3.35.7-release (`~/sdks/flutter-ohos`), 字体用
+  `tool/fetch_fonts.sh` 本地拉取, drift 生成代码用 build_runner 重建。
+- 测试 86 → 89 (新增 3 个能力开关断言), 全过。
 
 ### v0.16.1 — 修 v0.16.0 kAppVersion 漏改 (workflow 红牌 PATCH)
 

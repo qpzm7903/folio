@@ -10,7 +10,7 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
 
-  Future<ProviderContainer> _container() async {
+  Future<ProviderContainer> makeContainer() async {
     final SharedPreferences p = await SharedPreferences.getInstance();
     return ProviderContainer(
       overrides: <Override>[sharedPreferencesProvider.overrideWithValue(p)],
@@ -18,12 +18,12 @@ void main() {
   }
 
   test('初始为空', () async {
-    final ProviderContainer c = await _container();
+    final ProviderContainer c = await makeContainer();
     expect(c.read(favoritesProvider), isEmpty);
   });
 
   test('toggle 同一 id 两次 → 加入再移出', () async {
-    final ProviderContainer c = await _container();
+    final ProviderContainer c = await makeContainer();
     final FavoritesNotifier n = c.read(favoritesProvider.notifier);
     await n.toggle('q1');
     expect(c.read(favoritesProvider), <String>{'q1'});

@@ -63,8 +63,8 @@ class LibraryScreen extends ConsumerWidget {
                     final List<Quote> filtered = activeTag == '全部'
                         ? quotes
                         : quotes
-                              .where((Quote q) => q.tag == activeTag)
-                              .toList(growable: false);
+                            .where((Quote q) => q.tag == activeTag)
+                            .toList(growable: false);
                     if (filtered.isEmpty) {
                       return _LibraryNoMatch(tag: activeTag);
                     }
@@ -82,7 +82,6 @@ class LibraryScreen extends ConsumerWidget {
                           variant: QuoteCardVariant.featured,
                           onTap: () => context.go(FolioRoutes.display),
                         ),
-
                         const SizedBox(height: 12),
                         SectionHeader(
                           title: l10n.yourLibrary,
@@ -91,9 +90,9 @@ class LibraryScreen extends ConsumerWidget {
                         TagRow(
                           tags: tags,
                           active: activeTag,
-                          onSelect: (String selected) =>
-                              ref.read(activeTagProvider.notifier).state =
-                                  selected,
+                          onSelect: (String selected) => ref
+                              .read(activeTagProvider.notifier)
+                              .state = selected,
                         ),
                         const SizedBox(height: 12),
                         for (final Quote q in rest)

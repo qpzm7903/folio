@@ -55,11 +55,11 @@ class QuotesDatabase extends _$QuotesDatabase {
   factory QuotesDatabase.memory() => QuotesDatabase(NativeDatabase.memory());
 
   Future<List<Quote>> loadAll() async {
-    final List<QuoteRow> rows =
-        await (select(quotes)..orderBy(<OrderClauseGenerator<$QuotesTable>>[
-              (Quotes t) => OrderingTerm.desc(t.createdAt),
-            ]))
-            .get();
+    final List<QuoteRow> rows = await (select(quotes)
+          ..orderBy(<OrderClauseGenerator<$QuotesTable>>[
+            (Quotes t) => OrderingTerm.desc(t.createdAt),
+          ]))
+        .get();
     return <Quote>[
       for (final QuoteRow r in rows)
         Quote(id: r.id, text: r.content, tag: r.tag, createdAt: r.createdAt),

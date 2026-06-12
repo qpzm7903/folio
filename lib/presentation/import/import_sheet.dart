@@ -17,8 +17,7 @@ class ImportSheet extends ConsumerStatefulWidget {
 
 class _ImportSheetState extends ConsumerState<ImportSheet> {
   final TextEditingController _text = TextEditingController();
-  static const String _placeholder =
-      '你在心里种下的种子，时间会帮它找出口。\n'
+  static const String _placeholder = '你在心里种下的种子，时间会帮它找出口。\n'
       '真正的强大不是没有裂痕，而是光从裂痕里照进来。\n'
       '你不必完美，你只需要真实且完整地活着。';
 

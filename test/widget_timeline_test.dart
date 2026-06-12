@@ -3,11 +3,11 @@ import 'package:folio/data/quote.dart';
 import 'package:folio/domain/widget_timeline.dart';
 
 Quote _q(String id) => Quote(
-  id: id,
-  text: 'text-$id',
-  tag: 'tag-$id',
-  createdAt: DateTime(2026, 1, 1),
-);
+      id: id,
+      text: 'text-$id',
+      tag: 'tag-$id',
+      createdAt: DateTime(2026, 1, 1),
+    );
 
 void main() {
   group('WidgetTimeline.generate', () {
@@ -67,7 +67,8 @@ void main() {
         length: 5,
         seed: 7,
       );
-      expect(a.map((Quote q) => q.id).toList(), b.map((Quote q) => q.id).toList());
+      expect(
+          a.map((Quote q) => q.id).toList(), b.map((Quote q) => q.id).toList());
     });
   });
 

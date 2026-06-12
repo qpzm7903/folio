@@ -25,5 +25,17 @@ void main() {
     test('supportsHomeWidget = isMobile (host 上是 false)', () {
       expect(PlatformCapabilities.supportsHomeWidget, isFalse);
     });
+
+    test('isOhos 在 host 上是 false', () {
+      expect(PlatformCapabilities.isOhos, isFalse);
+    });
+
+    test('supportsSetWallpaper 只在 Android 上 true (host 上是 false)', () {
+      expect(PlatformCapabilities.supportsSetWallpaper, isFalse);
+    });
+
+    test('supportsWidgetAlarm 只在 Android 上 true (host 上是 false)', () {
+      expect(PlatformCapabilities.supportsWidgetAlarm, isFalse);
+    });
   });
 }

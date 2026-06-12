@@ -7,23 +7,22 @@ import 'tokens.dart';
 /// 默认按钮、文本、AppBar 颜色都基于 tokens 的语义层，
 /// 屏幕组件可以直接用 [XJKTheme.of(context)] 拿到 tokens。
 ThemeData buildThemeData(XJKTokens t, {required Brightness brightness}) {
-  final ColorScheme scheme =
-      (brightness == Brightness.dark
-              ? const ColorScheme.dark()
-              : const ColorScheme.light())
-          .copyWith(
-            brightness: brightness,
-            primary: t.accent,
-            onPrimary: t.fgOnAccent,
-            secondary: t.accent2,
-            onSecondary: t.fgOnAccent,
-            surface: t.bgSurface,
-            onSurface: t.fg1,
-            error: t.danger,
-            onError: t.fgOnAccent,
-            outline: t.border1,
-            outlineVariant: t.divider,
-          );
+  final ColorScheme scheme = (brightness == Brightness.dark
+          ? const ColorScheme.dark()
+          : const ColorScheme.light())
+      .copyWith(
+    brightness: brightness,
+    primary: t.accent,
+    onPrimary: t.fgOnAccent,
+    secondary: t.accent2,
+    onSecondary: t.fgOnAccent,
+    surface: t.bgSurface,
+    onSurface: t.fg1,
+    error: t.danger,
+    onError: t.fgOnAccent,
+    outline: t.border1,
+    outlineVariant: t.divider,
+  );
 
   final TextTheme textTheme = TextTheme(
     displayLarge: TextStyle(

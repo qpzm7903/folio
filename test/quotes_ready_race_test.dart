@@ -20,9 +20,8 @@ void main() {
 
       // 不等 _load, 立刻发起 add —— 在 v0.9.0 这条会被静默丢; v0.9.1
       // 应该排队等 _ready 后执行。
-      final Future<void> addFut = c
-          .read(quotesProvider.notifier)
-          .add('new sentence', 'tag');
+      final Future<void> addFut =
+          c.read(quotesProvider.notifier).add('new sentence', 'tag');
 
       await addFut; // _ready 内置 await loadAll 80ms, 完成后才执行 transform
 

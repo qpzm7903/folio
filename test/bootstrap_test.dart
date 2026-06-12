@@ -16,12 +16,12 @@ void _mockPathProvider() {
   final Directory tmp = Directory.systemTemp.createTempSync('folio-bootstrap-');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (MethodCall call) async {
-          // 所有目录请求 (support / documents / temp / cache / library) 都返回同一个 tmp
-          return tmp.path;
-        },
-      );
+    const MethodChannel('plugins.flutter.io/path_provider'),
+    (MethodCall call) async {
+      // 所有目录请求 (support / documents / temp / cache / library) 都返回同一个 tmp
+      return tmp.path;
+    },
+  );
 }
 
 void main() {

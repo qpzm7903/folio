@@ -97,9 +97,8 @@ class _ExportSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: count == 0
-                ? null
-                : () => _copyAndClose(context, raw, count),
+            onPressed:
+                count == 0 ? null : () => _copyAndClose(context, raw, count),
             child: const Text('复制到剪贴板'),
           ),
         ],

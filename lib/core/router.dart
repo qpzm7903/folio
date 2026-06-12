@@ -87,8 +87,8 @@ GoRouter _buildRouter() {
       StatefulShellRoute.indexedStack(
         builder:
             (BuildContext _, GoRouterState __, StatefulNavigationShell shell) {
-              return _ShellScaffold(shell: shell);
-            },
+          return _ShellScaffold(shell: shell);
+        },
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[

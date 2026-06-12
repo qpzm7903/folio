@@ -21,13 +21,13 @@ List<T> shuffleArr<T>(List<T> arr, {Random? random}) {
 /// 这是纯函数式状态机, 不依赖 Flutter, 方便在测试里直接驱动。
 class NoRepeatShuffle {
   NoRepeatShuffle({required this.itemCount, Random? random})
-    : _rng = random ?? Random(),
-      _order = shuffleArr(
-        List<int>.generate(itemCount, (int i) => i),
-        random: random,
-      ),
-      _pos = 0,
-      _round = 1;
+      : _rng = random ?? Random(),
+        _order = shuffleArr(
+          List<int>.generate(itemCount, (int i) => i),
+          random: random,
+        ),
+        _pos = 0,
+        _round = 1;
 
   final int itemCount;
   final Random _rng;

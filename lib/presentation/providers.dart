@@ -16,18 +16,18 @@ import '../data/widget_sync_service.dart';
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
 final Provider<SharedPreferences> sharedPreferencesProvider =
     Provider<SharedPreferences>((Ref ref) {
-      throw UnimplementedError('overrideWith in ProviderScope');
-    });
+  throw UnimplementedError('overrideWith in ProviderScope');
+});
 
 final Provider<QuoteRepository> quoteRepositoryProvider =
     Provider<QuoteRepository>((Ref ref) {
-      throw UnimplementedError('overrideWith in ProviderScope');
-    });
+  throw UnimplementedError('overrideWith in ProviderScope');
+});
 
 final Provider<BackgroundImageService> backgroundImageServiceProvider =
     Provider<BackgroundImageService>(
-      (Ref ref) => const BackgroundImageService(),
-    );
+  (Ref ref) => const BackgroundImageService(),
+);
 
 final Provider<WidgetSyncService> widgetSyncServiceProvider =
     Provider<WidgetSyncService>((Ref ref) => const WidgetSyncService());
@@ -40,13 +40,13 @@ final Provider<WallpaperService> wallpaperServiceProvider =
 
 final Provider<SettingsRepository> settingsRepositoryProvider =
     Provider<SettingsRepository>((Ref ref) {
-      return SettingsRepository(ref.watch(sharedPreferencesProvider));
-    });
+  return SettingsRepository(ref.watch(sharedPreferencesProvider));
+});
 
 final Provider<FavoritesRepository> favoritesRepositoryProvider =
     Provider<FavoritesRepository>((Ref ref) {
-      return FavoritesRepository(ref.watch(sharedPreferencesProvider));
-    });
+  return FavoritesRepository(ref.watch(sharedPreferencesProvider));
+});
 
 /// 收藏的 quote id 集合 —— Display 屏的 bookmark 按钮 toggle (Issue #4)。
 /// 持久化到 SharedPreferences, 跟 drift schema 解耦。
@@ -71,8 +71,8 @@ class FavoritesNotifier extends StateNotifier<Set<String>> {
 
 final StateNotifierProvider<FavoritesNotifier, Set<String>> favoritesProvider =
     StateNotifierProvider<FavoritesNotifier, Set<String>>((Ref ref) {
-      return FavoritesNotifier(ref.watch(favoritesRepositoryProvider));
-    });
+  return FavoritesNotifier(ref.watch(favoritesRepositoryProvider));
+});
 
 class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier(this._repo) : super(_repo.load());
@@ -92,11 +92,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       _apply(state.copyWith(cadenceMinutes: v));
 
   Future<void> setBackgroundImagePath(String? path) => _apply(
-    state.copyWith(
-      backgroundImagePath: path,
-      clearBackgroundImage: path == null,
-    ),
-  );
+        state.copyWith(
+          backgroundImagePath: path,
+          clearBackgroundImage: path == null,
+        ),
+      );
 
   Future<void> setWidgetColorTheme(WidgetColorTheme t) =>
       _apply(state.copyWith(widgetColorTheme: t));
@@ -110,8 +110,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
 final StateNotifierProvider<SettingsNotifier, AppSettings> settingsProvider =
     StateNotifierProvider<SettingsNotifier, AppSettings>((Ref ref) {
-      return SettingsNotifier(ref.watch(settingsRepositoryProvider));
-    });
+  return SettingsNotifier(ref.watch(settingsRepositoryProvider));
+});
 
 class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   QuotesNotifier(this._repo) : super(const AsyncValue<List<Quote>>.loading()) {
@@ -247,7 +247,8 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
 }
 
 final StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>
-quotesProvider = StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>(
+    quotesProvider =
+    StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>(
   (Ref ref) {
     return QuotesNotifier(ref.watch(quoteRepositoryProvider));
   },

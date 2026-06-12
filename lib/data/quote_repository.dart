@@ -6,8 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/logger.dart';
 import '../core/seed_quotes.dart';
 import 'drift_quote_repository_stub.dart'
-    if (dart.library.io) 'drift_quote_repository_io.dart'
-    as drift_impl;
+    if (dart.library.io) 'drift_quote_repository_io.dart' as drift_impl;
 import 'quote.dart';
 import 'quote_codec.dart';
 
@@ -94,7 +93,7 @@ class _PrefsQuoteRepository implements QuoteRepository {
 /// 进程内兜底实现 (v0.13.1 引入, drift 极端失败时 fallback 配合)。
 class InMemoryQuoteRepository implements QuoteRepository {
   InMemoryQuoteRepository(List<Quote> initial)
-    : _quotes = List<Quote>.from(initial);
+      : _quotes = List<Quote>.from(initial);
 
   List<Quote> _quotes;
 

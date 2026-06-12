@@ -292,42 +292,42 @@ class XJKTokens {
 
   /// 卡片软阴影 (绿调低扩散)
   List<BoxShadow> get shadow1 => <BoxShadow>[
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.04),
-      offset: const Offset(0, 1),
-    ),
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.06),
-      offset: const Offset(0, 1),
-      blurRadius: 2,
-    ),
-  ];
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.04),
+          offset: const Offset(0, 1),
+        ),
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.06),
+          offset: const Offset(0, 1),
+          blurRadius: 2,
+        ),
+      ];
 
   List<BoxShadow> get shadow2 => <BoxShadow>[
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.06),
-      offset: const Offset(0, 2),
-      blurRadius: 4,
-    ),
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.05),
-      offset: const Offset(0, 4),
-      blurRadius: 12,
-    ),
-  ];
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.06),
+          offset: const Offset(0, 2),
+          blurRadius: 4,
+        ),
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.05),
+          offset: const Offset(0, 4),
+          blurRadius: 12,
+        ),
+      ];
 
   List<BoxShadow> get shadow3 => <BoxShadow>[
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.10),
-      offset: const Offset(0, 8),
-      blurRadius: 24,
-    ),
-    BoxShadow(
-      color: _shadowTint.withValues(alpha: 0.06),
-      offset: const Offset(0, 2),
-      blurRadius: 6,
-    ),
-  ];
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.10),
+          offset: const Offset(0, 8),
+          blurRadius: 24,
+        ),
+        BoxShadow(
+          color: _shadowTint.withValues(alpha: 0.06),
+          offset: const Offset(0, 2),
+          blurRadius: 6,
+        ),
+      ];
 
   Color get _shadowTint => ink900;
 }
@@ -339,8 +339,8 @@ class XJKTheme extends InheritedWidget {
   final XJKTokens tokens;
 
   static XJKTokens of(BuildContext context) {
-    final XJKTheme? widget = context
-        .dependOnInheritedWidgetOfExactType<XJKTheme>();
+    final XJKTheme? widget =
+        context.dependOnInheritedWidgetOfExactType<XJKTheme>();
     assert(widget != null, 'XJKTheme not found above this widget');
     return widget!.tokens;
   }
