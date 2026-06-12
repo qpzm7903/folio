@@ -3,7 +3,7 @@ description: "小金库 · 一句话停一停 — 用来再次遇见你自己摘
 publish_to: "none"
 
 # 版本号: MAJOR.MINOR.PATCH+BUILD
-version: 0.16.2+52
+version: 0.17.0+53
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -30,6 +30,9 @@ dependencies:
   # 跟 drift / sqlite3 无关。v0.13.4 切除是误诊误修, 这里恢复以满足 L12。
   drift: ^2.20.0
   sqlite3_flutter_libs: ^0.5.24
+  # L20: ohos 上指 sqlite3 加载器到系统 libsqlite3.so (lib/data/ohos_sqlite.dart);
+  # 本来就是 drift 的传递依赖, 直接 import 需要声明为直接依赖。
+  sqlite3: ^2.4.0
 
 dev_dependencies:
   flutter_test:

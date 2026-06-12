@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/logger.dart';
 import '../core/seed_quotes.dart';
 import 'drift/quotes_database.dart';
+import 'ohos_sqlite.dart';
 import 'quote.dart';
 import 'quote_codec.dart';
 import 'quote_repository.dart';
@@ -36,6 +37,8 @@ class DriftQuoteRepository implements QuoteRepository {
 Future<QuoteRepository> buildDriftQuoteRepository({
   List<Quote>? bootstrapQuotes,
 }) async {
+  // 鸿蒙: sqlite3 加载器指向系统 libsqlite3.so (其他平台 no-op), 见 L20。
+  configureOhosSqlite();
   final Directory dir = await getApplicationSupportDirectory();
   final QuotesDatabase db = QuotesDatabase.openDefault();
 

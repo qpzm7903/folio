@@ -67,3 +67,6 @@ coverage/
 assets/fonts/*.ttf
 assets/fonts/*.otf
 .claude/scheduled_tasks.lock
+
+# L20: ohos 本地构建临时 overrides (模板在 tool/ohos/, 禁止提交根副本)
+pubspec_overrides.yaml

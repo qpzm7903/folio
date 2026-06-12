@@ -1,0 +1,22 @@
+# L20 鸿蒙构建专用 dependency_overrides。
+#
+# 用法: tool/ohos/build_hap.sh 会把本文件复制为仓库根的
+# pubspec_overrides.yaml (已 gitignore), 构建完删除。
+# 禁止把根目录的 pubspec_overrides.yaml 提交入库 —— CI 与其他平台
+# 构建不需要这些 git 依赖 (拉取慢且不稳定)。
+#
+# 来源: openharmony-tpc/flutter_packages (官方鸿蒙化插件集),
+# ref 钉 master 最新 commit, 升级时改 ref 并在 wiki 02 记录验证结果。
+dependency_overrides:
+  path_provider_ohos:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/path_provider/path_provider_ohos
+  shared_preferences_ohos:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/shared_preferences/shared_preferences_ohos
+  file_selector_ohos:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/file_selector/file_selector_ohos
