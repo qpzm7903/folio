@@ -70,3 +70,10 @@ assets/fonts/*.otf
 
 # L20: ohos 本地构建临时 overrides (模板在 tool/ohos/, 禁止提交根副本)
 pubspec_overrides.yaml
+
+# L20: 仓库根 node_modules 是指向 ~/sdks/hvigor/node_modules 的符号链接
+# (hvigorfile.ts 解析 @ohos/hvigor-ohos-plugin 用), 禁止入库
+/node_modules
+
+# L20: hvigor 直跑产生的根目录缓存
+/.hvigor/

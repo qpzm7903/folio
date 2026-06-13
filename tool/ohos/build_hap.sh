@@ -13,8 +13,13 @@ MODE="${1:-debug}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-export PATH="$HOME/sdks/flutter-ohos/bin:$HOME/sdks/oh-command-line-tools/ohpm/bin:$PATH"
+export PATH="$HOME/sdks/flutter-ohos/bin:$HOME/sdks/oh-command-line-tools/ohpm/bin:$HOME/sdks/hvigor/bin:$PATH"
 export OHOS_SDK_HOME="${OHOS_SDK_HOME:-$HOME/sdks/ohos-sdk/sdk}"
+# fork 的 build hap 硬性要求 HmosSdk (HOS_SDK_HOME); 这里用符号链接把
+# OpenHarmony SDK 伪装成 HarmonyOS 布局 (<dir>/20/sdk-pkg.json), 见 wiki 01。
+export HOS_SDK_HOME="${HOS_SDK_HOME:-$HOME/sdks/hos-sdk}"
+# hvigor-ohos-plugin 对 runtimeOS=OpenHarmony 的工程读这个变量找 <api>/ 目录
+export OHOS_BASE_SDK_HOME="${OHOS_BASE_SDK_HOME:-$HOME/sdks/ohos-sdk/sdk}"
 export PUB_HOSTED_URL="${PUB_HOSTED_URL:-https://pub.flutter-io.cn}"
 export FLUTTER_STORAGE_BASE_URL="${FLUTTER_STORAGE_BASE_URL:-https://storage.flutter-io.cn}"
 

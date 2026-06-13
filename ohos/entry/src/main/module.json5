@@ -6,7 +6,9 @@
     "description": "$string:module_desc",
     "mainElement": "EntryAbility",
     "deviceTypes": [
-      "phone"
+      // OpenHarmony SDK 的 device-define 里手机是 "default" (没有 "phone")
+      "default",
+      "tablet"
     ],
     "deliveryWithInstall": true,
     "installationFree": false,

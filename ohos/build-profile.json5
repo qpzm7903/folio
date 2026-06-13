@@ -6,8 +6,11 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "compatibleSdkVersion": "5.1.0(18)",
-        "runtimeOS": "HarmonyOS",
+        // L20: 本地用免登录 OpenHarmony 6.0 SDK (API 20) 编译验证。
+        // Mate 80 装机签名阶段如需 HarmonyOS SDK 再切回 runtimeOS HarmonyOS。
+        "compileSdkVersion": 20,
+        "compatibleSdkVersion": 20,
+        "runtimeOS": "OpenHarmony",
       }
     ],
     "buildModeSet": [

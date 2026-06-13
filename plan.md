@@ -34,10 +34,10 @@
   触发, 不做后台自动轮换 (功耗 + 后台 init 风险)
 - [ ] L20 · 鸿蒙 6.0 适配 (OpenHarmony Flutter fork, 决策见 docs/adr/0001) — 规划 v0.17:
   v1 只含纯 Dart 核心功能 (金库 + 屏保 + 主题 + 搜索标签 + 导入导出)。里程碑:
-  ① 环境搭建 (Command Line Tools + AGC 调试签名, 不装 DevEco) + 空壳 hap 上 Mate 80 真机;
-  ② 关键依赖编译验证 (sqlite3 不过则仓储降级 prefs 工厂分流; file_selector 缺位则
-  隐藏选图入口、保留内置纯色背景);
-  ③ 完整 app 跑通 + PlatformCapabilities.isOhos 能力开关收尾。
+  ① 环境搭建 — 工具链部分已完成 (免登录镜像全链路, doctor 全绿, wiki 01);
+  ② 关键依赖编译验证 — 已完成 (entry-default-unsigned.hap 产出, 3 个 ohos
+  插件编译进 modules.abc, sqlite3 系统库方案代码就位待真机验证, wiki 02);
+  ③ AGC 调试签名 + Mate 80 装机 + 完整 app 真机跑通 — 待用户华为账号配合。
   ohos/ 工程直接进仓库 (签名材料 gitignore), 鸿蒙构建 v1 不进 CI。
   过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
   wiki 以对外分享为目标写作: 可复现步骤 + 工具/SDK 版本号 + 失败现象与修法;
