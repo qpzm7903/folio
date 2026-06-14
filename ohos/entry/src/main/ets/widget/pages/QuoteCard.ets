@@ -63,9 +63,11 @@ struct QuoteCard {
           .borderRadius(12)
           .backgroundColor('#f7f8ed')
           .onClick(() => {
+            // 注意: params 别用 "action" 当 key, 会跟系统追加的 action:'message'
+            // 撞名被覆盖。用 "event"。(form 侧已改成收到任何消息都换句, 这里仅为清晰)
             postCardAction(this, {
               action: 'message',
-              params: { action: 'refresh' } as Record<string, string>,
+              params: { event: 'refresh' } as Record<string, string>,
             });
           })
       }

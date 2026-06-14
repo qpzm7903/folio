@@ -99,18 +99,14 @@ export default class QuoteFormAbility extends FormExtensionAbility {
   }
 
   // 卡片"换一句"按钮 (postCardAction message) → 这里收到。立即换下一句, 不打开 app。
+  //
+  // 坑: postCardAction 会把 params 平铺到顶层 message, 且系统会追加自己的
+  // "action":"message" —— 若 params 用 "action" 当 key 会被覆盖 (JSON 重复 key
+  // 后者胜), 解析不到。本卡片只有"换一句"一个消息事件, 故收到任何 onFormEvent
+  // 都换下一句, 不依赖具体字段, 最稳。
   onFormEvent(formId: string, message: string): void {
     hilog.info(LOG_DOMAIN, LOG_TAG, 'onFormEvent msg=%{public}s', message ?? '');
-    let action = '';
-    try {
-      const obj = JSON.parse(message) as Record<string, string>;
-      action = obj.action ?? '';
-    } catch (err) {
-      action = '';
-    }
-    if (action === 'refresh') {
-      this.render(formId, nextCard(this.appCtx(), true));
-    }
+    this.render(formId, nextCard(this.appCtx(), true));
   }
 
   private render(formId: string, data: CardData): void {
