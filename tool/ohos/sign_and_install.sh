@@ -31,7 +31,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="$REPO_ROOT/ohos/.signing"          # gitignore: 含设备 UDID, 不入库
 UNSIGNED="$REPO_ROOT/ohos/entry/build/default/outputs/default/entry-default-unsigned.hap"
 SIGNED="$WORK/entry-default-signed.hap"
-BUNDLE="app.folio.ohos"
+BUNDLE="app.folio.quotes"
 
 export PATH="$TOOLCHAINS:$PATH"
 mkdir -p "$WORK"

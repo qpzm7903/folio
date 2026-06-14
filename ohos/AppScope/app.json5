@@ -1,8 +1,9 @@
 {
   "app": {
     // 鸿蒙 bundleName schema 要求至少三段 (x.y.z), prompt.md 的 app.folio
-    // 两段不合法, 鸿蒙端追加 .ohos 后缀 — 平台强制差异, 见 wiki 02
-    "bundleName": "app.folio.ohos",
+    // 两段不合法; 第三段不能用 ohos/harmony/huawei/hms 等保留字 (AGC 拒),
+    // 取 quotes (金句) — 平台强制差异, 见 wiki 02/03
+    "bundleName": "app.folio.quotes",
     "vendor": "folio",
     "versionCode": 53,
     "versionName": "0.17.0",
