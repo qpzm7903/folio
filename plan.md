@@ -56,8 +56,10 @@
   已真机验证**: 编译+Mate 80 装机+form 注册 (bm dump extensionTypeName=form)+
   app 拉起渲染不崩 (自写 channel 注册证实, ADR 0002 核心假设成立)。
   @kit.FormKit / @kit.ArkData import 在 fork 可用、fork 支持 extensionAbilities
-  + 自写 MethodChannel (风险均证伪)。里程碑③ cursor 推进代码就位; 仅剩
-  "桌面加卡片肉眼看库内金句渲染 + 30min 换句"需手动验收。
+  + 自写 MethodChannel (风险均证伪)。里程碑③ + 客户要的"换一句"刷新按钮 +
+  30min 自动刷新 **已真机验证通过 (用户确认)**: 卡片显示库内真实金句、点
+  "换一句"换下一句、30min 自动换句。L21 核心功能完整可用 (后续可选: 卡片配色
+  跟随主题、多尺寸、打开 app 主动推送刷新桌面卡片)。
   "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
 
 ---
