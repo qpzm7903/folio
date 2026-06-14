@@ -139,6 +139,21 @@ updateDuration 30 分钟兜底"(鸿蒙 form 定时刷新最小粒度 30min, 比 
   channel 能在 fork 注册"证实**。截图见 /tmp (本地)。
 - 待手动: 桌面加卡片确认显示库内真实金句 (而非种子句) + cursor 30min 推进。
 
+**卡片刷新 (客户诉求, 本程交付)**: 客户提出"卡片能否加刷新按钮、是否支持
+自动刷新"。两条都做了:
+- **手动"换一句"按钮**: `QuoteCard.ets` 底部加 accent 色按钮, 点击
+  `postCardAction(message {action:'refresh'})` → `QuoteFormAbility.onFormEvent`
+  推进 cursor + `formProvider.updateForm`, **在桌面直接换下一句, 不打开 app**。
+- **自动刷新**: `form_config.json` `updateEnabled + updateDuration=1` (30min)
+  → `onUpdateForm` 自动推进 cursor。鸿蒙 form 系统定时**最小粒度 30 分钟**
+  (平台硬约束, 比 Android ~15min 粗); app 在前台时数据桥推送即时刷新。
+  手动按钮与之互补 (想立刻换点按钮)。
+- 三条换句路径 (定时 onUpdateForm / 按钮 onFormEvent / app 推送) 复用同一个
+  `advanceCursor()` 助手, 保持 cursor 语义一致。
+- 真机验证: ArkTS 编译过 + 装机 + app 拉起不崩 + **sceneboard 已渲染
+  QuoteWidget 卡片** (hilog: build item form cardName=QuoteWidget, page 4)。
+  按钮点击换句、30min 自动换句留桌面手动验收。
+
 参考 skill: xiao-jinku-desig (卡片取色) · ohos-dev (构建/签名/装机/bm dump)。
 
 ### v0.17.1 — 重构 PATCH: 收敛"平台契约"层的重复与魔法值 (L21 铺路)

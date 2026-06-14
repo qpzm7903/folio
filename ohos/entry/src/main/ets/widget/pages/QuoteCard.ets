@@ -1,13 +1,14 @@
-// 鸿蒙服务卡片 · 金句卡片页 (L21 里程碑① 静态 spike)
+// 鸿蒙服务卡片 · 金句卡片页 (L21)
 //
-// ⚠ 未真机验证: 真机 (hdc) 当前未连接, 本文件按 HarmonyOS ArkTS form 卡片
-//   约定编写, 仅作为"卡片能加到桌面 + 显示一句金句"的可验证起点。验证步骤见
-//   docs/wiki/ohos/04-服务卡片.md。数据桥 (里程碑②) 接通前, 卡片显示由
-//   FormExtensionAbility.onAddForm 注入的种子金句。
+// 交互 (docs/adr/0002):
+//   - 点正文 → postCardAction(router) 拉起 Folio 到屏保;
+//   - 点"换一句" → postCardAction(message {action:'refresh'}) → 卡片在桌面
+//     直接换下一句, 不打开 app (FormExtensionAbility.onFormEvent 处理)。
+//   - 系统每 30min (form updateDuration) 也会自动推进 cursor 换句 (onUpdateForm)。
 //
 // UI 遵循 skill xiao-jinku-desig · 青纸 (Tea Paper) 主题:
 //   bg-card #e2e6cf · ink-900 #1d2a1f (正文) · ink-500 #5e7263 (出处, 斜体)
-//   衬线字体 (Noto Serif SC), 出处右下角 (沿用 v0.15.4 "出处放右下角" 决定)。
+//   accent leaf-500 #7ba05b (换一句) · 衬线字体, 出处右下角。
 
 // 卡片数据由 FormExtensionAbility 通过 formBindingData 注入到 LocalStorage。
 let storage = new LocalStorage();
@@ -22,7 +23,7 @@ struct QuoteCard {
 
   build() {
     Column() {
-      // 正文金句 —— 衬线、深墨绿、行距宽松。
+      // 正文金句 —— 衬线、深墨绿、行距宽松。点它拉起 app。
       Text(this.quoteText)
         .fontSize(16)
         .fontWeight(FontWeight.Normal)
@@ -31,31 +32,51 @@ struct QuoteCard {
         .maxLines(4)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .width('100%')
+        .onClick(() => {
+          postCardAction(this, {
+            action: 'router',
+            abilityName: 'EntryAbility',
+          });
+        })
 
-      // 出处 —— 右下角、斜体、淡墨。tag 为空时不占位。
-      if (this.quoteTag.length > 0) {
-        Text('— ' + this.quoteTag)
+      Blank()
+
+      // 底部行: 出处 (左, 斜体淡墨) + "换一句" 按钮 (右, accent)。
+      Row() {
+        if (this.quoteTag.length > 0) {
+          Text('— ' + this.quoteTag)
+            .fontSize(12)
+            .fontStyle(FontStyle.Italic)
+            .fontColor('#5e7263')
+            .layoutWeight(1)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        } else {
+          Blank().layoutWeight(1)
+        }
+
+        // 换一句 —— 在桌面直接换下一句, 不打开 app。
+        Text('换一句')
           .fontSize(12)
-          .fontStyle(FontStyle.Italic)
-          .fontColor('#5e7263')
-          .margin({ top: 8 })
-          .width('100%')
-          .textAlign(TextAlign.End)
+          .fontColor('#7ba05b')
+          .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+          .borderRadius(12)
+          .backgroundColor('#f7f8ed')
+          .onClick(() => {
+            postCardAction(this, {
+              action: 'message',
+              params: { action: 'refresh' } as Record<string, string>,
+            });
+          })
       }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
+    .justifyContent(FlexAlign.Start)
     .alignItems(HorizontalAlign.Start)
     .padding(16)
     .backgroundColor('#e2e6cf')
-    // 点击卡片 → 拉起 app 到屏保 (对齐 L18 Android 小组件点击行为)。
-    // 里程碑① 先不接路由参数, 仅拉起主 Ability; 深链留里程碑②。
-    .onClick(() => {
-      postCardAction(this, {
-        action: 'router',
-        abilityName: 'EntryAbility',
-      });
-    });
   }
 }

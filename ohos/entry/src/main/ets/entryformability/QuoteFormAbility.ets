@@ -2,11 +2,15 @@
 //
 // 数据流 (docs/adr/0002): Dart OhosWidgetService → app.folio/ohos_widget
 // channel → EntryAbility 写 preferences(folio_widget) → 本 ability 读 timeline,
-// 按 cursor 取一句渲染。onUpdateForm (系统 30min 定时) 推进 cursor 换句。
+// 按 cursor 取一句渲染。
+//
+// 三种换句路径都推进 cursor:
+//   - onUpdateForm: 系统定时 (form_config updateDuration=30min) 自动换句;
+//   - onFormEvent : 用户点卡片上的"换一句"按钮立即换句 (不打开 app);
+// 都复用 advanceCursor() + formProvider.updateForm。
 //
 // 降级 (决策四): preferences 无数据 / 解析失败 → 回落静态种子金句, 不白屏。
-//
-// import 路径: OpenHarmony 6 fork 上 @kit.FormKit 已验证可用 (wiki 04)。
+// import 路径: OpenHarmony 6 fork 上 @kit.FormKit / @kit.ArkData 已验证可用。
 
 import { formBindingData, FormExtensionAbility, formProvider } from '@kit.FormKit';
 import { Want } from '@kit.AbilityKit';
@@ -35,16 +39,24 @@ function seed(): CardData {
   return { quoteText: SEED_TEXT, quoteTag: SEED_TAG };
 }
 
+function parseTimeline(json: string): QuoteItem[] {
+  if (json.length === 0) {
+    return [];
+  }
+  try {
+    const list = JSON.parse(json) as QuoteItem[];
+    return (list && list.length > 0) ? list : [];
+  } catch (err) {
+    return [];
+  }
+}
+
 // 读 preferences 里 timeline[cursor] 一句; 任何缺失/异常回落种子句。
 function readCard(context: common.ExtensionContext): CardData {
   try {
     const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
-    const json = store.getSync(KEY_TIMELINE, '') as string;
-    if (json.length === 0) {
-      return seed();
-    }
-    const list = JSON.parse(json) as QuoteItem[];
-    if (!list || list.length === 0) {
+    const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
+    if (list.length === 0) {
       return seed();
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
@@ -57,6 +69,24 @@ function readCard(context: common.ExtensionContext): CardData {
   }
 }
 
+// cursor +1 取模写回 preferences (timeline 为空时不动)。
+function advanceCursor(context: common.ExtensionContext): void {
+  try {
+    const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
+    const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
+    if (list.length === 0) {
+      return;
+    }
+    const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
+    const cur = isNaN(raw) ? 0 : raw;
+    const next = (cur + 1) % list.length;
+    store.putSync(KEY_CURSOR, next.toString());
+    store.flush();
+  } catch (err) {
+    // 静默: cursor 不动, 卡片保留当前句。
+  }
+}
+
 export default class QuoteFormAbility extends FormExtensionAbility {
   // 桌面新增卡片时调用 —— 返回首帧绑定数据。
   onAddForm(want: Want): formBindingData.FormBindingData {
@@ -65,22 +95,32 @@ export default class QuoteFormAbility extends FormExtensionAbility {
   }
 
   // 系统定时刷新 (form_config updateDuration=30min): 推进 cursor 再渲染,
-  // 对齐 L18 Android 的 cursor 自动换句 (里程碑③)。
+  // 对齐 L18 Android 的 cursor 自动换句。
   onUpdateForm(formId: string): void {
     const ctx = this.context as common.ExtensionContext;
+    advanceCursor(ctx);
+    this.render(ctx, formId);
+  }
+
+  // 卡片上的交互按钮 (postCardAction message) → 这里收到。"换一句" 让用户
+  // 在桌面立即换下一句, 不打开 app。message 是 params 的 JSON 串。
+  onFormEvent(formId: string, message: string): void {
+    const ctx = this.context as common.ExtensionContext;
+    let action = '';
     try {
-      const store = preferences.getPreferencesSync(ctx, { name: WIDGET_STORE });
-      const json = store.getSync(KEY_TIMELINE, '') as string;
-      if (json.length > 0) {
-        const list = JSON.parse(json) as QuoteItem[];
-        if (list && list.length > 0) {
-          const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
-          const cur = isNaN(raw) ? 0 : raw;
-          const next = (cur + 1) % list.length;
-          store.putSync(KEY_CURSOR, next.toString());
-          store.flush();
-        }
-      }
+      const obj = JSON.parse(message) as Record<string, string>;
+      action = obj.action ?? '';
+    } catch (err) {
+      action = '';
+    }
+    if (action === 'refresh') {
+      advanceCursor(ctx);
+      this.render(ctx, formId);
+    }
+  }
+
+  private render(ctx: common.ExtensionContext, formId: string): void {
+    try {
       const data = formBindingData.createFormBindingData(readCard(ctx));
       formProvider.updateForm(formId, data);
     } catch (err) {
