@@ -2,39 +2,25 @@
 #
 # 用法: tool/ohos/build_hap.sh 会把本文件复制为仓库根的
 # pubspec_overrides.yaml (已 gitignore), 构建完删除。
-# 禁止把根目录的 pubspec_overrides.yaml 提交入库 —— CI 与其他平台
-# 构建不需要这些 git 依赖 (拉取慢且不稳定)。
 #
-# 来源: openharmony-tpc/flutter_packages (官方鸿蒙化插件集)。
+# 现状 (v0.17): 暂不集成 path_provider/shared_preferences/file_selector 的
+# 鸿蒙联邦插件。原因: flutter_ohos 工具链在从 pub-cache 集成联邦插件时,
+# hvigor 生成的 dependencyMap 模块路径有 bug (off-by-one + 模块解析),
+# ohpm install 报 "module xxx_ohos does not exist", 详见
+# docs/wiki/ohos/upstream-issues.md #1 (拟向 CPF-Flutter 提 issue/PR)。
 #
-# 关键 (v0.17 真机踩坑, wiki 04): 必须连**基础包**一起覆盖到 fork,
-# 不能只覆盖 *_ohos。官方 shared_preferences/path_provider/file_selector
-# 的 pubspec 不"背书" (endorse) 鸿蒙实现, 只覆盖 *_ohos 时
-# GeneratedPluginRegistrant 为空 → 运行时 MissingPluginException。
-# tpc fork 的基础包 pubspec 里有 `ohos: default_package: xxx_ohos`,
-# 覆盖基础包后联邦插件才会被注册。
-dependency_overrides:
-  path_provider:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/path_provider/path_provider
-  path_provider_ohos:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/path_provider/path_provider_ohos
-  shared_preferences:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/shared_preferences/shared_preferences
-  shared_preferences_ohos:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/shared_preferences/shared_preferences_ohos
-  file_selector:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/file_selector/file_selector
-  file_selector_ohos:
-    git:
-      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
-      path: packages/file_selector/file_selector_ohos
+# 降级策略: lib/core/bootstrap.dart 在鸿蒙上用内存版 shared_preferences,
+# drift 自动回退 prefs 仓储 (path_provider 缺失被 try/catch 兜住),
+# file_selector 由 PlatformCapabilities.supportsFileSelector 在鸿蒙上关闭。
+# 应用可正常浏览金句/屏保/主题, 数据暂不跨重启持久化。
+#
+# 上游修复后, 恢复下方覆盖 (覆盖基础包以触发 ohos 背书) 并移除 bootstrap
+# 的内存 prefs 守卫即可启用真持久化:
+#
+# dependency_overrides:
+#   path_provider:        { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/path_provider/path_provider } }
+#   path_provider_ohos:   { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/path_provider/path_provider_ohos } }
+#   shared_preferences:   { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/shared_preferences/shared_preferences } }
+#   shared_preferences_ohos: { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/shared_preferences/shared_preferences_ohos } }
+#   file_selector:        { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/file_selector/file_selector } }
+#   file_selector_ohos:   { git: { url: https://gitcode.com/openharmony-tpc/flutter_packages.git, path: packages/file_selector/file_selector_ohos } }

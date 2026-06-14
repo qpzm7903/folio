@@ -37,10 +37,14 @@
   ① 环境搭建 — 工具链部分已完成 (免登录镜像全链路, doctor 全绿, wiki 01);
   ② 关键依赖编译验证 — 已完成 (entry-default-unsigned.hap 产出, 3 个 ohos
   插件编译进 modules.abc, sqlite3 系统库方案代码就位待真机验证, wiki 02);
-  ③ 签名装机 — 进行中 (wiki 03): 已证伪 OpenHarmony 自签 (Mate 80 实测拒装
-  code:9568257 + 绕过开关 errNum 1001, 零售机强制华为信任根); 已本地预生成
-  AGC 密钥对 + CSR; 待用户 AGC 网页换 .cer/.p7b 后 SIGN_MODE=agc 签名装机,
-  真机验证 drift/sqlite3 系统库方案。
+  ③ 签名装机 — 已跑通 (wiki 03): AGC 调试证书签名 (证伪 OpenHarmony 自签:
+  Mate 80 拒装 code:9568257 + 绕过开关 errNum 1001) → hdc 装机 →
+  **Folio 在 Mate 80 / HarmonyOS 6 上完整运行** (金库浏览/屏保/主题/导航,
+  种子金句正常渲染)。
+  降级说明: path_provider/shared_preferences/file_selector 的 ohos 联邦插件
+  受 flutter_ohos 工具链 bug 阻塞 (upstream-issues #1), 暂以内存 prefs 降级
+  (bootstrap 守卫), 数据不跨重启持久化; 待上游修复后恢复 drift 持久化。
+  包名 app.folio.quotes (ohos 保留字 + 三段约束)。
   ohos/ 工程直接进仓库 (签名材料 gitignore), 鸿蒙构建 v1 不进 CI。
   过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
   wiki 以对外分享为目标写作: 可复现步骤 + 工具/SDK 版本号 + 失败现象与修法;

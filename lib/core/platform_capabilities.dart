@@ -57,8 +57,10 @@ class PlatformCapabilities {
     }
   }
 
-  /// `file_selector` 在所有非 Web 平台都能用; Web 上 path 是 blob, 无持久存储, no-op。
-  static bool get supportsFileSelector => !isWeb;
+  /// `file_selector` 在非 Web、非鸿蒙平台可用。鸿蒙 (L20): file_selector_ohos
+  /// 联邦插件受 flutter_ohos 工具链 bug 阻塞暂未集成, 故在鸿蒙关闭选图入口,
+  /// 保留内置纯色背景 (见 docs/wiki/ohos/upstream-issues.md)。
+  static bool get supportsFileSelector => !isWeb && !isOhos;
 
   /// `home_widget` plugin 只在 Android / iOS 端有真实实现 (其他平台是 stub)。
   static bool get supportsHomeWidget => isMobile;

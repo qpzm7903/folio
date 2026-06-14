@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/quote_repository.dart';
 import '../presentation/providers.dart';
 import 'logger.dart';
+import 'platform_capabilities.dart';
 
 /// 进程级初始化: 给 [main] (生产入口) 和未来的集成测试入口共用。
 ///
@@ -22,6 +23,19 @@ class Bootstrap {
   /// 4. 加载需要 plugin 的实例: SharedPreferences / QuoteRepository
   static Future<List<Override>> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // 鸿蒙 (L20): path_provider / shared_preferences 的 ohos 联邦插件受
+    // flutter_ohos 工具链 bug 阻塞 (见 docs/wiki/ohos/upstream-issues.md),
+    // 暂以内存版 prefs 降级 —— app 可正常浏览金句/屏保/主题, 数据不跨重启
+    // 持久化。待上游修复后移除本守卫即可恢复 drift 持久化。
+    if (PlatformCapabilities.isOhos) {
+      // setMockInitialValues 是官方提供的内存版 store 注入点 (标注 visibleFor
+      // Testing, 但这里是鸿蒙缺插件时的生产降级 shim, 非测试)。注入后所有
+      // SharedPreferences.getInstance() 走内存, 不碰未注册的 ohos 原生通道。
+      // ignore: invalid_use_of_visible_for_testing_member
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+    }
+
     await AppLogger.init();
     await initializeDateFormatting('zh_CN');
 
