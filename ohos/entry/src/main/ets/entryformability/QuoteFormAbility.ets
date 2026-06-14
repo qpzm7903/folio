@@ -1,25 +1,28 @@
 // 鸿蒙服务卡片 · FormExtensionAbility (L21 里程碑②③)
 //
 // 数据流 (docs/adr/0002): Dart OhosWidgetService → app.folio/ohos_widget
-// channel → EntryAbility 写 preferences(folio_widget) → 本 ability 读 timeline,
-// 按 cursor 取一句渲染。
+// channel → EntryAbility 写**应用级** preferences(folio_widget) → 本 ability
+// (另一个进程) 读 timeline, 按 cursor 取一句渲染。
 //
-// 三种换句路径都推进 cursor:
-//   - onUpdateForm: 系统定时 (form_config updateDuration=30min) 自动换句;
-//   - onFormEvent : 用户点卡片上的"换一句"按钮立即换句 (不打开 app);
-// 都复用 advanceCursor() + formProvider.updateForm。
+// 跨进程要点: FormExtensionAbility 与 UIAbility 是不同进程, 用
+// getApplicationContext() 拿同一个 store; 每次读前 removePreferencesFromCacheSync
+// 强制从磁盘重载, 避免读到本进程的旧缓存 (拿不到 EntryAbility 刚写的数据)。
 //
+// 三种换句路径都推进 cursor: onUpdateForm(系统 30min 定时) / onFormEvent
+// (卡片"换一句"按钮, 不打开 app) / app 前台数据桥推送。
 // 降级 (决策四): preferences 无数据 / 解析失败 → 回落静态种子金句, 不白屏。
-// import 路径: OpenHarmony 6 fork 上 @kit.FormKit / @kit.ArkData 已验证可用。
 
 import { formBindingData, FormExtensionAbility, formProvider } from '@kit.FormKit';
 import { Want } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 import { common } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const WIDGET_STORE: string = 'folio_widget';
 const KEY_TIMELINE: string = 'widgetTimeline';
 const KEY_CURSOR: string = 'widgetTimelineCursor';
+const LOG_TAG: string = 'FolioWidget';
+const LOG_DOMAIN: number = 0xF010;
 
 const SEED_TEXT: string = '把光收进来，从裂缝里。';
 const SEED_TAG: string = '种子';
@@ -51,61 +54,53 @@ function parseTimeline(json: string): QuoteItem[] {
   }
 }
 
-// 读 preferences 里 timeline[cursor] 一句; 任何缺失/异常回落种子句。
-function readCard(context: common.ExtensionContext): CardData {
+// 读 timeline[cursor] 一句; advance=true 时先把 cursor +1 取模写回。
+// 每次都 removeFromCache 强制读磁盘最新值 (跨进程)。缺失/异常回落种子句。
+function nextCard(context: common.Context, advance: boolean): CardData {
   try {
+    preferences.removePreferencesFromCacheSync(context, { name: WIDGET_STORE });
     const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
     const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
     if (list.length === 0) {
+      hilog.info(LOG_DOMAIN, LOG_TAG, 'form read: timeline empty -> seed');
       return seed();
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
-    const cursor = isNaN(raw) ? 0 : raw;
+    let cursor = isNaN(raw) ? 0 : raw;
+    if (advance) {
+      cursor = (cursor + 1) % list.length;
+      store.putSync(KEY_CURSOR, cursor.toString());
+      store.flush();
+    }
     const idx = ((cursor % list.length) + list.length) % list.length;
     const item = list[idx];
+    hilog.info(LOG_DOMAIN, LOG_TAG, 'form card: len=%{public}d cursor=%{public}d advance=%{public}s',
+      list.length, idx, String(advance));
     return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '' };
   } catch (err) {
+    hilog.error(LOG_DOMAIN, LOG_TAG, 'form read failed: %{public}s', JSON.stringify(err) ?? '');
     return seed();
   }
 }
 
-// cursor +1 取模写回 preferences (timeline 为空时不动)。
-function advanceCursor(context: common.ExtensionContext): void {
-  try {
-    const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
-    const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
-    if (list.length === 0) {
-      return;
-    }
-    const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
-    const cur = isNaN(raw) ? 0 : raw;
-    const next = (cur + 1) % list.length;
-    store.putSync(KEY_CURSOR, next.toString());
-    store.flush();
-  } catch (err) {
-    // 静默: cursor 不动, 卡片保留当前句。
-  }
-}
-
 export default class QuoteFormAbility extends FormExtensionAbility {
-  // 桌面新增卡片时调用 —— 返回首帧绑定数据。
+  private appCtx(): common.Context {
+    return this.context.getApplicationContext();
+  }
+
+  // 桌面新增卡片时调用 —— 返回首帧绑定数据 (不推进 cursor)。
   onAddForm(want: Want): formBindingData.FormBindingData {
-    const ctx = this.context as common.ExtensionContext;
-    return formBindingData.createFormBindingData(readCard(ctx));
+    return formBindingData.createFormBindingData(nextCard(this.appCtx(), false));
   }
 
-  // 系统定时刷新 (form_config updateDuration=30min): 推进 cursor 再渲染,
-  // 对齐 L18 Android 的 cursor 自动换句。
+  // 系统定时刷新 (form_config updateDuration=30min): 推进 cursor 换句。
   onUpdateForm(formId: string): void {
-    const ctx = this.context as common.ExtensionContext;
-    advanceCursor(ctx);
-    this.render(ctx, formId);
+    this.render(formId, nextCard(this.appCtx(), true));
   }
 
-  // 卡片上的交互按钮 (postCardAction message) → 这里收到。"换一句" 让用户
-  // 在桌面立即换下一句, 不打开 app。message 是 params 的 JSON 串。
+  // 卡片"换一句"按钮 (postCardAction message) → 这里收到。立即换下一句, 不打开 app。
   onFormEvent(formId: string, message: string): void {
-    const ctx = this.context as common.ExtensionContext;
+    hilog.info(LOG_DOMAIN, LOG_TAG, 'onFormEvent msg=%{public}s', message ?? '');
     let action = '';
     try {
       const obj = JSON.parse(message) as Record<string, string>;
@@ -114,17 +109,15 @@ export default class QuoteFormAbility extends FormExtensionAbility {
       action = '';
     }
     if (action === 'refresh') {
-      advanceCursor(ctx);
-      this.render(ctx, formId);
+      this.render(formId, nextCard(this.appCtx(), true));
     }
   }
 
-  private render(ctx: common.ExtensionContext, formId: string): void {
+  private render(formId: string, data: CardData): void {
     try {
-      const data = formBindingData.createFormBindingData(readCard(ctx));
-      formProvider.updateForm(formId, data);
+      formProvider.updateForm(formId, formBindingData.createFormBindingData(data));
     } catch (err) {
-      // 静默: 卡片保留上一帧。
+      hilog.error(LOG_DOMAIN, LOG_TAG, 'updateForm failed: %{public}s', JSON.stringify(err) ?? '');
     }
   }
 
