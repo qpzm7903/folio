@@ -80,3 +80,6 @@ pubspec_overrides.yaml
 
 # L20: 签名产物 (含设备 UDID + 证书 + 签名 hap), 禁止入库
 ohos/.signing/
+
+# Flutter 崩溃报告 (本地残留, 禁止入库)
+flutter_*.log

@@ -68,12 +68,50 @@
 ## 短期规划 (Short-term)
 
 - v0.16.2 (已完成) · 重构 PATCH: 平台判断收敛为能力开关 (为 L20 铺路) + lint 清零
-- v0.17 = L20 鸿蒙 6.0 适配, 里程碑 ①②③ 见长期规划 L20 条目。
+- v0.17.0 (已完成) = L20 鸿蒙 6.0 适配, 里程碑 ①②③ 见长期规划 L20 条目。
   每完成一个里程碑, 同步归档一篇 wiki 到 docs/wiki/ohos/。
+- v0.17.1 (已完成) · 重构 PATCH: 收敛"平台契约"层重复与魔法值 (为 L21 铺路)
+- v0.18 (规划中) = 新 MINOR, 候选: L21 鸿蒙服务卡片 (主菜, 数据桥/刷新有真坑,
+  且依赖真机 + 上游联邦插件修复) 或批量导入金句增强 (L03 已有粘贴导入,
+  新需求范围待与用户对齐: 文件导入 / 分隔符去重预览打标签 / 仅验证鸿蒙可用)。
 
 ---
 
 ## 版本日志
+
+### v0.17.1 — 重构 PATCH: 收敛"平台契约"层的重复与魔法值 (L21 铺路)
+
+兑现 prompt.md 优先级 #3 "当前 MINOR 没有重构 PATCH 必须立即规划"。
+v0.17.0 是 L20 鸿蒙适配 MINOR, 之后还没有专门的重构 PATCH, 这版补上。
+开 v0.18 (L21 鸿蒙服务卡片 / 批量导入增强) 新 MINOR 前的纯重构,
+行为零变化, 92 个测试全过、`flutter analyze` 0 issue。
+
+优先级判定 (开发流程铁律):
+- 无 open issue (`gh issue list --state open` 空);
+- 最新 workflow 全绿 (27502640709 success);
+- v0.17.x MINOR 仅有 v0.17.0, 无重构 PATCH → 必须先做重构 PATCH, 不能直接开 MINOR。
+
+两处真实的重复/魔法值, 同属"平台契约"主题:
+
+1. `lib/core/platform_capabilities.dart`: `isAndroid` / `isIOS` /
+   `isDesktop` / `isOhos` 四个 getter 各自重复一遍
+   `if (kIsWeb) return false; try { ... } catch (_) { return false; }`
+   守卫 (Web 上 `dart:io` 的 `Platform` 不可用、部分运行时访问会抛)。
+   抽出私有 `_platformQuery(bool Function() probe)` 收敛, 四个 getter
+   退化成一行表达式, 守卫逻辑单一可信源。公开 API 签名与返回语义不变。
+
+2. `lib/data/widget_sync_service.dart`: 写 home_widget 共享存储的 6 个 key
+   (`widgetTimeline` / `widgetTimelineCursor` / `widgetCadenceMinutes` /
+   `todayQuote` / `todayTag` / `widgetColorTheme`) 此前是内联魔法字符串,
+   而 native Kotlin (`QuoteWidgetProvider` / `QuoteWidgetAlarmReceiver`)
+   读的是同一份字面量 —— 这是一份跨语言契约。抽成 `_kKey*` 命名常量,
+   写入的字面量值逐字节不变 (native 契约不破), 但 Dart 侧不再散落魔法值,
+   且 L21 鸿蒙 ArkTS 服务卡片将读同一组 key, 集中后改名只改一处。
+
+不动任何业务行为, 不新增/删除功能。仓库卫生: 删历史残留 `flutter_*.log`
+崩溃报告 + `.gitignore` 加 `flutter_*.log` 模式防复发。
+
+参考 skill: 无 UI 改动。
 
 ### v0.16.2 — 重构 PATCH: 能力开关收敛 + lint 清零 (L20 铺路)
 

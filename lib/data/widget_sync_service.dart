@@ -29,6 +29,17 @@ class WidgetSyncService {
   static const String _alarmChannelName = 'app.folio/widget_alarm';
   static const MethodChannel _alarmChannel = MethodChannel(_alarmChannelName);
 
+  // home_widget 共享存储的 key —— 跟 native 端是一份跨语言契约 (Dart 写、
+  // Kotlin `QuoteWidgetProvider`/`QuoteWidgetAlarmReceiver` 读相同字面量;
+  // L21 鸿蒙 ArkTS 服务卡片也将读同一组 key)。改名时必须同步 native, 故在此
+  // 收敛成命名常量, 杜绝两侧各写一遍魔法字符串导致拼写漂移。
+  static const String _kKeyTimeline = 'widgetTimeline';
+  static const String _kKeyCursor = 'widgetTimelineCursor';
+  static const String _kKeyCadence = 'widgetCadenceMinutes';
+  static const String _kKeyTodayQuote = 'todayQuote';
+  static const String _kKeyTodayTag = 'todayTag';
+  static const String _kKeyColorTheme = 'widgetColorTheme';
+
   /// 小组件刷新下限 (分钟)。AlarmManager doze 模式下实际能保证的最小间隔
   /// 约在 10-15 分钟, 而且 widget 1 分钟切一次会被用户当电池杀手卸载。
   /// 详细取舍见 plan.md / v0.16.0 设计取舍 #1。
@@ -62,23 +73,24 @@ class WidgetSyncService {
     try {
       final List<Quote> timeline = WidgetTimeline.generate(quotes);
       final String timelineJson = WidgetTimeline.serialize(timeline);
-      await HomeWidget.saveWidgetData<String>('widgetTimeline', timelineJson);
+      await HomeWidget.saveWidgetData<String>(_kKeyTimeline, timelineJson);
       // cursor / cadence 用 String 存避免 home_widget plugin 跨平台 int 类型
       // 不一致 (iOS UserDefaults vs Android SharedPreferences putInt/putLong),
       // native Kotlin 直接 toIntOrNull 解析就行。
-      await HomeWidget.saveWidgetData<String>('widgetTimelineCursor', '0');
+      await HomeWidget.saveWidgetData<String>(_kKeyCursor, '0');
       await HomeWidget.saveWidgetData<String>(
-        'widgetCadenceMinutes',
+        _kKeyCadence,
         effectiveCadence.toString(),
       );
       // 兼容字段: 老版本 widget layout 若 fallback 读 todayQuote/todayTag
       // 仍能拿到第一句。新的 QuoteWidgetProvider 优先走 timeline[cursor]。
       final Quote? first = timeline.isNotEmpty ? timeline.first : null;
-      await HomeWidget.saveWidgetData<String>('todayQuote', first?.text ?? '');
-      await HomeWidget.saveWidgetData<String>('todayTag', first?.tag ?? '');
+      await HomeWidget.saveWidgetData<String>(
+          _kKeyTodayQuote, first?.text ?? '');
+      await HomeWidget.saveWidgetData<String>(_kKeyTodayTag, first?.tag ?? '');
       if (colorTheme != null) {
         await HomeWidget.saveWidgetData<String>(
-          'widgetColorTheme',
+          _kKeyColorTheme,
           colorTheme.name,
         );
       }

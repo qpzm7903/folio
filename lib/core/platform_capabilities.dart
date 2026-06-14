@@ -14,48 +14,35 @@ import 'package:flutter/foundation.dart';
 class PlatformCapabilities {
   const PlatformCapabilities._();
 
+  /// 统一的平台探测守卫: Web 上 `dart:io` 的 [Platform] 不可用直接判 false,
+  /// 其余平台跑 [probe] 并吞掉任何异常 (某些运行时访问 [Platform] 会抛)。
+  /// 收敛掉各 getter 里重复的 `kIsWeb` + `try/catch` 样板。
+  static bool _platformQuery(bool Function() probe) {
+    if (kIsWeb) return false;
+    try {
+      return probe();
+    } catch (_) {
+      return false;
+    }
+  }
+
   static bool get isWeb => kIsWeb;
 
-  static bool get isAndroid {
-    if (kIsWeb) return false;
-    try {
-      return Platform.isAndroid;
-    } catch (_) {
-      return false;
-    }
-  }
+  static bool get isAndroid => _platformQuery(() => Platform.isAndroid);
 
-  static bool get isIOS {
-    if (kIsWeb) return false;
-    try {
-      return Platform.isIOS;
-    } catch (_) {
-      return false;
-    }
-  }
+  static bool get isIOS => _platformQuery(() => Platform.isIOS);
 
   static bool get isMobile => isAndroid || isIOS;
 
-  static bool get isDesktop {
-    if (kIsWeb) return false;
-    try {
-      return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
-    } catch (_) {
-      return false;
-    }
-  }
+  static bool get isDesktop => _platformQuery(
+        () => Platform.isLinux || Platform.isMacOS || Platform.isWindows,
+      );
 
   /// 鸿蒙 (OpenHarmony / HarmonyOS NEXT)。官方 dart:io 没有 isOhos getter,
   /// 鸿蒙化 Flutter fork 上 [Platform.operatingSystem] 返回 'ohos' —— 用
   /// 字符串判断让同一份代码在官方 SDK 与 fork 上都能编译 (L20)。
-  static bool get isOhos {
-    if (kIsWeb) return false;
-    try {
-      return Platform.operatingSystem == 'ohos';
-    } catch (_) {
-      return false;
-    }
-  }
+  static bool get isOhos =>
+      _platformQuery(() => Platform.operatingSystem == 'ohos');
 
   /// `file_selector` 在非 Web、非鸿蒙平台可用。鸿蒙 (L20): file_selector_ohos
   /// 联邦插件受 flutter_ohos 工具链 bug 阻塞暂未集成, 故在鸿蒙关闭选图入口,
