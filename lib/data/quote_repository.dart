@@ -7,6 +7,7 @@ import '../core/logger.dart';
 import '../core/seed_quotes.dart';
 import 'drift_quote_repository_stub.dart'
     if (dart.library.io) 'drift_quote_repository_io.dart' as drift_impl;
+import 'ohos_prefs_bridge.dart';
 import 'quote.dart';
 import 'quote_codec.dart';
 
@@ -87,6 +88,8 @@ class _PrefsQuoteRepository implements QuoteRepository {
   @override
   Future<void> saveAll(List<Quote> quotes) async {
     await prefs.setString(kPrefsQuotesKey, QuoteCodec.encode(quotes));
+    // 鸿蒙: 把内存 prefs 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
+    await OhosPrefsBridge.instance.flush(prefs);
   }
 }
 

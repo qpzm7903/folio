@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ohos_prefs_bridge.dart';
+
 /// 收藏过的 [Quote.id] 集合 —— 用 SharedPreferences 存 Set<String>,
 /// 故意跟 drift schema 解耦, PATCH 范围内不引入数据库迁移。
 ///
@@ -16,5 +18,7 @@ class FavoritesRepository {
 
   Future<void> save(Set<String> ids) async {
     await _prefs.setStringList(_kKey, ids.toList(growable: false));
+    // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
+    await OhosPrefsBridge.instance.flush(_prefs);
   }
 }

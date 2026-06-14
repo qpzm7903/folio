@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_settings.dart';
+import 'ohos_prefs_bridge.dart';
 
 // 重新导出 model, 让现有 `import 'settings_repository.dart'` 拿到 AppSettings /
 // AppThemeMode / AppThemeModeLabel 的调用方不必同时改 import 路径。
@@ -42,6 +43,8 @@ class SettingsRepository {
       await _prefs.setString(_kBgImage, s.backgroundImagePath!);
     }
     await _prefs.setString(_kWidgetColor, s.widgetColorTheme.name);
+    // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
+    await OhosPrefsBridge.instance.flush(_prefs);
   }
 
   AppThemeMode _decodeTheme(String? name) {

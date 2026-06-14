@@ -18,6 +18,13 @@ const KEY_COLOR: string = 'widgetColorTheme';
 const LOG_TAG: string = 'FolioWidget';
 const LOG_DOMAIN: number = 0xF010;
 
+// L20 数据持久化: Dart OhosPrefsBridge 经这条 channel 把整份 prefs 快照
+// (JSON) 落到 @ohos.data.preferences, 绕开受阻的 shared_preferences 联邦插件,
+// 让用户数据 (导入的金句/设置/收藏) 真正跨重启持久化。
+const STORE_CHANNEL: string = 'app.folio/ohos_store';
+const APP_STORE: string = 'folio_app';
+const KEY_DATA: string = 'data';
+
 class WidgetChannelHandler implements MethodCallHandler {
   private context: common.Context;
 
@@ -50,6 +57,38 @@ class WidgetChannelHandler implements MethodCallHandler {
   }
 }
 
+// app 数据持久化 handler: loadPrefs / savePrefs 整份 JSON 快照落
+// @ohos.data.preferences, 让鸿蒙上的数据真正跨重启 (绕开联邦插件 bug)。
+class AppStoreHandler implements MethodCallHandler {
+  private context: common.Context;
+
+  constructor(context: common.Context) {
+    this.context = context;
+  }
+
+  onMethodCall(call: MethodCall, result: MethodResult): void {
+    try {
+      const store = preferences.getPreferencesSync(this.context, { name: APP_STORE });
+      if (call.method === 'loadPrefs') {
+        const data: string = store.getSync(KEY_DATA, '') as string;
+        hilog.info(LOG_DOMAIN, LOG_TAG, 'loadPrefs len=%{public}d', data.length);
+        result.success(data);
+      } else if (call.method === 'savePrefs') {
+        const data: string = (call.argument(KEY_DATA) as string) ?? '';
+        store.putSync(KEY_DATA, data);
+        store.flush();
+        hilog.info(LOG_DOMAIN, LOG_TAG, 'savePrefs len=%{public}d', data.length);
+        result.success(null);
+      } else {
+        result.notImplemented();
+      }
+    } catch (err) {
+      hilog.error(LOG_DOMAIN, LOG_TAG, 'app store op failed: %{public}s', JSON.stringify(err) ?? '');
+      result.error('ohos_store_failed', 'app store op failed', null);
+    }
+  }
+}
+
 export default class EntryAbility extends FlutterAbility {
   configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
@@ -58,7 +97,12 @@ export default class EntryAbility extends FlutterAbility {
     // 用应用级 context, 保证 UIAbility 写的 store 跟 FormExtensionAbility 读的
     // 是同一个 (二者是不同进程, 用各自 ability context 可能落到不同目录)。
     const appCtx: common.Context = this.context.getApplicationContext();
-    const channel = new MethodChannel(flutterEngine.getDartExecutor(), WIDGET_CHANNEL);
-    channel.setMethodCallHandler(new WidgetChannelHandler(appCtx));
+    const messenger = flutterEngine.getDartExecutor();
+
+    const widgetChannel = new MethodChannel(messenger, WIDGET_CHANNEL);
+    widgetChannel.setMethodCallHandler(new WidgetChannelHandler(appCtx));
+
+    const storeChannel = new MethodChannel(messenger, STORE_CHANNEL);
+    storeChannel.setMethodCallHandler(new AppStoreHandler(appCtx));
   }
 }

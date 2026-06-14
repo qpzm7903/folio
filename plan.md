@@ -42,8 +42,10 @@
   **Folio 在 Mate 80 / HarmonyOS 6 上完整运行** (金库浏览/屏保/主题/导航,
   种子金句正常渲染)。
   降级说明: path_provider/shared_preferences/file_selector 的 ohos 联邦插件
-  受 flutter_ohos 工具链 bug 阻塞 (upstream-issues #1), 暂以内存 prefs 降级
-  (bootstrap 守卫), 数据不跨重启持久化; 待上游修复后恢复 drift 持久化。
+  受 flutter_ohos 工具链 bug 阻塞 (upstream-issues #1), 走内存 prefs 降级
+  (bootstrap 守卫)。**v0.18.1 起数据已真持久化**: 通过 OhosPrefsBridge 自写
+  channel 把内存 prefs 快照落到 ArkTS @ohos.data.preferences (绕开上游 bug),
+  启动读回, 用户导入的金句/设置/收藏跨重启保留。file_selector 选图仍降级关闭。
   包名 app.folio.quotes (ohos 保留字 + 三段约束)。
   ohos/ 工程直接进仓库 (签名材料 gitignore), 鸿蒙构建 v1 不进 CI。
   过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
@@ -88,6 +90,37 @@
 ---
 
 ## 版本日志
+
+### v0.18.1 — 修鸿蒙数据丢失: app 数据落盘 ArkTS preferences (真机验证)
+
+**用户报 bug**: 鸿蒙上重装/重启后导入的金句全没了。根因: L20 起鸿蒙因
+`shared_preferences`/`path_provider` 联邦插件被上游 bug 阻塞, 一直走**内存版
+SharedPreferences 降级** (drift 也因拿不到 path_provider 路径 fallback 到内存
+prefs), 数据从不落盘, 一杀进程就没。
+
+**修法 (复用服务卡片同款绕过技术)**: 新建 `lib/data/ohos_prefs_bridge.dart`
+`OhosPrefsBridge`, 经自写 `MethodChannel('app.folio/ohos_store')` →
+`EntryAbility.ets` 的 `AppStoreHandler` 用 ArkTS 系统 API
+`@ohos.data.preferences` 把整份 prefs 快照落盘:
+- 启动: bootstrap 在 ohos 分支先 `loadSnapshot()` 经 channel 读回快照 →
+  喂给 `setMockInitialValues`, 内存 prefs 一开始就带着上次数据;
+- 写后: `_PrefsQuoteRepository.saveAll` / `SettingsRepository.save` /
+  `FavoritesRepository.save` 各自写完 prefs 后调 `flush()` 把整份快照推回落盘
+  (isOhos 守卫, 非鸿蒙全 no-op, 零行为影响);
+- 快照**带类型** (`{key:{t:s|b|i|d|sl, v}}`), 让 JSON 往返不丢
+  bool/int/List&lt;String&gt; (favorites 是 List&lt;String&gt;、cadence 是 int);
+- 安全: 只有 `loadSnapshot` 成功过才允许 flush, 避免 channel 没就绪时空数据
+  覆盖已落盘真实数据; 坏 JSON 当空处理不炸启动。
+
+**测试**: `test/ohos_prefs_bridge_test.dart` 锁快照往返保真 (5 种类型) +
+坏数据降级, 94→97 测试全过, analyze 0 issue。
+
+**真机验证 (5MT0226311023694)**: hilog `Setting handler for channel
+app.folio/ohos_store` + 上次落盘 → 本次启动 `loadPrefs len=1238` (整份 prefs
+快照跨重启读回)。数据持久化打通。版本号双源 0.18.0+55 → 0.18.1+56。
+
+注意: 此为应用沙箱内持久化, 跨**更新安装** (bm install 同包名) 数据保留;
+彻底卸载会随沙箱清掉 (系统行为, 原生 app 亦然)。
 
 ### v0.18.0 — L21 鸿蒙服务卡片 (里程碑①静态卡片 + ②数据桥, 真机验证)
 
