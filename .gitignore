@@ -77,3 +77,6 @@ pubspec_overrides.yaml
 
 # L20: hvigor 直跑产生的根目录缓存
 /.hvigor/
+
+# L20: 签名产物 (含设备 UDID + 证书 + 签名 hap), 禁止入库
+ohos/.signing/

@@ -37,7 +37,10 @@
   ① 环境搭建 — 工具链部分已完成 (免登录镜像全链路, doctor 全绿, wiki 01);
   ② 关键依赖编译验证 — 已完成 (entry-default-unsigned.hap 产出, 3 个 ohos
   插件编译进 modules.abc, sqlite3 系统库方案代码就位待真机验证, wiki 02);
-  ③ AGC 调试签名 + Mate 80 装机 + 完整 app 真机跑通 — 待用户华为账号配合。
+  ③ 签名装机 — 进行中 (wiki 03): 已证伪 OpenHarmony 自签 (Mate 80 实测拒装
+  code:9568257 + 绕过开关 errNum 1001, 零售机强制华为信任根); 已本地预生成
+  AGC 密钥对 + CSR; 待用户 AGC 网页换 .cer/.p7b 后 SIGN_MODE=agc 签名装机,
+  真机验证 drift/sqlite3 系统库方案。
   ohos/ 工程直接进仓库 (签名材料 gitignore), 鸿蒙构建 v1 不进 CI。
   过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
   wiki 以对外分享为目标写作: 可复现步骤 + 工具/SDK 版本号 + 失败现象与修法;
