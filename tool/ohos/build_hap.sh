@@ -20,6 +20,10 @@ export OHOS_SDK_HOME="${OHOS_SDK_HOME:-$HOME/sdks/ohos-sdk/sdk}"
 export HOS_SDK_HOME="${HOS_SDK_HOME:-$HOME/sdks/hos-sdk}"
 # hvigor-ohos-plugin 对 runtimeOS=OpenHarmony 的工程读这个变量找 <api>/ 目录
 export OHOS_BASE_SDK_HOME="${OHOS_BASE_SDK_HOME:-$HOME/sdks/ohos-sdk/sdk}"
+# 插件 har 的 hvigorfile.ts 在 ~/.pub-cache 下, 要 require('@ohos/hvigor-ohos-plugin');
+# NODE_PATH 给 node 一个全局兜底搜索路径, 让 pub-cache / 仓库内的 hvigorfile.ts
+# 都能解析到 hvigor 插件 (见 wiki 04 联邦插件 har 构建)。
+export NODE_PATH="${NODE_PATH:-$HOME/sdks/hvigor/node_modules}"
 export PUB_HOSTED_URL="${PUB_HOSTED_URL:-https://pub.flutter-io.cn}"
 export FLUTTER_STORAGE_BASE_URL="${FLUTTER_STORAGE_BASE_URL:-https://storage.flutter-io.cn}"
 

@@ -5,17 +5,35 @@
 # 禁止把根目录的 pubspec_overrides.yaml 提交入库 —— CI 与其他平台
 # 构建不需要这些 git 依赖 (拉取慢且不稳定)。
 #
-# 来源: openharmony-tpc/flutter_packages (官方鸿蒙化插件集),
-# ref 钉 master 最新 commit, 升级时改 ref 并在 wiki 02 记录验证结果。
+# 来源: openharmony-tpc/flutter_packages (官方鸿蒙化插件集)。
+#
+# 关键 (v0.17 真机踩坑, wiki 04): 必须连**基础包**一起覆盖到 fork,
+# 不能只覆盖 *_ohos。官方 shared_preferences/path_provider/file_selector
+# 的 pubspec 不"背书" (endorse) 鸿蒙实现, 只覆盖 *_ohos 时
+# GeneratedPluginRegistrant 为空 → 运行时 MissingPluginException。
+# tpc fork 的基础包 pubspec 里有 `ohos: default_package: xxx_ohos`,
+# 覆盖基础包后联邦插件才会被注册。
 dependency_overrides:
+  path_provider:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/path_provider/path_provider
   path_provider_ohos:
     git:
       url: https://gitcode.com/openharmony-tpc/flutter_packages.git
       path: packages/path_provider/path_provider_ohos
+  shared_preferences:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/shared_preferences/shared_preferences
   shared_preferences_ohos:
     git:
       url: https://gitcode.com/openharmony-tpc/flutter_packages.git
       path: packages/shared_preferences/shared_preferences_ohos
+  file_selector:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/file_selector/file_selector
   file_selector_ohos:
     git:
       url: https://gitcode.com/openharmony-tpc/flutter_packages.git
