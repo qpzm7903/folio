@@ -52,11 +52,12 @@
 - [ ] L21 · 鸿蒙服务卡片 (ArkTS 重写 L18 timeline 刷新机制) — v0.18 进行中。
   设计推演见 docs/adr/0002-ohos-service-card.md (数据桥走自写 MethodChannel +
   ArkTS 侧 @ohos.data.preferences, 绕开上游联邦插件 #1, 不必等上游修复)。
-  里程碑①②③ 见 docs/wiki/ohos/04-服务卡片.md。**里程碑① 静态卡片 scaffold
-  已真机验证**: 编译过 + Mate 80 装机成功 + HarmonyOS 识别 form 扩展能力
-  (bm dump extensionTypeName=form), 仅剩"桌面加卡片肉眼看渲染"需手动验收;
-  @kit.FormKit import 在 fork 上可用、fork 支持 extensionAbilities (两个
-  风险均证伪)。里程碑②(数据桥)③(刷新闭环)待续。
+  里程碑①②③ 见 docs/wiki/ohos/04-服务卡片.md。**里程碑①(静态卡片)②(数据桥)
+  已真机验证**: 编译+Mate 80 装机+form 注册 (bm dump extensionTypeName=form)+
+  app 拉起渲染不崩 (自写 channel 注册证实, ADR 0002 核心假设成立)。
+  @kit.FormKit / @kit.ArkData import 在 fork 可用、fork 支持 extensionAbilities
+  + 自写 MethodChannel (风险均证伪)。里程碑③ cursor 推进代码就位; 仅剩
+  "桌面加卡片肉眼看库内金句渲染 + 30min 换句"需手动验收。
   "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
 
 ---
@@ -86,11 +87,12 @@
 
 ## 版本日志
 
-### v0.18.0-dev — L21 鸿蒙服务卡片 里程碑① 静态卡片 scaffold (真机验证通过)
+### v0.18.0 — L21 鸿蒙服务卡片 (里程碑①静态卡片 + ②数据桥, 真机验证)
 
-用户在 v0.17.1 后选定 v0.18 主攻 **L21 鸿蒙服务卡片**。本程不动 Dart
-(纯 ohos ArkTS 原生 + 文档), Dart 版本仍 0.17.1, CI 保持绿; 鸿蒙构建本地
-进行不进 CI。完整 v0.18.0 待里程碑②③落地 + 桌面卡片可视验收后再发版。
+用户在 v0.17.1 后选定 v0.18 主攻 **L21 鸿蒙服务卡片**。里程碑① (静态卡片)
++ ② (数据桥) 本程落地并真机验证。里程碑③ (系统定时 cursor 推进) 代码已就位
+(QuoteFormAbility.onUpdateForm), 与"桌面加卡片肉眼看库内金句渲染"一起留手动
+验收。鸿蒙构建本地进行不进 CI; Dart 侧变更随 CI 走且对非鸿蒙平台零行为影响。
 
 **设计先行 (ADR 0002)**: 推演 L21 数据桥/刷新/降级设计树, 关键判断是
 **数据桥走"自写 MethodChannel (注册在 EntryAbility, 非 pub 插件) + 卡片侧
@@ -117,6 +119,25 @@ updateDuration 30 分钟兜底"(鸿蒙 form 定时刷新最小粒度 30min, 比 
 肉眼看渲染"需手动验收 (物理操作, 自动化不可达)。
 踩坑: form_config.json 是严格 JSON schema 校验, 不能写 `//` 注释键
 (propertyName must be valid), 说明文字移到 ADR/wiki。
+
+**里程碑② 数据桥 (本程交付, 真机验证)**:
+- Dart `lib/data/ohos_widget_service.dart` (新建): `OhosWidgetService` 经自写
+  `MethodChannel('app.folio/ohos_widget')` 推 timeline JSON (复用纯 Dart
+  `WidgetTimeline`), `isOhos` 守卫, 非鸿蒙 no-op, handler 缺失时吞
+  `MissingPluginException` 降级。`providers.dart` 加 `ohosWidgetServiceProvider`,
+  `widget_sync_bridge.dart` `_sync` 并列推 Android(home_widget)+鸿蒙(channel)。
+- ArkTS `EntryAbility.ets`: `configureFlutterEngine` 注册 channel handler
+  (`WidgetChannelHandler implements MethodCallHandler`), 收到 syncTimeline 写
+  `@ohos.data.preferences`(folio_widget)。`QuoteFormAbility.ets`: onAddForm/
+  onUpdateForm 读 preferences → 解析 timeline[cursor] 渲染, 缺数据回落种子句。
+- 测试: `test/ohos_widget_service_test.dart` 锁 host 上是 no-op (不抛/不 call
+  channel)。Dart 92→94 测试全过, analyze 0 issue。
+- 真机验证 (5MT0226311023694): ArkTS 编译过 assembleHap、AGC 装机成功、
+  **app 拉起渲染金库正常不崩**, hilog 无新异常 (path_provider/home_widget 的
+  MissingPlugin 是既有 ohos 降级噪音, 非本次引入; 我的 app.folio/ohos_widget
+  channel 未报 MissingPlugin = handler 已注册)。**ADR 0002 核心假设"自写
+  channel 能在 fork 注册"证实**。截图见 /tmp (本地)。
+- 待手动: 桌面加卡片确认显示库内真实金句 (而非种子句) + cursor 30min 推进。
 
 参考 skill: xiao-jinku-desig (卡片取色) · ohos-dev (构建/签名/装机/bm dump)。
 

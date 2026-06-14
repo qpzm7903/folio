@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/logger.dart';
 import '../data/background_image_service.dart';
 import '../data/favorites_repository.dart';
+import '../data/ohos_widget_service.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
@@ -31,6 +32,11 @@ final Provider<BackgroundImageService> backgroundImageServiceProvider =
 
 final Provider<WidgetSyncService> widgetSyncServiceProvider =
     Provider<WidgetSyncService>((Ref ref) => const WidgetSyncService());
+
+/// 鸿蒙服务卡片 (L21) 数据桥。非鸿蒙平台为 no-op, 跟 [widgetSyncServiceProvider]
+/// 并列, 各自按平台能力守卫 (Android/iOS 走 home_widget, 鸿蒙走自写 channel)。
+final Provider<OhosWidgetService> ohosWidgetServiceProvider =
+    Provider<OhosWidgetService>((Ref ref) => const OhosWidgetService());
 
 /// v0.15.9 Issue #8 起新增。v0.15.10 重构: 从 DisplayScreen widget state
 /// 里直接 `new WallpaperService()` 抽到 provider, 跟其他 service 一致,
