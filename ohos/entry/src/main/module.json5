@@ -35,6 +35,22 @@
         ]
       }
     ],
+    // L21 鸿蒙服务卡片 (里程碑① 静态 spike, 未真机验证, 见 docs/adr/0002)。
+    "extensionAbilities": [
+      {
+        "name": "QuoteFormAbility",
+        "srcEntry": "./ets/entryformability/QuoteFormAbility.ets",
+        "label": "$string:form_label",
+        "description": "$string:form_desc",
+        "type": "form",
+        "metadata": [
+          {
+            "name": "ohos.extension.form",
+            "resource": "$profile:form_config"
+          }
+        ]
+      }
+    ],
     "requestPermissions": [
       {"name" :  "ohos.permission.INTERNET"},
     ]

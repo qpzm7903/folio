@@ -11,6 +11,14 @@
     {
       "name": "EntryAbility_label",
       "value": "folio"
+    },
+    {
+      "name": "form_label",
+      "value": "金句"
+    },
+    {
+      "name": "form_desc",
+      "value": "在桌面遇见你摘下的金句"
     }
   ]
 }

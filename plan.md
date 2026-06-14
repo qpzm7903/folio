@@ -49,7 +49,14 @@
   过程要求: 每个里程碑的踩坑与经验随做随归档到 docs/wiki/ohos/, 不攒到最后补写。
   wiki 以对外分享为目标写作: 可复现步骤 + 工具/SDK 版本号 + 失败现象与修法;
   对外发布前脱敏 (不含 p12/证书/UDID/账号信息)
-- [ ] L21 · 鸿蒙服务卡片 (ArkTS 重写 L18 timeline 刷新机制) — 待 L20 落地后排期。
+- [ ] L21 · 鸿蒙服务卡片 (ArkTS 重写 L18 timeline 刷新机制) — v0.18 进行中。
+  设计推演见 docs/adr/0002-ohos-service-card.md (数据桥走自写 MethodChannel +
+  ArkTS 侧 @ohos.data.preferences, 绕开上游联邦插件 #1, 不必等上游修复)。
+  里程碑①②③ 见 docs/wiki/ohos/04-服务卡片.md。**里程碑① 静态卡片 scaffold
+  已真机验证**: 编译过 + Mate 80 装机成功 + HarmonyOS 识别 form 扩展能力
+  (bm dump extensionTypeName=form), 仅剩"桌面加卡片肉眼看渲染"需手动验收;
+  @kit.FormKit import 在 fork 上可用、fork 支持 extensionAbilities (两个
+  风险均证伪)。里程碑②(数据桥)③(刷新闭环)待续。
   "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
 
 ---
@@ -71,13 +78,47 @@
 - v0.17.0 (已完成) = L20 鸿蒙 6.0 适配, 里程碑 ①②③ 见长期规划 L20 条目。
   每完成一个里程碑, 同步归档一篇 wiki 到 docs/wiki/ohos/。
 - v0.17.1 (已完成) · 重构 PATCH: 收敛"平台契约"层重复与魔法值 (为 L21 铺路)
-- v0.18 (规划中) = 新 MINOR, 候选: L21 鸿蒙服务卡片 (主菜, 数据桥/刷新有真坑,
-  且依赖真机 + 上游联邦插件修复) 或批量导入金句增强 (L03 已有粘贴导入,
-  新需求范围待与用户对齐: 文件导入 / 分隔符去重预览打标签 / 仅验证鸿蒙可用)。
+- v0.18 (进行中) = L21 鸿蒙服务卡片 (用户已选定主攻方向)。里程碑① 静态卡片
+  scaffold 已真机验证 (编译+装机+form 注册), 见下方 v0.18.0-dev 版本日志;
+  里程碑②(数据桥)③(刷新闭环)待续。完整跑通 + 桌面卡片可视验收后发 v0.18.0。
 
 ---
 
 ## 版本日志
+
+### v0.18.0-dev — L21 鸿蒙服务卡片 里程碑① 静态卡片 scaffold (真机验证通过)
+
+用户在 v0.17.1 后选定 v0.18 主攻 **L21 鸿蒙服务卡片**。本程不动 Dart
+(纯 ohos ArkTS 原生 + 文档), Dart 版本仍 0.17.1, CI 保持绿; 鸿蒙构建本地
+进行不进 CI。完整 v0.18.0 待里程碑②③落地 + 桌面卡片可视验收后再发版。
+
+**设计先行 (ADR 0002)**: 推演 L21 数据桥/刷新/降级设计树, 关键判断是
+**数据桥走"自写 MethodChannel (注册在 EntryAbility, 非 pub 插件) + 卡片侧
+@ohos.data.preferences 存储"**, 刻意绕开受阻的联邦插件 (上游 #1) —— L21
+因此不必等上游修复, 只需真机验证。刷新走"app 主动 updateForm + form
+updateDuration 30 分钟兜底"(鸿蒙 form 定时刷新最小粒度 30min, 比 Android
+15min 粗)。降级分里程碑①②③, 每级都是可用降级态 (卡片永不白屏)。
+
+**里程碑① scaffold (本程交付, 真机验证通过)**:
+- `ohos/entry/src/main/ets/entryformability/QuoteFormAbility.ets` —
+  FormExtensionAbility, onAddForm 注入种子金句;
+- `ohos/entry/src/main/ets/widget/pages/QuoteCard.ets` — ArkTS 卡片页,
+  青纸主题 (bg #e2e6cf / ink #1d2a1f / 出处 #5e7263 斜体右下), 衬线金句,
+  点击 postCardAction 拉起 EntryAbility;
+- `form_config.json` (2*2 默认, updateDuration=1=30min) + module.json5
+  extensionAbilities 注册 + base/zh_CN string.json 加 form_label/desc。
+- UI 严格遵循 skill xiao-jinku-desig 青纸主题取色。
+
+**真机验证 (设备 5MT0226311023694 / OpenHarmony 6.1.1.120 API 24)**:
+编译过 assembleHap ✓ → AGC 签名装机 `install bundle successfully` ✓ →
+`bm dump` 含 `extensionTypeName=form` + form_config metadata, HarmonyOS
+已识别 QuoteFormAbility ✓。`@kit.FormKit` import 在 fork 解析成功、fork
+支持 extensionAbilities (ADR 两个未决风险均证伪)。仅剩"桌面长按加卡片
+肉眼看渲染"需手动验收 (物理操作, 自动化不可达)。
+踩坑: form_config.json 是严格 JSON schema 校验, 不能写 `//` 注释键
+(propertyName must be valid), 说明文字移到 ADR/wiki。
+
+参考 skill: xiao-jinku-desig (卡片取色) · ohos-dev (构建/签名/装机/bm dump)。
 
 ### v0.17.1 — 重构 PATCH: 收敛"平台契约"层的重复与魔法值 (L21 铺路)
 
