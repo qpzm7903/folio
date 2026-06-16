@@ -20,6 +20,7 @@ class SettingsRepository {
   static const String _kBgImage = 'folio.settings.backgroundImagePath';
   static const String _kWidgetColor = 'folio.settings.widgetColorTheme';
   static const String _kDisplayLayout = 'folio.settings.displayLayoutKey';
+  static const String _kPlayMode = 'folio.settings.widgetPlayMode';
 
   AppSettings load() {
     final String? bg = _prefs.getString(_kBgImage);
@@ -34,6 +35,7 @@ class SettingsRepository {
       displayLayoutKey: (layout != null && layout.isNotEmpty)
           ? layout
           : AppSettings.defaultDisplayLayoutKey,
+      widgetPlayMode: _decodePlayMode(_prefs.getString(_kPlayMode)),
     );
   }
 
@@ -49,6 +51,7 @@ class SettingsRepository {
     }
     await _prefs.setString(_kWidgetColor, s.widgetColorTheme.name);
     await _prefs.setString(_kDisplayLayout, s.displayLayoutKey);
+    await _prefs.setString(_kPlayMode, s.widgetPlayMode.name);
     // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
     await OhosPrefsBridge.instance.flush(_prefs);
   }
@@ -64,6 +67,13 @@ class SettingsRepository {
     return WidgetColorTheme.values.firstWhere(
       (WidgetColorTheme t) => t.name == name,
       orElse: () => WidgetColorTheme.paper,
+    );
+  }
+
+  WidgetPlayMode _decodePlayMode(String? name) {
+    return WidgetPlayMode.values.firstWhere(
+      (WidgetPlayMode m) => m.name == name,
+      orElse: () => WidgetPlayMode.random,
     );
   }
 }

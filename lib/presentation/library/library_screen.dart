@@ -70,40 +70,47 @@ class LibraryScreen extends ConsumerWidget {
                     }
                     final Quote today = filtered.first;
                     final List<Quote> rest = filtered.skip(1).toList();
-                    return ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                      children: <Widget>[
-                        const _HelloHero(),
-                        const SizedBox(height: 12),
-                        QuoteCard(
-                          quote: today.text,
-                          source: today.tag,
-                          date: _fmtDate(today.createdAt),
-                          variant: QuoteCardVariant.featured,
-                          onTap: () => context.go(FolioRoutes.display),
-                        ),
-                        const SizedBox(height: 12),
-                        SectionHeader(
-                          title: l10n.yourLibrary,
-                          count: quotes.length,
-                        ),
-                        TagRow(
-                          tags: tags,
-                          active: activeTag,
-                          onSelect: (String selected) => ref
-                              .read(activeTagProvider.notifier)
-                              .state = selected,
-                        ),
-                        const SizedBox(height: 12),
-                        for (final Quote q in rest)
+                    // Issue #12: 金库条目多时给一条可拖动的滚动条, 便于快速定位。
+                    return Scrollbar(
+                      thumbVisibility: true,
+                      interactive: true,
+                      child: ListView(
+                        primary: true,
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                        children: <Widget>[
+                          const _HelloHero(),
+                          const SizedBox(height: 12),
                           QuoteCard(
-                            quote: q.text,
-                            source: q.tag,
-                            date: _fmtDate(q.createdAt),
-                            onTap: () => _openEditExisting(context, q),
-                            onLongPress: () => _confirmDelete(context, ref, q),
+                            quote: today.text,
+                            source: today.tag,
+                            date: _fmtDate(today.createdAt),
+                            variant: QuoteCardVariant.featured,
+                            onTap: () => context.go(FolioRoutes.display),
                           ),
-                      ],
+                          const SizedBox(height: 12),
+                          SectionHeader(
+                            title: l10n.yourLibrary,
+                            count: quotes.length,
+                          ),
+                          TagRow(
+                            tags: tags,
+                            active: activeTag,
+                            onSelect: (String selected) => ref
+                                .read(activeTagProvider.notifier)
+                                .state = selected,
+                          ),
+                          const SizedBox(height: 12),
+                          for (final Quote q in rest)
+                            QuoteCard(
+                              quote: q.text,
+                              source: q.tag,
+                              date: _fmtDate(q.createdAt),
+                              onTap: () => _openEditExisting(context, q),
+                              onLongPress: () =>
+                                  _confirmDelete(context, ref, q),
+                            ),
+                        ],
+                      ),
                     );
                   },
                 ),

@@ -5,6 +5,7 @@ import '../core/platform_capabilities.dart';
 import '../domain/widget_timeline.dart';
 import 'quote.dart';
 import 'widget_color_theme.dart';
+import 'widget_play_mode.dart';
 
 /// 鸿蒙服务卡片 (L21) 的数据桥 —— Dart 侧。
 ///
@@ -45,10 +46,13 @@ class OhosWidgetService {
   Future<void> syncTimeline(
     List<Quote> quotes, {
     WidgetColorTheme? colorTheme,
+    WidgetPlayMode mode = WidgetPlayMode.random,
   }) async {
     if (!_supported) return;
     try {
-      final List<Quote> timeline = WidgetTimeline.generate(quotes);
+      // 整库生成 (Issue #11): 不再固定取前 20 条; mode 决定随机/顺序。
+      final List<Quote> timeline =
+          WidgetTimeline.generate(quotes, shuffle: mode.shuffle);
       final String timelineJson = WidgetTimeline.serialize(timeline);
       final Map<String, String> args = <String, String>{
         _argTimeline: timelineJson,

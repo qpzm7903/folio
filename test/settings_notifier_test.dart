@@ -32,6 +32,9 @@ void main() {
       await c
           .read(settingsProvider.notifier)
           .setWidgetColorTheme(WidgetColorTheme.bamboo);
+      await c
+          .read(settingsProvider.notifier)
+          .setWidgetPlayMode(WidgetPlayMode.sequential);
 
       // 验证 state
       final AppSettings s = c.read(settingsProvider);
@@ -41,6 +44,7 @@ void main() {
       expect(s.showAttribution, isFalse);
       expect(s.backgroundImagePath, '/tmp/bg.jpg');
       expect(s.widgetColorTheme, WidgetColorTheme.bamboo);
+      expect(s.widgetPlayMode, WidgetPlayMode.sequential);
 
       // 验证落盘: 重新建一个 container, 应该 load 出同样的值
       c.dispose();

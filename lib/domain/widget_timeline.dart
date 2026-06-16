@@ -17,32 +17,41 @@ import 'shuffle.dart';
 class WidgetTimeline {
   const WidgetTimeline._();
 
-  /// 默认 timeline 长度。20 条 × 15min 下限 = 5 小时, 用户不打开 app
-  /// 的窗口里小组件至少能轮换 5 小时不重复, 之后下次开 app 重新生成。
-  static const int defaultLength = 20;
+  /// timeline 上限 —— 默认覆盖**整个金库** (Issue #11: 不再只取固定的几条),
+  /// 仅在金库极大时截断, 防 prefs JSON / native RemoteViews 过大。
+  static const int maxLength = 1000;
 
-  /// 从 [quotes] 抽 [length] 条出来组成 timeline。
+  /// 从 [quotes] 生成 timeline。
   ///
-  /// - quotes 为空 → 返回空 list (native 会回落到 empty hint)
-  /// - quotes 比 length 短 → 走若干轮 [NoRepeatShuffle] 拼到 length
-  /// - quotes 比 length 长 → 走一轮 [NoRepeatShuffle] 取前 length 条
+  /// 默认 ([length] 省略) 覆盖整个金库 (上限 [maxLength]), 让小组件能轮到
+  /// 库里每一句, 而不是固定的前若干条 (Issue #11)。
   ///
-  /// [seed] 仅用于测试确定性, 生产路径传 null 走默认 Random。
+  /// - [shuffle] = true (随机模式): 走一轮 [NoRepeatShuffle], 整库乱序不重复;
+  /// - [shuffle] = false (顺序模式): 按金库原序 (新→旧) 取。
+  /// - quotes 为空 → 返回空 list (native 回落到 empty hint)。
+  /// - [seed] 仅用于测试确定性, 生产路径传 null 走默认 Random。
   static List<Quote> generate(
     List<Quote> quotes, {
-    int length = defaultLength,
+    int? length,
     int? seed,
+    bool shuffle = true,
   }) {
-    if (quotes.isEmpty || length <= 0) return const <Quote>[];
+    if (quotes.isEmpty) return const <Quote>[];
+    final int n = length ?? min(quotes.length, maxLength);
+    if (n <= 0) return const <Quote>[];
+    if (!shuffle) {
+      // 顺序模式: 按库序取前 n (n 默认 = 整库长度时即整库)。
+      return quotes.take(n).toList(growable: false);
+    }
     final Random? random = seed != null ? Random(seed) : null;
-    final NoRepeatShuffle shuffle = NoRepeatShuffle(
+    final NoRepeatShuffle noRepeat = NoRepeatShuffle(
       itemCount: quotes.length,
       random: random,
     );
     final List<Quote> out = <Quote>[];
-    for (int i = 0; i < length; i++) {
-      out.add(quotes[shuffle.currentIndex]);
-      shuffle.next();
+    for (int i = 0; i < n; i++) {
+      out.add(quotes[noRepeat.currentIndex]);
+      noRepeat.next();
     }
     return out;
   }

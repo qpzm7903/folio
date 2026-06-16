@@ -70,6 +70,37 @@ void main() {
       expect(
           a.map((Quote q) => q.id).toList(), b.map((Quote q) => q.id).toList());
     });
+
+    test('Issue #11: 省略 length 默认覆盖整个金库 (不再固定取 20)', () {
+      final List<Quote> source = List<Quote>.generate(
+        50,
+        (int i) => _q('q$i'),
+      );
+      final List<Quote> timeline = WidgetTimeline.generate(source, seed: 1);
+      expect(timeline, hasLength(50), reason: '整库 50 条都在, 不止 20');
+      expect(timeline.map((Quote q) => q.id).toSet().length, 50);
+    });
+
+    test('Issue #11: 顺序模式 (shuffle=false) 按库原序', () {
+      final List<Quote> source = <Quote>[_q('a'), _q('b'), _q('c')];
+      final List<Quote> timeline =
+          WidgetTimeline.generate(source, shuffle: false);
+      expect(
+        timeline.map((Quote q) => q.id).toList(),
+        <String>['a', 'b', 'c'],
+      );
+    });
+
+    test('超大金库截断到 maxLength (防 prefs/RemoteViews 过大)', () {
+      final List<Quote> source = List<Quote>.generate(
+        WidgetTimeline.maxLength + 200,
+        (int i) => _q('q$i'),
+      );
+      expect(
+        WidgetTimeline.generate(source, seed: 1),
+        hasLength(WidgetTimeline.maxLength),
+      );
+    });
   });
 
   group('WidgetTimeline.serialize/deserialize', () {

@@ -153,6 +153,22 @@
 
 ## 版本日志
 
+### v0.19.1 — 修 Issue #11 #12 (小组件整库随机/顺序 + 金库滚动条)
+
+用户在 Mate 80 真机反馈批量 issue (#11 #12 #13), 本版按 prompt.md 优先级
+立即修前两个 (#13 卡片图标化留 v0.19.2):
+
+- **#11 小组件下一句不随机 / 只在固定几条里转**: 根因是 `WidgetTimeline.generate`
+  固定取 20 条。改为**默认覆盖整个金库** (上限 maxLength=1000), 新增
+  `WidgetPlayMode {random, sequential}` 设置 (默认随机) 经 AppSettings 持久化,
+  Dart 侧按 mode 生成 (随机=NoRepeatShuffle 整库 / 顺序=库原序), Android +
+  鸿蒙两条同步通道都带上 mode。设置屏加"小组件播放模式"行。
+- **#12 金库列表无滚动条**: LibraryScreen 的 ListView 包 `Scrollbar`
+  (thumbVisibility + interactive 可拖动) + `primary: true`。
+- 测试: widget_timeline 加整库默认 / 顺序模式 / maxLength 截断 3 例,
+  settings_notifier round-trip 加 widgetPlayMode; 116 测试全过, analyze 0 警告。
+  版本号 0.19.0+58 → 0.19.1+59。
+
 ### v0.19.0 — 设计系统 2.0: 传统色六主题 + 屏保精选 5 版式 (L22)
 
 兑现 2026-06-16 重新生成的 `xiao-jinku-desig` skill。

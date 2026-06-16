@@ -112,6 +112,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setDisplayLayoutKey(String key) =>
       _apply(state.copyWith(displayLayoutKey: key));
 
+  /// 小组件播放模式 随机/顺序 (v0.19.1, Issue #11)。
+  Future<void> setWidgetPlayMode(WidgetPlayMode mode) =>
+      _apply(state.copyWith(widgetPlayMode: mode));
+
   /// 共用的"写 state + 落盘"流程, copyWith 差异收到 setter 各自一行 transform。
   Future<void> _apply(AppSettings next) async {
     state = next;

@@ -91,14 +91,17 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
             quotes,
             cadenceMinutes: settings.cadenceMinutes,
             colorTheme: color,
+            mode: settings.widgetPlayMode,
           ),
     );
     // 鸿蒙 (L21): 自写 channel 推给 ArkTS 服务卡片。两个 service 各自按平台
     // 能力守卫, 当前平台只会有一个真正干活, 另一个 no-op。
     unawaited(
-      ref
-          .read(ohosWidgetServiceProvider)
-          .syncTimeline(quotes, colorTheme: color),
+      ref.read(ohosWidgetServiceProvider).syncTimeline(
+            quotes,
+            colorTheme: color,
+            mode: settings.widgetPlayMode,
+          ),
     );
   }
 

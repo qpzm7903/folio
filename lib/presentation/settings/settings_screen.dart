@@ -125,10 +125,34 @@ class _RotationSection extends ConsumerWidget {
               value: s.widgetColorTheme.displayLabel,
               onTap: () => _pickWidgetColor(context, ref, s.widgetColorTheme),
             ),
+            SettingRow(
+              label: '小组件播放模式',
+              sub: '下一句来自整个金库',
+              value: s.widgetPlayMode.displayLabel,
+              onTap: () => _pickPlayMode(context, ref, s.widgetPlayMode),
+            ),
           ],
         ),
       ],
     );
+  }
+
+  Future<void> _pickPlayMode(
+    BuildContext context,
+    WidgetRef ref,
+    WidgetPlayMode current,
+  ) async {
+    final WidgetPlayMode? next = await showOptionPicker<WidgetPlayMode>(
+      context: context,
+      current: current,
+      options: <PickerOption<WidgetPlayMode>>[
+        for (final WidgetPlayMode m in WidgetPlayMode.values)
+          (value: m, label: m.displayLabel),
+      ],
+    );
+    if (next != null) {
+      await ref.read(settingsProvider.notifier).setWidgetPlayMode(next);
+    }
   }
 
   Future<void> _pickWidgetColor(

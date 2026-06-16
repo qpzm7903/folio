@@ -8,6 +8,7 @@ import '../core/platform_capabilities.dart';
 import '../domain/widget_timeline.dart';
 import 'quote.dart';
 import 'widget_color_theme.dart';
+import 'widget_play_mode.dart';
 
 /// 跟桌面小组件 (home_widget plugin + AlarmManager) 的桥接。
 ///
@@ -66,12 +67,15 @@ class WidgetSyncService {
     List<Quote> quotes, {
     int cadenceMinutes = kWidgetCadenceFloorMin,
     WidgetColorTheme? colorTheme,
+    WidgetPlayMode mode = WidgetPlayMode.random,
   }) async {
     if (!_supported) return;
     final int effectiveCadence =
         math.max(cadenceMinutes, kWidgetCadenceFloorMin);
     try {
-      final List<Quote> timeline = WidgetTimeline.generate(quotes);
+      // 整库生成 (Issue #11): 不再固定取前 20 条; mode 决定随机/顺序。
+      final List<Quote> timeline =
+          WidgetTimeline.generate(quotes, shuffle: mode.shuffle);
       final String timelineJson = WidgetTimeline.serialize(timeline);
       await HomeWidget.saveWidgetData<String>(_kKeyTimeline, timelineJson);
       // cursor / cadence 用 String 存避免 home_widget plugin 跨平台 int 类型

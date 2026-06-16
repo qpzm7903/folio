@@ -5,8 +5,10 @@ library;
 
 import '../theme/xjk_theme_id.dart';
 import 'widget_color_theme.dart';
+import 'widget_play_mode.dart';
 
 export 'widget_color_theme.dart' show WidgetColorTheme;
+export 'widget_play_mode.dart' show WidgetPlayMode, WidgetPlayModeLabel;
 
 /// 主题设置 —— `system` (跟随系统) + 六个具体主题 (晨→昏顺序, 对齐
 /// [XJKThemeId])。枚举值新增向后兼容: 旧持久化的 system/paper/night 仍可解码。
@@ -52,6 +54,7 @@ class AppSettings {
     required this.backgroundImagePath,
     required this.widgetColorTheme,
     required this.displayLayoutKey,
+    required this.widgetPlayMode,
   });
 
   /// 屏保版式默认 key (= skill 精选 5 版式的首项 页 Page)。放在 data 层常量
@@ -72,6 +75,9 @@ class AppSettings {
   /// 屏保当前选中版式的 key (v0.19.0 起, 对应 DisplayLayout.key)。
   final String displayLayoutKey;
 
+  /// 桌面小组件 / 鸿蒙卡片"下一句"播放模式 (v0.19.1, Issue #11)。
+  final WidgetPlayMode widgetPlayMode;
+
   AppSettings copyWith({
     AppThemeMode? themeMode,
     bool? shuffleNoRepeat,
@@ -81,6 +87,7 @@ class AppSettings {
     bool clearBackgroundImage = false,
     WidgetColorTheme? widgetColorTheme,
     String? displayLayoutKey,
+    WidgetPlayMode? widgetPlayMode,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -92,6 +99,7 @@ class AppSettings {
           : (backgroundImagePath ?? this.backgroundImagePath),
       widgetColorTheme: widgetColorTheme ?? this.widgetColorTheme,
       displayLayoutKey: displayLayoutKey ?? this.displayLayoutKey,
+      widgetPlayMode: widgetPlayMode ?? this.widgetPlayMode,
     );
   }
 
@@ -103,6 +111,7 @@ class AppSettings {
     backgroundImagePath: null,
     widgetColorTheme: WidgetColorTheme.paper,
     displayLayoutKey: defaultDisplayLayoutKey,
+    widgetPlayMode: WidgetPlayMode.random,
   );
 
   @override
@@ -115,7 +124,8 @@ class AppSettings {
           other.cadenceMinutes == cadenceMinutes &&
           other.backgroundImagePath == backgroundImagePath &&
           other.widgetColorTheme == widgetColorTheme &&
-          other.displayLayoutKey == displayLayoutKey);
+          other.displayLayoutKey == displayLayoutKey &&
+          other.widgetPlayMode == widgetPlayMode);
 
   @override
   int get hashCode => Object.hash(
@@ -126,5 +136,6 @@ class AppSettings {
         backgroundImagePath,
         widgetColorTheme,
         displayLayoutKey,
+        widgetPlayMode,
       );
 }
