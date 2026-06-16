@@ -95,7 +95,7 @@
   scaffold 已真机验证 (编译+装机+form 注册), 见下方 v0.18.0-dev 版本日志;
   里程碑②(数据桥)③(刷新闭环)待续。完整跑通 + 桌面卡片可视验收后发 v0.18.0。
 
-### v0.18.2 (规划中) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
+### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
 > 触发依据: 0.18 MINOR 在 plan.md 尚无已完成的重构 PATCH (prompt.md 优先级规则)。
 > 目标是把"二元主题 + 单一屏保版式"的存量代码重构成"可扩展注册表",
@@ -117,7 +117,7 @@
   与旧值不漂移; `display_layout_host_test` 锁宿主-版式分离不变量。flutter analyze 0 警告。
 - [ ] T6 · 版本号 0.18.1+56 → 0.18.2+57 (pubspec + Android + kAppVersion 单一源)。
 
-### v0.19.0 (规划中) · 功能 MINOR — 传统色六主题 + 屏保精选 5 版式 (= L22)
+### v0.19.0 (开发完成, 待 Mate 80 真机验收) · 功能 MINOR — 传统色六主题 + 屏保精选 5 版式 (= L22)
 
 > 兑现重新生成的设计 skill。**Mate 80 Pro / HarmonyOS 6 真机验收**(纯 Dart UI,
 > 经现有 ohos 构建 + hdc 装机)。视觉/配色/字体严格对齐 skill, 实现前先读对应参考文件
@@ -152,6 +152,44 @@
 ---
 
 ## 版本日志
+
+### v0.19.0 — 设计系统 2.0: 传统色六主题 + 屏保精选 5 版式 (L22)
+
+兑现 2026-06-16 重新生成的 `xiao-jinku-desig` skill。
+
+- **传统色六主题** (2→6): 新增 天青 Celadon / 月白 Moon White / 绛霞 Cinnabar
+  (浅) + 青黛 Ink Indigo (暗), token 值逐字对照 colors_and_type.css
+  `[data-theme=...]`。`AppThemeMode` 扩成 system + 6 主题 (晨→昏循环顺序),
+  displayLabel 委托 `XJKThemeId.label` 单一可信源; 设置屏主题选择器自动列全 7 项。
+- **屏保精选 5 版式** (`display_layouts.dart`, 对照 display-layouts.jsx + kit.css):
+  页 Page (书页页眉/正文/页脚) · 满 Full-bleed · 印 Stamped (首字抹茶印章) ·
+  时 Lock screen (实时时钟题注, 20s 走字) · 片 Card on field (浮纸卡)。
+  底栏新增"换版式"字形按钮 (循环), 右上 layout-pip 版式名 (1.8s 淡出),
+  选中版式持久化 (`displayLayoutKey`, 复用 SettingsRepository, 鸿蒙快照自动带走)。
+- **黄金比锚点** (`goldenAnchor`): 居中版式用 `Spacer(flex:382/618)` 把 quote
+  夹在上黄金线 (≈38.2%), 比死居中更有章法。
+- **句长分级 q-scale** (纯函数 + 单测): 中文字数→tier→字号乘子 (tiny 1.15 /
+  short 1.0 / medium 0.82 / long 0.64 / xlong 0.5), 长短句字号自适应。
+- 测试: theme_registry (6 主题注册表/forId 不漂移/亮暗合理) + display_layout_host
+  (5 版式注册表/渲染/q-scale 边界) + theme_mode_label (7 项标签), 113 测试全过,
+  analyze 0 警告。Dart 源码 8357 行 (< 10000 预算)。
+- 版本号 0.18.2+57 → 0.19.0+58。**纯 Dart UI, 全平台通用, 待 Mate 80 Pro /
+  HarmonyOS 6 真机验收**: 六主题切换 (含 2 暗)、5 版式循环、长短句字号、黄金比观感。
+- 余下 4 版式 (竖 Vertical / 引 Pull / 条 Ribbon / 织 Interleave) 留后续 PATCH。
+
+### v0.18.2 — 重构 PATCH: 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
+
+为 v0.19.0 设计系统 2.0 铺路, 本版无可见 UI 变化, 行为等价 (CI 绿)。
+
+- `XJKThemeId` 主题注册表 (key/中文名/英文名/isDark) 把"主题身份"与"亮暗"解耦;
+  `XJKTokens.forId` 作 token 单一可信源; `AppThemeMode.themeId` 作"设置→注册表"
+  唯一映射点 (枚举值/displayLabel/持久化 .name 全不变, 向后兼容)。
+- `app.dart` 主题装配由选中主题 isDark 推导 brightness, 不再写死二分;
+  `resolveIsDark` 改走注册表。
+- 抽出 `DisplayLayout` 宿主抽象 (DisplayLayoutData + 注册表), 轮播/淡入/壁纸/
+  收藏编排与版式渲染分离, 当版仅经典居中一项。
+- 新增 theme_registry_test + display_layout_host_test, 110 测试全过。
+  版本号 0.18.1+56 → 0.18.2+57。
 
 ### v0.18.1 — 修鸿蒙数据丢失: app 数据落盘 ArkTS preferences (真机验证)
 

@@ -38,9 +38,8 @@ class DisplayLayoutData {
 
 /// 屏保版式接口 —— 一个"版式"就是壁纸体验的一页。
 ///
-/// v0.18.2 (重构 PATCH) 只注册 [ClassicCenterLayout] 一项, 视觉与重构前
-/// 完全一致; v0.19.0 起按 skill `display-layouts.jsx` 扩展 页/满/印/时/片
-/// 等精选版式。新增版式只需实现本接口并加进 [kDisplayLayouts]。
+/// 按 skill `display-layouts.jsx` 实现; 注册表与具体版式见
+/// `display_layouts.dart`。新增版式只需实现本接口并加进 `kDisplayLayouts`。
 abstract class DisplayLayout {
   const DisplayLayout();
 
@@ -57,57 +56,50 @@ abstract class DisplayLayout {
   Widget build(DisplayLayoutData data);
 }
 
-/// 经典居中版式 —— 重构前的固定屏保版式, 行为基准。
-///
-/// 居中大字 quote + 可选出处, 由 display_screen 外层套 640ms 交叉淡入。
-class ClassicCenterLayout extends DisplayLayout {
-  const ClassicCenterLayout();
+/// 句长分级 —— 中文字数决定字号乘子, 短句放大、长句缩小以总能放下。
+/// 阈值与乘子对照 skill kit.css 的 `.ds-layout[data-len="…"]`。
+enum QuoteLengthTier { tiny, short, medium, long, xlong }
 
-  @override
-  String get key => 'classic';
+/// 按中文字符数 (含标点) 取分级。
+QuoteLengthTier lengthTier(String text) {
+  final int n = text.runes.length;
+  if (n <= 10) return QuoteLengthTier.tiny;
+  if (n <= 18) return QuoteLengthTier.short;
+  if (n <= 30) return QuoteLengthTier.medium;
+  if (n <= 46) return QuoteLengthTier.long;
+  return QuoteLengthTier.xlong;
+}
 
-  @override
-  String get nameZh => '居中';
-
-  @override
-  String get nameEn => 'Center';
-
-  @override
-  Widget build(DisplayLayoutData data) {
-    final Quote quote = data.quote;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(
-          quote.text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: XJKTokens.serifDisplay,
-            fontSize: XJKTokens.fsQuoteHero,
-            height: XJKTokens.leadingLoose,
-            color: data.textColor,
-          ),
-        ),
-        if (data.showAttribution && quote.tag.isNotEmpty) ...<Widget>[
-          const SizedBox(height: 28),
-          Text(
-            '— ${quote.tag}',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifItalic,
-              fontStyle: FontStyle.italic,
-              fontSize: 14,
-              color: data.subColor,
-            ),
-          ),
-        ],
-      ],
-    );
+/// 字号乘子 (`--q-scale`): tiny 1.15 / short 1.0 / medium 0.82 /
+/// long 0.64 / xlong 0.5。版式字号 = 基准 × 此乘子。
+double qScale(String text) {
+  switch (lengthTier(text)) {
+    case QuoteLengthTier.tiny:
+      return 1.15;
+    case QuoteLengthTier.short:
+      return 1.0;
+    case QuoteLengthTier.medium:
+      return 0.82;
+    case QuoteLengthTier.long:
+      return 0.64;
+    case QuoteLengthTier.xlong:
+      return 0.5;
   }
 }
 
-/// 屏保版式注册表 —— display_screen 按下标循环。
-///
-/// v0.18.2 只有 1 项 (经典居中); v0.19.0 追加精选 5 版式。
-const List<DisplayLayout> kDisplayLayouts = <DisplayLayout>[
-  ClassicCenterLayout(),
-];
+/// 黄金比竖向锚点 —— 把 [child] 夹在 0.382 : 0.618 的上下留白之间, 使其
+/// 落在上黄金线 (≈38.2%), 比死居中更"有章法"。长内容填满时优雅退化。
+/// 对照 skill README「黄金比」一节: 两个 `Spacer(flex: 382/618)`。
+Widget goldenAnchor(Widget child) {
+  // 中间放自然尺寸的 child (非 flex), 两侧 Spacer 按 382:618 分配剩余留白,
+  // 使 child 落在上黄金线。child 不能用 Flexible, 否则会与 Spacer 抢 flex
+  // 把内容挤成 0 高度 → 溢出。长内容自然变高时上下留白自动收窄。
+  return Column(
+    mainAxisSize: MainAxisSize.max,
+    children: <Widget>[
+      const Spacer(flex: 382),
+      child,
+      const Spacer(flex: 618),
+    ],
+  );
+}

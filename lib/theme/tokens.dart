@@ -292,15 +292,194 @@ class XJKTokens {
     );
   }
 
+  /// 天青 · Celadon — 雨过天青·宋瓷 (light)。对照 colors_and_type.css
+  /// `[data-theme="celadon"]`; success/warning/danger 继承 :root 语义色。
+  factory XJKTokens.celadon() => const XJKTokens._(
+        paper50: Color(0xFFEEF3EF),
+        paper100: Color(0xFFE1EBE4),
+        paper200: Color(0xFFD4E0D8),
+        paper300: Color(0xFFBDCDC3),
+        paper400: Color(0xFF92A89C),
+        ink900: Color(0xFF1B2B29),
+        ink700: Color(0xFF2F4441),
+        ink500: Color(0xFF5B716C),
+        ink300: Color(0xFF8EA39D),
+        leaf300: Color(0xFFB3CFC6),
+        leaf500: Color(0xFF5F968C),
+        leaf700: Color(0xFF3D6A61),
+        jade300: Color(0xFFC0D4D0),
+        jade500: Color(0xFF7BA0A6),
+        jade700: Color(0xFF4D6E72),
+        bamboo500: Color(0xFFC0A05E),
+        bamboo700: Color(0xFF8F7640),
+        bgPage: Color(0xFFE1EBE4),
+        bgSurface: Color(0xFFEEF3EF),
+        bgCard: Color(0xFFD4E0D8),
+        bgRaised: Color(0xFFF6FAF6),
+        bgOverlay: Color(0x8C1B2B29),
+        fg1: Color(0xFF1B2B29),
+        fg2: Color(0xFF2F4441),
+        fg3: Color(0xFF5B716C),
+        fgMuted: Color(0xFF8EA39D),
+        fgOnAccent: Color(0xFFEEF3EF),
+        accent: Color(0xFF5F968C),
+        accentPressed: Color(0xFF3D6A61),
+        accentSoft: Color(0xFFB3CFC6),
+        accent2: Color(0xFF7BA0A6),
+        mark: Color(0xFFC0A05E),
+        border1: Color(0xFFBDCDC3),
+        border2: Color(0xFF92A89C),
+        divider: Color(0x141B2B29),
+        success: Color(0xFF4A6B35),
+        warning: Color(0xFFB8A866),
+        danger: Color(0xFFA04030),
+      );
+
+  /// 月白 · Moon White — 月白风清·冷调 (light)。对照
+  /// `[data-theme="moonwhite"]`。
+  factory XJKTokens.moonwhite() => const XJKTokens._(
+        paper50: Color(0xFFF0F1F7),
+        paper100: Color(0xFFE6E8F1),
+        paper200: Color(0xFFD9DCEC),
+        paper300: Color(0xFFC3C8DE),
+        paper400: Color(0xFF969DB8),
+        ink900: Color(0xFF1D2336),
+        ink700: Color(0xFF333B54),
+        ink500: Color(0xFF5D6783),
+        ink300: Color(0xFF9098B2),
+        leaf300: Color(0xFFC6CFE8),
+        leaf500: Color(0xFF6F84BB),
+        leaf700: Color(0xFF495A96),
+        jade300: Color(0xFFCDD6E0),
+        jade500: Color(0xFF8497AD),
+        jade700: Color(0xFF56697F),
+        bamboo500: Color(0xFFA6A4BD),
+        bamboo700: Color(0xFF807E98),
+        bgPage: Color(0xFFE6E8F1),
+        bgSurface: Color(0xFFF0F1F7),
+        bgCard: Color(0xFFD9DCEC),
+        bgRaised: Color(0xFFF8F9FD),
+        bgOverlay: Color(0x8C1D2336),
+        fg1: Color(0xFF1D2336),
+        fg2: Color(0xFF333B54),
+        fg3: Color(0xFF5D6783),
+        fgMuted: Color(0xFF9098B2),
+        fgOnAccent: Color(0xFFF0F1F7),
+        accent: Color(0xFF6F84BB),
+        accentPressed: Color(0xFF495A96),
+        accentSoft: Color(0xFFC6CFE8),
+        accent2: Color(0xFF8497AD),
+        mark: Color(0xFFA6A4BD),
+        border1: Color(0xFFC3C8DE),
+        border2: Color(0xFF969DB8),
+        divider: Color(0x141D2336),
+        success: Color(0xFF4A6B35),
+        warning: Color(0xFFB8A866),
+        danger: Color(0xFFA04030),
+      );
+
+  /// 绛霞 · Cinnabar — 朱砂晚霞·暖 (light)。对照 `[data-theme="cinnabar"]`。
+  factory XJKTokens.cinnabar() => const XJKTokens._(
+        paper50: Color(0xFFF7EDE1),
+        paper100: Color(0xFFF0E1D0),
+        paper200: Color(0xFFE7D3BC),
+        paper300: Color(0xFFD7BD9F),
+        paper400: Color(0xFFB9997A),
+        ink900: Color(0xFF2E1B13),
+        ink700: Color(0xFF4A3024),
+        ink500: Color(0xFF7C5848),
+        ink300: Color(0xFFAA8670),
+        leaf300: Color(0xFFE7B09B),
+        leaf500: Color(0xFFC14A30),
+        leaf700: Color(0xFF8F2E1C),
+        jade300: Color(0xFFD9BD92),
+        jade500: Color(0xFFA07A48),
+        jade700: Color(0xFF74552F),
+        bamboo500: Color(0xFFB8722E),
+        bamboo700: Color(0xFF8A531F),
+        bgPage: Color(0xFFF0E1D0),
+        bgSurface: Color(0xFFF7EDE1),
+        bgCard: Color(0xFFE7D3BC),
+        bgRaised: Color(0xFFFBF2E8),
+        bgOverlay: Color(0x8C2E1B13),
+        fg1: Color(0xFF2E1B13),
+        fg2: Color(0xFF4A3024),
+        fg3: Color(0xFF7C5848),
+        fgMuted: Color(0xFFAA8670),
+        fgOnAccent: Color(0xFFF7EDE1),
+        accent: Color(0xFFC14A30),
+        accentPressed: Color(0xFF8F2E1C),
+        accentSoft: Color(0xFFE7B09B),
+        accent2: Color(0xFFA07A48),
+        mark: Color(0xFFB8722E),
+        border1: Color(0xFFD7BD9F),
+        border2: Color(0xFFB9997A),
+        divider: Color(0x142E1B13),
+        success: Color(0xFF4A6B35),
+        warning: Color(0xFFB8A866),
+        danger: Color(0xFFA04030),
+      );
+
+  /// 青黛 · Ink Indigo — 水墨夜 (dark)。对照 `[data-theme="dai"]`;
+  /// 暗色主题语义色沿用 night 的提亮值 (深底可读), 与现有 night() 一致策略。
+  factory XJKTokens.dai() => const XJKTokens._(
+        paper50: Color(0xFF1B2230),
+        paper100: Color(0xFF11151E),
+        paper200: Color(0xFF1A2030),
+        paper300: Color(0xFF283149),
+        paper400: Color(0xFF3A4561),
+        ink900: Color(0xFFE6E9F2),
+        ink700: Color(0xFFBCC4DA),
+        ink500: Color(0xFF828BA6),
+        ink300: Color(0xFF58607A),
+        leaf300: Color(0xFF5A7398),
+        leaf500: Color(0xFF88A4CC),
+        leaf700: Color(0xFFAEC4E4),
+        jade300: Color(0xFF4A6172),
+        jade500: Color(0xFF8AA3B6),
+        jade700: Color(0xFFB2CADB),
+        bamboo500: Color(0xFFCBA968),
+        bamboo700: Color(0xFFB8975A),
+        bgPage: Color(0xFF11151E),
+        bgSurface: Color(0xFF1A2030),
+        bgCard: Color(0xFF1A2030),
+        bgRaised: Color(0xFF1C2433),
+        bgOverlay: Color(0xB8000000),
+        fg1: Color(0xFFE6E9F2),
+        fg2: Color(0xFFBCC4DA),
+        fg3: Color(0xFF828BA6),
+        fgMuted: Color(0xFF58607A),
+        fgOnAccent: Color(0xFF11151E),
+        accent: Color(0xFF88A4CC),
+        accentPressed: Color(0xFFAEC4E4),
+        accentSoft: Color(0x2988A4CC),
+        accent2: Color(0xFF8AA3B6),
+        mark: Color(0xFFCBA968),
+        border1: Color(0xFF283149),
+        border2: Color(0xFF3A4561),
+        divider: Color(0x14E6E9F2),
+        success: Color(0xFF9EC88A),
+        warning: Color(0xFFD4C47E),
+        danger: Color(0xFFD58A7A),
+      );
+
   /// 按主题标识查表取 tokens —— 注册表的单一可信源。
   ///
-  /// v0.18.2 只有 paper / night; 新增主题时在此补一个 case。
+  /// 新增主题时在此补一个 case (与 [XJKThemeId] 枚举值一一对应)。
   factory XJKTokens.forId(XJKThemeId id) {
     switch (id) {
       case XJKThemeId.paper:
         return XJKTokens.paper();
+      case XJKThemeId.celadon:
+        return XJKTokens.celadon();
+      case XJKThemeId.moonwhite:
+        return XJKTokens.moonwhite();
+      case XJKThemeId.cinnabar:
+        return XJKTokens.cinnabar();
       case XJKThemeId.night:
         return XJKTokens.night();
+      case XJKThemeId.dai:
+        return XJKTokens.dai();
     }
   }
 

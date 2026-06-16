@@ -108,6 +108,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setWidgetColorTheme(WidgetColorTheme t) =>
       _apply(state.copyWith(widgetColorTheme: t));
 
+  /// 屏保选中版式 (v0.19.0)。
+  Future<void> setDisplayLayoutKey(String key) =>
+      _apply(state.copyWith(displayLayoutKey: key));
+
   /// 共用的"写 state + 落盘"流程, copyWith 差异收到 setter 各自一行 transform。
   Future<void> _apply(AppSettings next) async {
     state = next;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/xjk_icon.dart';
 import 'display_layout.dart';
+import 'display_layouts.dart';
 
 /// Display —— 屏保级全屏展示, 对应 screens.jsx 的 `DisplayScreen`.
 ///
@@ -121,6 +123,11 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
         final Color subColor =
             _withPhoto ? const Color(0xFFF7F8ED).withValues(alpha: 0.7) : t.fg3;
 
+        // 当前屏保版式 (按持久化 key 查注册表, 失配兜底首项)。
+        final int li = kDisplayLayouts.indexWhere(
+            (DisplayLayout l) => l.key == settings.displayLayoutKey);
+        final DisplayLayout layout = kDisplayLayouts[li < 0 ? 0 : li];
+
         final String? bgPath = settings.backgroundImagePath;
         final bool hasUserBg =
             _withPhoto && bgPath != null && !PlatformCapabilities.isWeb;
@@ -141,17 +148,19 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                   ),
                 )
               else
-                AnimatedContainer(
-                  duration: XJKTokens.durSlow,
-                  decoration: BoxDecoration(
-                    gradient: _withPhoto
-                        ? LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: <Color>[t.ink500, t.ink700, t.ink900],
-                          )
-                        : null,
-                    color: _withPhoto ? null : t.bgPage,
+                Positioned.fill(
+                  child: AnimatedContainer(
+                    duration: XJKTokens.durSlow,
+                    decoration: BoxDecoration(
+                      gradient: _withPhoto
+                          ? LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: <Color>[t.ink500, t.ink700, t.ink900],
+                            )
+                          : null,
+                      color: _withPhoto ? null : t.bgPage,
+                    ),
                   ),
                 ),
               if (hasUserBg)
@@ -201,8 +210,8 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                         );
                       },
                       child: KeyedSubtree(
-                        key: ValueKey<int>(_fadeKey),
-                        child: kDisplayLayouts[0].build(
+                        key: ValueKey<String>('${layout.key}-$_fadeKey'),
+                        child: layout.build(
                           DisplayLayoutData(
                             quote: current,
                             tokens: t,
@@ -237,6 +246,17 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                 ),
               ),
 
+            // 版式名 pip —— 右上角, 换版式时浮现后 1.8s 淡出。
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              right: 18,
+              child: _LayoutPip(
+                key: ValueKey<String>(layout.key),
+                label: '${layout.nameZh} · ${layout.nameEn}',
+                color: subColor,
+              ),
+            ),
+
             // 底部控制条
             Positioned(
               left: 0,
@@ -261,6 +281,20 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                         onPressed: _advance,
                         color: textColor,
                         tooltip: '换一句',
+                      ),
+                      _LayoutGlyphButton(
+                        glyph: layout.nameZh,
+                        color: textColor,
+                        tooltip: '换版式: ${layout.nameZh} · ${layout.nameEn}',
+                        onTap: () {
+                          final int cur = kDisplayLayouts.indexWhere(
+                              (DisplayLayout l) => l.key == layout.key);
+                          final DisplayLayout next = kDisplayLayouts[
+                              (cur + 1) % kDisplayLayouts.length];
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setDisplayLayoutKey(next.key);
+                        },
                       ),
                       XJKIconButton(
                         icon: 'image',
@@ -331,6 +365,100 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
           fontSize: 22,
           height: 1.8,
           color: t.fg2,
+        ),
+      ),
+    );
+  }
+}
+
+/// 底栏"换版式"按钮 —— 显示当前版式的汉字字形 (对照 skill layout-glyph),
+/// 而非 SVG 图标 (注册表无对应 icon 资源)。
+class _LayoutGlyphButton extends StatelessWidget {
+  const _LayoutGlyphButton({
+    required this.glyph,
+    required this.onTap,
+    required this.color,
+    this.tooltip,
+  });
+
+  final String glyph;
+  final VoidCallback onTap;
+  final Color color;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget button = SizedBox(
+      width: 36,
+      height: 36,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: Center(
+            child: Text(
+              glyph,
+              style: TextStyle(
+                fontFamily: XJKTokens.serifDisplay,
+                fontSize: 18,
+                height: 1,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    if (tooltip == null) return button;
+    return Tooltip(message: tooltip!, child: button);
+  }
+}
+
+/// 版式名 pip —— 挂载时 (换版式触发 key 变化即重挂) 浮现, 1.8s 后淡出。
+class _LayoutPip extends StatefulWidget {
+  const _LayoutPip({required this.label, required this.color, super.key});
+
+  final String label;
+  final Color color;
+
+  @override
+  State<_LayoutPip> createState() => _LayoutPipState();
+}
+
+class _LayoutPipState extends State<_LayoutPip> {
+  double _opacity = 1;
+  Timer? _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _fade = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted) setState(() => _opacity = 0);
+    });
+  }
+
+  @override
+  void dispose() {
+    _fade?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _opacity,
+        duration: XJKTokens.durSlow,
+        curve: XJKTokens.easePaper,
+        child: Text(
+          widget.label,
+          style: TextStyle(
+            fontFamily: XJKTokens.sansUi,
+            fontSize: 11,
+            letterSpacing: 1,
+            color: widget.color,
+          ),
         ),
       ),
     );

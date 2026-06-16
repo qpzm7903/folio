@@ -23,25 +23,63 @@ void main() {
       expect(XJKThemeId.darkDefault, XJKThemeId.night);
     });
 
-    test('v0.18.2 只注册 paper / night (扩展前的基线)', () {
+    test('v0.19.0 六主题, 晨→昏顺序 (2 浅绿 + 4 传统色, 末两暗)', () {
       expect(XJKThemeId.values, <XJKThemeId>[
         XJKThemeId.paper,
+        XJKThemeId.celadon,
+        XJKThemeId.moonwhite,
+        XJKThemeId.cinnabar,
         XJKThemeId.night,
+        XJKThemeId.dai,
       ]);
+      // 仅 night / dai 是暗色。
+      expect(
+        XJKThemeId.values.where((XJKThemeId t) => t.isDark).toSet(),
+        <XJKThemeId>{XJKThemeId.night, XJKThemeId.dai},
+      );
     });
   });
 
   group('XJKTokens.forId 单一可信源', () {
-    test('forId 与旧工厂逐一对应 (值不漂移)', () {
+    test('forId 与各主题工厂逐一对应 (值不漂移)', () {
       // const 工厂规范化 → 同实参得同一 const 实例, identical 即逐字段相等。
       expect(
         identical(XJKTokens.forId(XJKThemeId.paper), XJKTokens.paper()),
         isTrue,
       );
       expect(
+        identical(XJKTokens.forId(XJKThemeId.celadon), XJKTokens.celadon()),
+        isTrue,
+      );
+      expect(
+        identical(XJKTokens.forId(XJKThemeId.moonwhite), XJKTokens.moonwhite()),
+        isTrue,
+      );
+      expect(
+        identical(XJKTokens.forId(XJKThemeId.cinnabar), XJKTokens.cinnabar()),
+        isTrue,
+      );
+      expect(
         identical(XJKTokens.forId(XJKThemeId.night), XJKTokens.night()),
         isTrue,
       );
+      expect(
+        identical(XJKTokens.forId(XJKThemeId.dai), XJKTokens.dai()),
+        isTrue,
+      );
+    });
+
+    test('每个主题亮暗合理 (浅主题底亮于字, 暗主题反之)', () {
+      for (final XJKThemeId id in XJKThemeId.values) {
+        final XJKTokens t = id.tokens;
+        final double bg = t.bgPage.computeLuminance();
+        final double fg = t.fg1.computeLuminance();
+        if (id.isDark) {
+          expect(bg, lessThan(fg), reason: '$id 应深底浅字');
+        } else {
+          expect(bg, greaterThan(fg), reason: '$id 应浅底深字');
+        }
+      }
     });
 
     test('paper 是浅底深字, night 是深底浅字 (亮暗合理)', () {

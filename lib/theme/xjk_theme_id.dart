@@ -6,13 +6,17 @@ import 'tokens.dart';
 /// 把"主题身份"与"亮暗"解耦: 跟随系统时按平台亮度在 [lightDefault] /
 /// [darkDefault] 之间取默认对; 显式选定主题时直接用该主题的 [isDark]。
 ///
-/// v0.18.2 (重构 PATCH) 只注册 paper / night 两项, 行为与旧的二元
-/// `AppThemeMode {paper, night}` 等价; v0.19.0 起扩展 4 个传统色主题
-/// (天青 / 月白 / 绛霞 / 青黛)。新增主题只需在此追加枚举值 + 在
+/// 枚举声明顺序即主题循环顺序, 按 skill 的 晨→昏: 青纸 → 天青 → 月白 →
+/// 绛霞 → 林夜 → 青黛 (2 浅绿 + 4 传统色, 末两项为暗色)。名称对照 skill
+/// components.jsx 的 `THEMES`。新增主题只需在此追加枚举值 + 在
 /// [XJKTokens.forId] 补对应 token 工厂。
 enum XJKThemeId {
-  paper(nameZh: '青纸', nameEn: 'Paper', isDark: false),
-  night(nameZh: '林夜', nameEn: 'Forest', isDark: true);
+  paper(nameZh: '青纸', nameEn: 'Tea Paper', isDark: false),
+  celadon(nameZh: '天青', nameEn: 'Celadon', isDark: false),
+  moonwhite(nameZh: '月白', nameEn: 'Moon White', isDark: false),
+  cinnabar(nameZh: '绛霞', nameEn: 'Cinnabar', isDark: false),
+  night(nameZh: '林夜', nameEn: 'Forest Night', isDark: true),
+  dai(nameZh: '青黛', nameEn: 'Ink Indigo', isDark: true);
 
   const XJKThemeId({
     required this.nameZh,

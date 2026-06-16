@@ -19,9 +19,11 @@ class SettingsRepository {
   static const String _kCadence = 'folio.settings.cadenceMinutes';
   static const String _kBgImage = 'folio.settings.backgroundImagePath';
   static const String _kWidgetColor = 'folio.settings.widgetColorTheme';
+  static const String _kDisplayLayout = 'folio.settings.displayLayoutKey';
 
   AppSettings load() {
     final String? bg = _prefs.getString(_kBgImage);
+    final String? layout = _prefs.getString(_kDisplayLayout);
     return AppSettings(
       themeMode: _decodeTheme(_prefs.getString(_kTheme)),
       shuffleNoRepeat: _prefs.getBool(_kShuffle) ?? true,
@@ -29,6 +31,9 @@ class SettingsRepository {
       cadenceMinutes: _prefs.getInt(_kCadence) ?? 30,
       backgroundImagePath: (bg != null && bg.isNotEmpty) ? bg : null,
       widgetColorTheme: _decodeWidgetColor(_prefs.getString(_kWidgetColor)),
+      displayLayoutKey: (layout != null && layout.isNotEmpty)
+          ? layout
+          : AppSettings.defaultDisplayLayoutKey,
     );
   }
 
@@ -43,6 +48,7 @@ class SettingsRepository {
       await _prefs.setString(_kBgImage, s.backgroundImagePath!);
     }
     await _prefs.setString(_kWidgetColor, s.widgetColorTheme.name);
+    await _prefs.setString(_kDisplayLayout, s.displayLayoutKey);
     // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
     await OhosPrefsBridge.instance.flush(_prefs);
   }
