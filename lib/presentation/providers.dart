@@ -13,6 +13,7 @@ import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/wallpaper_service.dart';
 import '../data/widget_sync_service.dart';
+import '../theme/xjk_theme_id.dart';
 
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
 final Provider<SharedPreferences> sharedPreferencesProvider =
@@ -301,15 +302,13 @@ final StateProvider<String> activeTagProvider = StateProvider<String>(
 );
 
 /// 当前是否处于深色模式 —— 综合 settings + system。
+///
+/// 经主题注册表查表: 显式选定主题用其 [XJKThemeId.isDark]; 跟随系统
+/// (`themeId == null`) 看平台亮度。新增主题无需改这里。
 bool resolveIsDark(AppThemeMode mode, Brightness platform) {
-  switch (mode) {
-    case AppThemeMode.paper:
-      return false;
-    case AppThemeMode.night:
-      return true;
-    case AppThemeMode.system:
-      return platform == Brightness.dark;
-  }
+  final XJKThemeId? id = mode.themeId;
+  if (id == null) return platform == Brightness.dark;
+  return id.isDark;
 }
 
 /// 仅在 debug 模式输出 provider 列表, 用来诊断启动问题。

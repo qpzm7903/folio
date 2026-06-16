@@ -63,6 +63,12 @@
   "换一句"换下一句、30min 自动换句。L21 核心功能完整可用 (后续可选: 卡片配色
   跟随主题、多尺寸、打开 app 主动推送刷新桌面卡片)。
   "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
+- [ ] L22 · 设计系统 2.0 (传统色六主题 + 屏保多版式) — 规划 v0.18.2(重构) + v0.19.0(功能)。
+  对齐 2026-06-16 重新生成的 `xiao-jinku-desig` skill: 主题从 青纸/林夜 二元扩成
+  六主题 (青纸 / 天青 / 月白 / 绛霞 / 林夜 / 青黛, 2 浅绿 + 4 传统色, 2 暗),
+  屏保从单一版式扩成可循环多版式 (精选 5 个: 页 / 满 / 印 / 时 / 片), 引入
+  黄金比竖向锚点 (0.382) + 句长分级 q-scale 自适应字号。纯 Dart UI, 全平台通用,
+  以 Mate 80 Pro / HarmonyOS 6 真机验收。余下 4 版式 (竖 / 引 / 条 / 织) 留后续 PATCH。
 
 ---
 
@@ -76,6 +82,8 @@
 - v0.6 · 响应式适配 + Web 深链
 - v0.16 · 桌面小组件按 cadence 自动刷新 (Android AlarmManager + timeline 契约)
 - v0.17 · 鸿蒙 6.0 适配 (L20, OpenHarmony Flutter fork + 纯 Dart 核心功能)
+- v0.18 · 鸿蒙服务卡片 (L21) + 设计系统 2.0 重构铺路 (v0.18.2 主题注册表)
+- v0.19 · 设计系统 2.0 功能 (L22, 传统色六主题 + 屏保精选 5 版式)
 
 ## 短期规划 (Short-term)
 
@@ -86,6 +94,60 @@
 - v0.18 (进行中) = L21 鸿蒙服务卡片 (用户已选定主攻方向)。里程碑① 静态卡片
   scaffold 已真机验证 (编译+装机+form 注册), 见下方 v0.18.0-dev 版本日志;
   里程碑②(数据桥)③(刷新闭环)待续。完整跑通 + 桌面卡片可视验收后发 v0.18.0。
+
+### v0.18.2 (规划中) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
+
+> 触发依据: 0.18 MINOR 在 plan.md 尚无已完成的重构 PATCH (prompt.md 优先级规则)。
+> 目标是把"二元主题 + 单一屏保版式"的存量代码重构成"可扩展注册表",
+> 为 v0.19.0 的 6 主题 / 5 版式让路, **本版无可见 UI 变化**, 行为等价。
+> 设计权威来源: `xiao-jinku-desig` skill 的 README + colors_and_type.css。
+
+- [ ] T1 · 主题标识与亮暗解耦: `AppThemeMode {system, paper, night}` 重构为
+  `AppThemeId` 注册表 (每个主题带 `key / 中文名 / en / isDark`), `system` 作为
+  独立"跟随系统"开关保留 (映射到一组浅/暗默认对)。当前只注册 paper / night 两项,
+  不新增主题 (新增留 v0.19.0)。`app_settings.dart` 持久化键向后兼容旧值。
+- [ ] T2 · `XJKTokens.paper()/.night()` 工厂收敛为 `XJKTokens.forId(AppThemeId)`
+  的数据驱动表 (token 集按 id 查表), 保持现有两套 token 值逐字不变。
+- [ ] T3 · `app.dart` 主题装配改为"由选中主题的 `isDark` 推导 brightness", 不再写死
+  `ThemeMode.light/dark` 二分; `resolveIsDark` 重构为查 `AppThemeId.isDark`。
+- [ ] T4 · `display_screen.dart` 抽出 `DisplayLayout` 宿主抽象: 把当前固定版式包成
+  `LayoutPage`(默认), 引入 `DisplayLayout` 接口 (输入 quote + tokens → Widget) +
+  版式注册表 (本版仅 1 项)。轮播/淡入/壁纸/收藏等编排逻辑与版式渲染分离。
+- [ ] T5 · 测试: `app_theme_test` / `theme_registry_test` 锁注册表一致性 (id↔token↔isDark)
+  与旧值不漂移; `display_layout_host_test` 锁宿主-版式分离不变量。flutter analyze 0 警告。
+- [ ] T6 · 版本号 0.18.1+56 → 0.18.2+57 (pubspec + Android + kAppVersion 单一源)。
+
+### v0.19.0 (规划中) · 功能 MINOR — 传统色六主题 + 屏保精选 5 版式 (= L22)
+
+> 兑现重新生成的设计 skill。**Mate 80 Pro / HarmonyOS 6 真机验收**(纯 Dart UI,
+> 经现有 ohos 构建 + hdc 装机)。视觉/配色/字体严格对齐 skill, 实现前先读对应参考文件
+> (colors_and_type.css / components.jsx / display-layouts.jsx / kit.css)。
+
+- [ ] T1 · 4 个传统色主题落 token: 天青 Celadon(浅) / 月白 Moon White(浅) /
+  绛霞 Cinnabar(浅) / 青黛 Ink Indigo(暗), 逐字对照 colors_and_type.css 的
+  `[data-theme=...]` 色值进注册表。主题循环顺序 晨→昏: 青纸→天青→月白→绛霞→林夜→青黛。
+- [ ] T2 · 设置屏"主题"行从二元切换改为六主题循环/选择 (中文名·en 标签),
+  文案与 `themeByKey/nextTheme` 对齐 components.jsx; 跟随系统在浅/暗各取一默认。
+- [ ] T3 · 黄金比锚点: 居中版式 (页/满) 用 `Spacer(flex: 382)` / `Spacer(flex: 618)`
+  上下夹住 quote, 长句填满时优雅退化 (对齐 README 黄金比一节)。
+- [ ] T4 · 句长分级 q-scale: 中文字数→tier→字号乘子 (tiny≤10:1.15 / short≤18:1.0 /
+  medium≤30:0.82 / long≤46:0.64 / xlong:0.5), 各版式字号 = 基准 clamp × q-scale
+  (基准值对照 kit.css 各 `.ds-*-quote`)。纯函数 + 单测覆盖 5 个边界。
+- [ ] T5 · 精选 5 版式实现 (对照 display-layouts.jsx + kit.css `.ds-*`):
+  页 Page(书页: 页眉 no.罗马数字+分隔线+标签 / 黄金比正文 / 页脚) ·
+  满 Full-bleed(quote 即壁纸, 黄金比锚点) ·
+  印 Stamped(首字巨型抹茶印章 + 余文) ·
+  时 Lockscreen(时钟+日期 + 叶纹底 + quote 作题注, 黄金比分割) ·
+  片 Card on field(纹理场 + 四角纸卡 + 标签/正文/分隔/页脚)。
+- [ ] T6 · Display 屏接版式循环: 底部新增"切版式"按钮 (循环 5 个) + 右上 layout-pip
+  版式名标签 (1.8s 淡出, 对照 screens.jsx DisplayScreen + kit.css `.layout-pip`)。
+  当前选中版式持久化 (shared_preferences, 复用设置仓)。
+- [ ] T7 · 测试: 六主题注册表完整性、版式注册表 5 项、q-scale 边界、Display 版式循环
+  widget 测试; flutter analyze 0 警告 + dart format。代码量复核 < 10000 行
+  (当前 7406, 预算约 2.6k, 5 版式 + 4 主题预计 ~1.2k, 留余量)。
+- [ ] T8 · 版本号 0.18.2+57 → 0.19.0+58。真机验收点: 六主题切换正确 (含 2 暗)、
+  屏保 5 版式循环渲染不崩、长短句字号自适应、黄金比锚点观感。
+- [ ] T9 · 文档: README 更新设计 2.0 介绍, plan.md 状态回写, L22 勾连。
 
 ---
 

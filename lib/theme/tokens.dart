@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'xjk_theme_id.dart';
+
 /// XJK design tokens —— 与 `.claude/skills/xiao-jinku-desig/colors_and_type.css`
 /// 一一对应。两个主题: 青纸 Paper (light) / 林夜 Night (dark)。
 ///
@@ -288,6 +290,18 @@ class XJKTokens {
       warning: Color(0xFFD4C47E),
       danger: Color(0xFFD58A7A),
     );
+  }
+
+  /// 按主题标识查表取 tokens —— 注册表的单一可信源。
+  ///
+  /// v0.18.2 只有 paper / night; 新增主题时在此补一个 case。
+  factory XJKTokens.forId(XJKThemeId id) {
+    switch (id) {
+      case XJKThemeId.paper:
+        return XJKTokens.paper();
+      case XJKThemeId.night:
+        return XJKTokens.night();
+    }
   }
 
   /// 卡片软阴影 (绿调低扩散)

@@ -13,6 +13,7 @@ import '../../domain/rotation_controller.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/xjk_icon.dart';
+import 'display_layout.dart';
 
 /// Display —— 屏保级全屏展示, 对应 screens.jsx 的 `DisplayScreen`.
 ///
@@ -199,34 +200,18 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                           ),
                         );
                       },
-                      child: Column(
+                      child: KeyedSubtree(
                         key: ValueKey<int>(_fadeKey),
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            current.text,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: XJKTokens.serifDisplay,
-                              fontSize: XJKTokens.fsQuoteHero,
-                              height: XJKTokens.leadingLoose,
-                              color: textColor,
-                            ),
+                        child: kDisplayLayouts[0].build(
+                          DisplayLayoutData(
+                            quote: current,
+                            tokens: t,
+                            textColor: textColor,
+                            subColor: subColor,
+                            showAttribution: settings.showAttribution,
+                            onPhoto: _withPhoto,
                           ),
-                          if (settings.showAttribution &&
-                              current.tag.isNotEmpty) ...<Widget>[
-                            const SizedBox(height: 28),
-                            Text(
-                              '— ${current.tag}',
-                              style: TextStyle(
-                                fontFamily: XJKTokens.serifItalic,
-                                fontStyle: FontStyle.italic,
-                                fontSize: 14,
-                                color: subColor,
-                              ),
-                            ),
-                          ],
-                        ],
+                        ),
                       ),
                     ),
                   ),

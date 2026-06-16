@@ -3,6 +3,7 @@
 /// 不耦合 [SharedPreferences]; IO 适配在 `settings_repository.dart` 里。
 library;
 
+import '../theme/xjk_theme_id.dart';
 import 'widget_color_theme.dart';
 
 export 'widget_color_theme.dart' show WidgetColorTheme;
@@ -19,6 +20,24 @@ extension AppThemeModeLabel on AppThemeMode {
         return '青纸 · Paper';
       case AppThemeMode.night:
         return '林夜 · Forest';
+    }
+  }
+}
+
+extension AppThemeModeThemeId on AppThemeMode {
+  /// 显式选定的主题标识; `system` (跟随系统) 返回 `null`, 由调用方按
+  /// 平台亮度在 [XJKThemeId.lightDefault] / [XJKThemeId.darkDefault] 间取默认。
+  ///
+  /// 这是"主题设置"到"主题注册表"的唯一映射点 —— v0.19.0 扩展主题时, 把
+  /// 新增的 `AppThemeMode` 值在这里映到对应 [XJKThemeId] 即可。
+  XJKThemeId? get themeId {
+    switch (this) {
+      case AppThemeMode.system:
+        return null;
+      case AppThemeMode.paper:
+        return XJKThemeId.paper;
+      case AppThemeMode.night:
+        return XJKThemeId.night;
     }
   }
 }
