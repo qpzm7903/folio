@@ -51,9 +51,12 @@ class OhosWidgetService {
   }) async {
     if (!_supported) return;
     try {
-      // 整库生成 (Issue #11): 不再固定取前 20 条; mode 决定随机/顺序。
+      // 鸿蒙卡片**整库、库原序**推送 (Issue #11 整库 + v0.19.3 修"顺序仍随机"):
+      // 卡片自己按 widgetPlayMode 决定随机(随机下标)/顺序(cursor+1)。若这里预洗牌,
+      // 卡片"顺序"模式 cursor+1 走的是乱序 → 看起来还是随机。故一律库原序下发,
+      // 随机性全交给卡片侧。mode 仍下发作卡片初始模式。
       final List<Quote> timeline =
-          WidgetTimeline.generate(quotes, shuffle: mode.shuffle);
+          WidgetTimeline.generate(quotes, shuffle: false);
       final String timelineJson = WidgetTimeline.serialize(timeline);
       final Map<String, String> args = <String, String>{
         _argTimeline: timelineJson,

@@ -61,11 +61,11 @@ struct QuoteCard {
         Image(this.playMode === 'sequential'
           ? $r('app.media.ic_list')
           : $r('app.media.ic_shuffle'))
-          .width(18)
-          .height(18)
-          .padding(6)
-          .margin({ right: 6 })
-          .borderRadius(10)
+          .width(26)
+          .height(26)
+          .padding(8)
+          .margin({ right: 8 })
+          .borderRadius(14)
           .backgroundColor('#f7f8ed')
           .onClick(() => {
             postCardAction(this, {
@@ -76,10 +76,10 @@ struct QuoteCard {
 
         // 下一句 —— 在桌面直接换下一句, 不打开 app (skip-forward 图标)。
         Image($r('app.media.ic_next'))
-          .width(18)
-          .height(18)
-          .padding(6)
-          .borderRadius(10)
+          .width(26)
+          .height(26)
+          .padding(8)
+          .borderRadius(14)
           .backgroundColor('#f7f8ed')
           .onClick(() => {
             // 注意: params 别用 "action" 当 key, 会跟系统追加的 action:'message'

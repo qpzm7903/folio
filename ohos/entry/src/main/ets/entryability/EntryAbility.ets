@@ -49,7 +49,9 @@ class WidgetChannelHandler implements MethodCallHandler {
       if (color.length > 0) {
         store.putSync(KEY_COLOR, color);
       }
-      if (mode.length > 0) {
+      // 只在卡片还没有模式时设个初始默认 (来自 folio 设置); 之后卡片上点图标
+      // 切的模式为准, app 同步不再覆盖 (否则用户在卡片切了顺序又被重置回随机)。
+      if (mode.length > 0 && !store.hasSync(KEY_MODE)) {
         store.putSync(KEY_MODE, mode);
       }
       store.flush();
