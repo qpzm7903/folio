@@ -21,6 +21,9 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 const WIDGET_STORE: string = 'folio_widget';
 const KEY_TIMELINE: string = 'widgetTimeline';
 const KEY_CURSOR: string = 'widgetTimelineCursor';
+const KEY_MODE: string = 'widgetPlayMode';
+const MODE_SEQUENTIAL: string = 'sequential';
+const MODE_RANDOM: string = 'random';
 const LOG_TAG: string = 'FolioWidget';
 const LOG_DOMAIN: number = 0xF010;
 
@@ -36,10 +39,16 @@ interface QuoteItem {
 interface CardData {
   quoteText: string;
   quoteTag: string;
+  playMode: string;
 }
 
-function seed(): CardData {
-  return { quoteText: SEED_TEXT, quoteTag: SEED_TAG };
+function seed(mode: string = MODE_RANDOM): CardData {
+  return { quoteText: SEED_TEXT, quoteTag: SEED_TAG, playMode: mode };
+}
+
+function readMode(store: preferences.Preferences): string {
+  const m = store.getSync(KEY_MODE, MODE_RANDOM) as string;
+  return m === MODE_SEQUENTIAL ? MODE_SEQUENTIAL : MODE_RANDOM;
 }
 
 function parseTimeline(json: string): QuoteItem[] {
@@ -54,31 +63,71 @@ function parseTimeline(json: string): QuoteItem[] {
   }
 }
 
-// 读 timeline[cursor] 一句; advance=true 时先把 cursor +1 取模写回。
-// 每次都 removeFromCache 强制读磁盘最新值 (跨进程)。缺失/异常回落种子句。
+// 随机取一个 != current 的下标 (整库随机, Issue #11/#13 随机模式)。
+function randomIndex(len: number, current: number): number {
+  if (len <= 1) {
+    return 0;
+  }
+  let r = Math.floor(Math.random() * len);
+  if (r === current) {
+    r = (r + 1) % len;
+  }
+  return r;
+}
+
+// 读 timeline[cursor] 一句; advance=true 时按 mode 推进 cursor 写回:
+// 顺序 = cursor+1 取模; 随机 = 整库随机下标。每次都 removeFromCache 强制读磁盘
+// 最新值 (跨进程)。缺失/异常回落种子句。
 function nextCard(context: common.Context, advance: boolean): CardData {
   try {
     preferences.removePreferencesFromCacheSync(context, { name: WIDGET_STORE });
     const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
+    const mode = readMode(store);
     const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
     if (list.length === 0) {
       hilog.info(LOG_DOMAIN, LOG_TAG, 'form read: timeline empty -> seed');
-      return seed();
+      return seed(mode);
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
     let cursor = isNaN(raw) ? 0 : raw;
     if (advance) {
-      cursor = (cursor + 1) % list.length;
+      cursor = mode === MODE_SEQUENTIAL
+        ? (cursor + 1) % list.length
+        : randomIndex(list.length, cursor);
       store.putSync(KEY_CURSOR, cursor.toString());
       store.flush();
     }
     const idx = ((cursor % list.length) + list.length) % list.length;
     const item = list[idx];
-    hilog.info(LOG_DOMAIN, LOG_TAG, 'form card: len=%{public}d cursor=%{public}d advance=%{public}s',
-      list.length, idx, String(advance));
-    return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '' };
+    hilog.info(LOG_DOMAIN, LOG_TAG, 'form card: len=%{public}d cursor=%{public}d mode=%{public}s advance=%{public}s',
+      list.length, idx, mode, String(advance));
+    return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '', playMode: mode };
   } catch (err) {
     hilog.error(LOG_DOMAIN, LOG_TAG, 'form read failed: %{public}s', JSON.stringify(err) ?? '');
+    return seed();
+  }
+}
+
+// 切换 random <-> sequential 写回, 展示当前 cursor 句 (不前进), 仅更新模式图标。
+function toggleMode(context: common.Context): CardData {
+  try {
+    preferences.removePreferencesFromCacheSync(context, { name: WIDGET_STORE });
+    const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
+    const next = readMode(store) === MODE_SEQUENTIAL ? MODE_RANDOM : MODE_SEQUENTIAL;
+    store.putSync(KEY_MODE, next);
+    store.flush();
+    const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
+    if (list.length === 0) {
+      return seed(next);
+    }
+    const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
+    const cursor = isNaN(raw) ? 0 : raw;
+    const idx = ((cursor % list.length) + list.length) % list.length;
+    const item = list[idx];
+    hilog.info(LOG_DOMAIN, LOG_TAG, 'form mode toggled -> %{public}s', next);
+    return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '', playMode: next };
+  } catch (err) {
+    hilog.error(LOG_DOMAIN, LOG_TAG, 'form toggle mode failed: %{public}s', JSON.stringify(err) ?? '');
     return seed();
   }
 }
@@ -106,7 +155,12 @@ export default class QuoteFormAbility extends FormExtensionAbility {
   // 都换下一句, 不依赖具体字段, 最稳。
   onFormEvent(formId: string, message: string): void {
     hilog.info(LOG_DOMAIN, LOG_TAG, 'onFormEvent msg=%{public}s', message ?? '');
-    this.render(formId, nextCard(this.appCtx(), true));
+    // event=mode → 切随机/顺序模式 (不前进); 否则 (refresh) → 下一句。
+    const isMode = (message ?? '').indexOf('mode') >= 0;
+    this.render(
+      formId,
+      isMode ? toggleMode(this.appCtx()) : nextCard(this.appCtx(), true),
+    );
   }
 
   private render(formId: string, data: CardData): void {

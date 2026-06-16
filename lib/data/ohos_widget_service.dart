@@ -35,6 +35,7 @@ class OhosWidgetService {
   static const String _argTimeline = 'widgetTimeline';
   static const String _argCursor = 'widgetTimelineCursor';
   static const String _argColorTheme = 'widgetColorTheme';
+  static const String _argPlayMode = 'widgetPlayMode';
 
   bool get _supported => PlatformCapabilities.isOhos;
 
@@ -57,6 +58,7 @@ class OhosWidgetService {
       final Map<String, String> args = <String, String>{
         _argTimeline: timelineJson,
         _argCursor: '0',
+        _argPlayMode: mode.name,
         if (colorTheme != null) _argColorTheme: colorTheme.name,
       };
       await _channel.invokeMethod<void>(_methodSyncTimeline, args);

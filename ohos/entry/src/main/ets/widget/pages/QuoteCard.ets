@@ -20,6 +20,8 @@ struct QuoteCard {
   // 默认值是数据桥未通时的静态降级文案 (决策四: 不白屏)。
   @LocalStorageProp('quoteText') quoteText: string = '把光收进来，从裂缝里。';
   @LocalStorageProp('quoteTag') quoteTag: string = '';
+  // 播放模式 random/sequential —— 决定底部模式图标显示 shuffle 还是 list (Issue #13)。
+  @LocalStorageProp('playMode') playMode: string = 'random';
 
   build() {
     Column() {
@@ -55,16 +57,33 @@ struct QuoteCard {
           Blank().layoutWeight(1)
         }
 
-        // 换一句 —— 在桌面直接换下一句, 不打开 app。
-        Text('换一句')
-          .fontSize(12)
-          .fontColor('#7ba05b')
-          .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-          .borderRadius(12)
+        // 模式切换 —— 音乐播放器式图标 (随机=shuffle / 顺序=list), 不打开 app。
+        Image(this.playMode === 'sequential'
+          ? $r('app.media.ic_list')
+          : $r('app.media.ic_shuffle'))
+          .width(18)
+          .height(18)
+          .padding(6)
+          .margin({ right: 6 })
+          .borderRadius(10)
+          .backgroundColor('#f7f8ed')
+          .onClick(() => {
+            postCardAction(this, {
+              action: 'message',
+              params: { event: 'mode' } as Record<string, string>,
+            });
+          })
+
+        // 下一句 —— 在桌面直接换下一句, 不打开 app (skip-forward 图标)。
+        Image($r('app.media.ic_next'))
+          .width(18)
+          .height(18)
+          .padding(6)
+          .borderRadius(10)
           .backgroundColor('#f7f8ed')
           .onClick(() => {
             // 注意: params 别用 "action" 当 key, 会跟系统追加的 action:'message'
-            // 撞名被覆盖。用 "event"。(form 侧已改成收到任何消息都换句, 这里仅为清晰)
+            // 撞名被覆盖。用 "event": refresh=下一句 / mode=切模式。
             postCardAction(this, {
               action: 'message',
               params: { event: 'refresh' } as Record<string, string>,

@@ -15,6 +15,7 @@ const WIDGET_STORE: string = 'folio_widget';
 const KEY_TIMELINE: string = 'widgetTimeline';
 const KEY_CURSOR: string = 'widgetTimelineCursor';
 const KEY_COLOR: string = 'widgetColorTheme';
+const KEY_MODE: string = 'widgetPlayMode';
 const LOG_TAG: string = 'FolioWidget';
 const LOG_DOMAIN: number = 0xF010;
 
@@ -41,11 +42,15 @@ class WidgetChannelHandler implements MethodCallHandler {
       const timeline: string = (call.argument(KEY_TIMELINE) as string) ?? '';
       const cursor: string = (call.argument(KEY_CURSOR) as string) ?? '0';
       const color: string = (call.argument(KEY_COLOR) as string) ?? '';
+      const mode: string = (call.argument(KEY_MODE) as string) ?? '';
       const store = preferences.getPreferencesSync(this.context, { name: WIDGET_STORE });
       store.putSync(KEY_TIMELINE, timeline);
       store.putSync(KEY_CURSOR, cursor);
       if (color.length > 0) {
         store.putSync(KEY_COLOR, color);
+      }
+      if (mode.length > 0) {
+        store.putSync(KEY_MODE, mode);
       }
       store.flush();
       hilog.info(LOG_DOMAIN, LOG_TAG, 'channel write ok, timelineLen=%{public}d', timeline.length);

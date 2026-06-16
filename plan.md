@@ -153,6 +153,21 @@
 
 ## 版本日志
 
+### v0.19.2 — 修 Issue #13 (鸿蒙卡片"换一句"文字按钮 → 音乐播放器式图标)
+
+- 卡片底部把文字"换一句"换成两个图标 (对照 Lucide, 预着色进 ohos media):
+  **下一句** (skip-forward, accent) + **模式切换** (随机=shuffle / 顺序=list,
+  ink-500)。
+- 卡片改成 mode 感知: `QuoteFormAbility` 读 `widgetPlayMode` pref, `nextCard`
+  按 mode 推进 (顺序=cursor+1 / 随机=整库随机下标), 新增 `toggleMode`;
+  `onFormEvent` 解析 event=mode→切模式 / 否则→下一句。模式图标按当前 mode
+  显示对应字形 (`@LocalStorageProp('playMode')`)。
+- 数据桥补 mode: EntryAbility channel handler + OhosWidgetService 都带上
+  `widgetPlayMode`, 让 folio 的"小组件播放模式"设置初始化卡片模式;
+  卡片上点模式图标也能本地切换 (离线生效)。
+- Dart analyze 0 警告 + 116 测试全过; 鸿蒙 hap 编译 + Mate 80 真机验收。
+  版本号 0.19.1+59 → 0.19.2+60。
+
 ### v0.19.1 — 修 Issue #11 #12 (小组件整库随机/顺序 + 金库滚动条)
 
 用户在 Mate 80 真机反馈批量 issue (#11 #12 #13), 本版按 prompt.md 优先级
