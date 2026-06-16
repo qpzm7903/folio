@@ -153,10 +153,13 @@ const EditorScreen = ({ go, onSave, openSheet }) => {
 // ─────────────────────────────────────────────────────────────
 const DisplayScreen = ({ go, quotes }) => {
   const [withPhoto, setWithPhoto] = React.useState(false);
-  const { current, next, round, posInRound, totalInRound } = useNoRepeatShuffle(quotes);
-  // crossfade key
+  const [layoutIdx, setLayoutIdx] = React.useState(0);
+  const { current, next } = useNoRepeatShuffle(quotes);
   const [fadeKey, setFadeKey] = React.useState(0);
   const advance = () => { next(); setFadeKey(k => k + 1); };
+
+  const layout = LAYOUTS[layoutIdx];
+  const LayoutComp = LAYOUT_COMPONENTS[layout.key];
 
   return (
     <div className="display-screen">
@@ -172,15 +175,20 @@ const DisplayScreen = ({ go, quotes }) => {
         <Icon name="chevron-left" size={22} />
       </button>
 
-      {/* Round indicator hidden per request — keep the screensaver pure */}
+      {/* Layout name — appears top-right, fades after 1.5s */}
+      <div className={"layout-pip" + (withPhoto ? " on-photo" : "")} key={"pip-" + layoutIdx}>
+        {layout.label} · <em>{layout.name}</em>
+      </div>
 
-      <div className={"display-content" + (withPhoto ? " on-photo" : "")} key={fadeKey}>
-        <div className={"quote-hero-mobile" + (withPhoto ? " on-photo" : "")}>{current.q}</div>
-        <div className={"attribution-mobile" + (withPhoto ? " on-photo" : "")}>— {current.tag}</div>
+      <div className={"display-content layout-host" + (withPhoto ? " on-photo" : "")} key={fadeKey + "-" + layoutIdx}>
+        <LayoutComp quote={current} />
       </div>
 
       <div className="display-controls">
-        <button className="dctl" onClick={advance}              aria-label="next"><Icon name="shuffle" /></button>
+        <button className="dctl" onClick={advance} aria-label="next"><Icon name="shuffle" /></button>
+        <button className="dctl" onClick={() => setLayoutIdx(i => (i + 1) % LAYOUTS.length)} aria-label="layout">
+          <span className="layout-glyph">{layout.label}</span>
+        </button>
         <button className="dctl" onClick={() => setWithPhoto(p => !p)} aria-label="photo"><Icon name="image" /></button>
         <button className="dctl" aria-label="save"><Icon name="bookmark" /></button>
       </div>
@@ -210,7 +218,7 @@ const SettingsScreen = ({ go, theme, onTheme }) => {
 
         <div className="section-h">字体与外观</div>
         <SettingsGroup>
-          <SettingRow label="主题" value={theme === "night" ? "林夜 · Forest" : "青纸 · Paper"} chev onClick={() => onTheme(theme === "night" ? "paper" : "night")} />
+          <SettingRow label="主题" value={themeByKey(theme).name + " · " + themeByKey(theme).en} chev onClick={() => onTheme(nextTheme(theme))} />
           <SettingRow label="字号" value="标准" chev />
           <SettingRow label="字体" value="思源宋体" chev />
         </SettingsGroup>

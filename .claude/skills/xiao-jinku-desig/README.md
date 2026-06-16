@@ -26,17 +26,18 @@ If/when real product code, brand assets, or competitor benchmarks exist, replace
 
 ## Two parallel directions
 
-This system carries **two contrasting themes** that share spacing, type, and component vocabulary:
+This system carries **six themes** that share spacing, type, and component vocabulary — two fresh-green and four classical (传统色). Switch via `[data-theme="…"]` on any element (or `<html>`); the default `:root` is 青纸.
 
-| | **A. 青纸 Tea Paper** (default) | **B. 林夜 Forest Night** |
-|---|---|---|
-| Mood | Soft afternoon, garden, fresh paper | Bamboo forest, late evening, lamp-light |
-| Surface | Tea cream `#eef0df` | Deep forest `#0e1612` |
-| Type color | Moss ink `#1d2a1f` | Cream-green `#e6ebd9` |
-| Primary action | Matcha `#7ba05b` | Bright mint `#9ec88a` |
-| Accent 2 | Jade water `#7ea8a3` | Brighter jade |
-| Mark / seal | Bamboo `#b8a866` | Warm bamboo `#d4c47e` |
-| Activation | default | `[data-theme="night"]` or `prefers-color-scheme: dark` |
+| Theme | `data-theme` | Mood | Page | Type | Accent |
+|---|---|---|---|---|---|
+| **青纸 Tea Paper** (default) | — | 清新绿·白天 | `#eef0df` | `#1d2a1f` | matcha `#7ba05b` |
+| **天青 Celadon** | `celadon` | 雨过天青·宋瓷 | `#e1ebe4` | `#1b2b29` | celadon `#5f968c` |
+| **月白 Moon White** | `moonwhite` | 月白风清·冷调 | `#e6e8f1` | `#1d2336` | 月白蓝 `#6f84bb` |
+| **绛霞 Cinnabar** | `cinnabar` | 朱砂晚霞·暖 | `#f0e1d0` | `#2e1b13` | cinnabar `#c14a30` |
+| **林夜 Forest Night** | `night` | 竹林夜·暗 | `#0e1612` | `#e6ebd9` | mint `#9ec88a` |
+| **青黛 Ink Indigo** | `dai` | 水墨夜·暗 | `#11151e` | `#e6e9f2` | 黛蓝 `#88a4cc` |
+
+`night` and `dai` are the two **dark** themes — they pick up the structural dark-mode styling in the kits (blurred nav, inverted icons, etc.). The other four are light. The product should let users switch — these aren't separate brands, they're the same product in different lights / moods.
 
 The product itself should let users switch — these aren't separate brands, they're the same product at different times of day.
 
@@ -97,8 +98,8 @@ Sizes (Android 390pt design width):
 
 See `colors_and_type.css` for the full token list. Two key principles:
 
-- **Surfaces stay soft.** No cool greys, no pure white. Tea Paper bg is `#eef0df` (cream with a green undertone, like rice paper held to light); Forest Night bg is `#0e1612` (deep moss-black). Pure white and pure black are banned — they kill the softness.
-- **Accent is rare.** Matcha `#7ba05b` (Paper) and Mint `#9ec88a` (Night) appear on at most one element per screen — the primary action, or the seal. Bamboo `#b8a866` is the warm-counter to keep things from feeling cold.
+- **Surfaces stay soft.** No cool greys, no pure white/black. Each theme's page bg carries a subtle undertone (green, celadon, moon-blue, warm cream, forest, indigo). Pure white and pure black are banned across all six — they kill the softness.
+- **Accent is rare.** Each theme's accent (matcha / celadon / 月白蓝 / cinnabar / mint / 黛蓝) appears on at most one element per screen — the primary action, or the seal. The `--mark` token (bamboo/gold/silver) is the warm-counter for the 金 seal.
 
 ### Backgrounds
 
@@ -167,7 +168,18 @@ Photographs lean **warm, low-saturation, grain-y**. Think Japanese photo books, 
 - Mobile screens use a **safe inset of 20px** left/right. Quote display screens go full-bleed.
 - Sticky top header is **56px** tall, blurred. Bottom nav (when present) is 64px tall + safe area.
 - Content max-width on tablet/desktop: **640px** (single column, generously spaced) — we are not a dashboard.
-- The quote display is always **vertically centered** with at least 80px breathing room top/bottom.
+- On screensaver layouts the quote block rests on the **upper golden line (≈38.2% from top)**, not dead-center — see “Golden ratio” below. At least 80px breathing room top/bottom is preserved as a floor.
+
+### Golden ratio (黄金比 · 0.618)
+
+The product is, at its core, *one sentence placed in a rectangle* — so proportion is the whole game. We use φ deliberately, in a few places, and **not** everywhere (buttons, icons, line-heights keep their functional sizing):
+
+- **Vertical optical anchor (primary use).** On the centered screensaver layouts (页 Page, 满 Full-bleed) the quote block's free space is split `--phi-minor : --phi-major` = `0.382 : 0.618` top-to-bottom, so the text rests on the upper golden line. The eye's natural resting point sits slightly above true center; dead-centering reads as static / template-like, the golden line reads as *composed*. Implemented with two flex spacers (`::before{flex:.382}` / `::after{flex:.618}`) so it still collapses gracefully when a long quote fills the space.
+- **时 Lock screen split.** Clock zone to quote zone trends toward a 0.618 division rather than half/half.
+- **Modular type scale.** `--phi` (1.618) is the ratio to reach for when adding a new size between existing steps.
+- Tokens: `--phi` / `--phi-major` / `--phi-minor` in `colors_and_type.css`.
+
+In Flutter, reproduce the anchor with two `Spacer(flex: …)` (use `382` / `618` as integer flexes) above and below the quote, inside the safe-area column.
 
 ---
 

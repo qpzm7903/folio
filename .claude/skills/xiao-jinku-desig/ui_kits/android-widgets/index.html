@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- @dsCard group="UI Kit — Android Widgets" name="UI Kit — Android widgets" subtitle="Small / medium / large widgets, in catalog + on home screen" viewport="1100x1100" -->
 <html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
@@ -31,6 +32,138 @@ body { margin: 0; background: var(--paper-100); color: var(--fg-1); }
   display: flex; flex-direction: column; gap: 20px;
   width: min(100%, 980px);
 }
+
+/* ─────────── Resizable demo ─────────── */
+.rz-demo { width: min(100%, 980px); display: flex; flex-direction: column; gap: 16px; }
+.rz-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.rz-seg { display: inline-flex; background: var(--bg-raised); border: 1px solid var(--border-1); border-radius: 999px; padding: 3px; gap: 2px; }
+.rz-seg-btn {
+  font-family: var(--sans-ui); font-size: 13px; padding: 6px 16px;
+  border: 0; background: transparent; color: var(--fg-2); border-radius: 999px; cursor: pointer;
+  transition: all 160ms ease;
+}
+.rz-seg-btn.on { background: var(--ink-900); color: var(--paper-50); }
+.rz-presets { display: inline-flex; gap: 6px; margin-left: auto; }
+.rz-chip {
+  font-family: ui-monospace, monospace; font-size: 12px; padding: 6px 11px;
+  border: 1px solid var(--border-1); background: var(--bg-raised); color: var(--fg-2);
+  border-radius: 8px; cursor: pointer; transition: all 160ms ease;
+}
+.rz-chip.on { background: var(--leaf-500); color: var(--paper-50); border-color: var(--leaf-500); }
+
+.rz-stage {
+  position: relative;
+  border-radius: 22px;
+  padding: 28px;
+  min-height: 440px;
+  display: flex; align-items: flex-start; justify-content: flex-start;
+  overflow: hidden;
+  background: linear-gradient(160deg, #d4e4b8 0%, #a8b58c 40%, #6a8052 80%, #324638 100%);
+}
+.rz-stage.night { background: linear-gradient(170deg, #1a2520 0%, #0e1612 60%, #050a07 100%); }
+.rz-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.10) 1px, transparent 1px);
+  background-size: 92px 92px;
+  background-position: 28px 28px;
+  pointer-events: none;
+}
+.rz-stage.night .rz-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+}
+.rz-holder { position: relative; transition: width 120ms ease, height 120ms ease; }
+.rz-handle {
+  position: absolute; right: -10px; bottom: -10px;
+  width: 30px; height: 30px;
+  background: var(--paper-50);
+  border: 1px solid var(--border-2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: nwse-resize;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 5;
+  touch-action: none;
+}
+.rz-handle img { width: 15px; height: 15px; opacity: 0.7; }
+.rz-dim {
+  position: absolute; top: -26px; left: 0;
+  font-family: ui-monospace, monospace; font-size: 11px;
+  color: #fff; background: rgba(0,0,0,0.4);
+  padding: 2px 8px; border-radius: 999px;
+  backdrop-filter: blur(6px);
+}
+.rz-hint {
+  font-family: var(--serif-italic); font-style: italic;
+  font-size: 13px; color: var(--fg-3); text-align: center;
+}
+
+/* The resizable widget itself */
+.rz-widget {
+  width: 100%; height: 100%;
+  background: #fbfcf3;
+  color: #1d2a1f;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(29,42,31,0.22);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  font-family: var(--serif-display);
+}
+.rz-widget.night { background: #182218; color: #e6ebd9; }
+.rz-brand {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--sans-ui); font-size: 11px; color: var(--fg-3);
+  letter-spacing: 0.02em; margin-bottom: 10px; flex-shrink: 0;
+}
+.rz-widget.night .rz-brand { color: #8a9a82; }
+.rz-brand em { font-family: var(--serif-italic); font-style: italic; }
+.rz-seal {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: #b8a866; color: #fbfcf3;
+  font-family: var(--serif-display); font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rz-widget.night .rz-seal { background: #d4c47e; color: #182218; }
+.rz-qregion {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Golden vertical anchor on large widgets — quote rests on upper golden line */
+.rz-qregion.golden { justify-content: flex-start; }
+.rz-qregion.golden::before { content: ""; flex: 0.382; min-height: 0; }
+.rz-qregion.golden::after  { content: ""; flex: 0.618; min-height: 0; }
+.rz-quote {
+  color: inherit;
+  text-wrap: pretty;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+.rz-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 10px; flex-shrink: 0;
+}
+.rz-cat {
+  font-family: var(--serif-italic); font-style: italic;
+  font-size: 12px; color: var(--fg-3);
+}
+.rz-widget.night .rz-cat { color: #8a9a82; }
+.rz-shuffle { width: 16px; height: 16px; opacity: 0.45; }
+.rz-widget.night .rz-shuffle { filter: invert(91%) sepia(13%) saturate(379%) hue-rotate(351deg); opacity: 0.6; }
+.rz-attr {
+  font-family: var(--serif-italic); font-style: italic;
+  font-size: 11px; color: var(--fg-3); margin-top: 6px; flex-shrink: 0;
+}
+.rz-widget.night .rz-attr { color: #8a9a82; }
+.rz-seal-corner { position: absolute; }
+.rz-widget .rz-seal-corner { align-self: flex-end; margin-top: auto; }
 .row-wrap { display: flex; flex-direction: column; gap: 12px; }
 .row-label { font-family: var(--serif-italic); font-style: italic; font-size: 13px; color: var(--fg-3); }
 .row-tiles { display: flex; gap: 20px; align-items: flex-start; }
@@ -138,8 +271,11 @@ body { margin: 0; background: var(--paper-100); color: var(--fg-1); }
   font-size: 19px; line-height: 1.8;
   color: var(--fg-1);
   flex: 1;
-  display: flex; align-items: center;
+  display: flex; flex-direction: column; justify-content: flex-start;
 }
+/* Golden vertical anchor — quote rests on the upper golden line */
+.w-large .q::before { content: ""; flex: 0.382; min-height: 0; }
+.w-large .q::after  { content: ""; flex: 0.618; min-height: 0; }
 .w-large.night .q { color: #e6ebd9; }
 .w-large .footer {
   display: flex; justify-content: space-between; align-items: center;

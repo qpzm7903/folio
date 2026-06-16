@@ -20,14 +20,13 @@ const TEXT_SCALES = [
 ];
 const BG_OPTIONS = [
   { key: "paper", label: "纸面" },
-  { key: "ink",   label: "墨绿" },
-  { key: "leaf",  label: "竹影" },
+  { key: "ink",   label: "墨色" },
+  { key: "leaf",  label: "色彩" },
   { key: "photo", label: "照片", disabled: true, note: "未上传" },
 ];
 
 // ─────── In-preview widget (size-aware) ───────
 const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg }) => {
-  const isNight = theme === "night";
   const sizeMap = {
     small:  { w: 160, h: 160, qSize: 14, line: 1.6, lineClamp: 5 },
     medium: { w: 320, h: 156, qSize: 16, line: 1.65, lineClamp: 4 },
@@ -36,22 +35,16 @@ const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg }) => {
   const tsBoost = textScale === "large" ? 2 : textScale === "small" ? -2 : 0;
   const s = sizeMap[size];
 
-  // Background fills
+  // Background fills — theme-aware via CSS vars
   const bgStyle = (() => {
-    if (bg === "paper") return {
-      background: isNight ? "#182218" : "#fbfcf3",
-      color:      isNight ? "#e6ebd9" : "#1d2a1f",
-    };
-    if (bg === "ink")   return {
-      background: isNight ? "#050a07" : "#1d2a1f",
-      color:      isNight ? "#e6ebd9" : "#f7f8ed",
-    };
+    if (bg === "paper") return { background: "var(--bg-raised)", color: "var(--fg-1)" };
+    if (bg === "ink")   return { background: "var(--ink-900)",   color: "var(--bg-page)" };
     if (bg === "leaf")  return {
-      background: "linear-gradient(155deg, #c4d5a8 0%, #7ba05b 55%, #4a6b35 100%)",
-      color: "#f7f8ed",
+      background: "linear-gradient(155deg, var(--accent-soft) 0%, var(--accent) 55%, var(--accent-pressed) 100%)",
+      color: "var(--fg-on-accent)",
     };
     if (bg === "photo") return {
-      background: "linear-gradient(135deg, #5e7263, #1d2a1f)",
+      background: "linear-gradient(135deg, var(--ink-500), var(--ink-900))",
       color: "#fff",
     };
     return {};
@@ -167,7 +160,7 @@ const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
         <Seg value={size}      options={WIDGET_SIZES} onChange={setSize} />
 
         <div className="section-h">主题</div>
-        <Seg value={theme}     options={[{ key: "paper", label: "青纸" }, { key: "night", label: "林夜" }]} onChange={onTheme} />
+        <ChipRow value={theme} options={THEMES.map(t => ({ key: t.key, label: t.name }))} onChange={onTheme} />
 
         <div className="section-h">字号</div>
         <Seg value={textScale} options={TEXT_SCALES}   onChange={setTextScale} />

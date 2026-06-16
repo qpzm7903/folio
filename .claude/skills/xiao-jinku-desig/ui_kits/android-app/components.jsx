@@ -7,15 +7,29 @@ const Icon = ({ name, size = 20, style = {}, ...rest }) => (
 );
 
 // ─────────────────────────────────────────────────────────────
+// Themes — 2 fresh-green + 4 classical (传统色). Order =晨→昏.
+// `dark:true` themes get the structural dark-mode styling in kit.css.
+// ─────────────────────────────────────────────────────────────
+const THEMES = [
+  { key: "paper",     name: "青纸", en: "Tea Paper",    dark: false },
+  { key: "celadon",   name: "天青", en: "Celadon",      dark: false },
+  { key: "moonwhite", name: "月白", en: "Moon White",   dark: false },
+  { key: "cinnabar",  name: "绛霞", en: "Cinnabar",     dark: false },
+  { key: "night",     name: "林夜", en: "Forest Night", dark: true  },
+  { key: "dai",       name: "青黛", en: "Ink Indigo",   dark: true  },
+];
+const themeByKey = (k) => THEMES.find(t => t.key === k) || THEMES[0];
+const nextTheme = (k) => THEMES[(THEMES.findIndex(t => t.key === k) + 1) % THEMES.length].key;
+
+// ─────────────────────────────────────────────────────────────
 // Phone shell — bezel + status bar + content + gesture nav
 // ─────────────────────────────────────────────────────────────
 const Phone = ({ theme = "paper", children, label }) => {
-  const isNight = theme === "night";
   return (
     <div className="phone-wrap" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
       <div className="phone">
         <div className="phone-notch" />
-        <div className="phone-screen" data-theme={isNight ? "night" : undefined}>
+        <div className="phone-screen" data-theme={theme === "paper" ? undefined : theme}>
           <StatusBar />
           {children}
           <GestureBar />
@@ -147,4 +161,5 @@ Object.assign(window, {
   Icon, Phone, StatusBar, GestureBar,
   TopBar, BottomNav, QuoteCard,
   SettingRow, SettingsGroup, SectionH, Fab,
+  THEMES, themeByKey, nextTheme,
 });

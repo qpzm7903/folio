@@ -86,9 +86,9 @@ claude
 ```
 1. 金库（Library）页面           → 参考 ui_kits/android-app/screens.jsx 的 LibraryScreen
 2. 编辑器（Editor）               → EditorScreen + 批量导入 ImportSheet
-3. 屏保 / 全屏显示（Display）     → DisplayScreen + 不重复轮播逻辑（useNoRepeatShuffle）
+3. 屏保 / 全屏显示（Display）     → DisplayScreen + 9 种版式（display-layouts.jsx）+ 不重复轮播
 4. 自定义小组件页（Widget editor）→ widget-editor.jsx（这是 app 里的"配置"页，不是真的桌面组件）
-5. 设置页                        → SettingsScreen
+5. 设置页                        → SettingsScreen（含 6 套主题切换）
 6. 真正的桌面小组件（home_widget）→ Android: Glance Kotlin；iOS: WidgetKit Swift
                                    视觉照 ui_kits/android-widgets/widgets.jsx 的小/中/大三种
 ```
@@ -110,9 +110,10 @@ claude
 | `assets/logo-*.svg` | App icon + 启动屏 + 顶栏标识 |
 | `assets/paper-grain.svg` | 纸纹理叠层 |
 | `assets/icons/MANIFEST.json` | 用到的 Lucide 图标清单 |
-| `ui_kits/android-app/screens.jsx` | **5 屏 UI 的「伪代码」** — 直接翻译到 Dart Widget |
-| `ui_kits/android-app/widget-editor.jsx` | 自定义小组件页（在 app 内部） |
-| `ui_kits/android-widgets/widgets.jsx` | 三种尺寸桌面组件的视觉参考 |
+| `ui_kits/android-app/screens.jsx` | **核心 5 屏的「伪代码」** + 不重复轮播 hook |
+| `ui_kits/android-app/display-layouts.jsx` | **屏保 9 种版式**（页/竖/引/时/满/印/条/片/织） |
+| `ui_kits/android-app/widget-editor.jsx` | 自定义小组件页（app 内部配置屏） |
+| `ui_kits/android-widgets/widgets.jsx` | 三种尺寸 + **可拖动缩放/多字自适应**（`ResizableWidget`/`fitFont`） |
 | `ui_kits/android-app/kit.css` | 所有组件的具体样式（圆角、阴影、状态、字号…） |
 
 ---
@@ -165,6 +166,22 @@ Container(color: t.bgCard, ...);
 ```
 
 字号 / 间距 / 圆角 / 阴影也照 `colors_and_type.css` 同样的方法塞进 `XJKTokens`。
+
+---
+
+## 三个必须复现的「设计意图」
+
+这三个不是装饰，是产品的魂，开发时务必照设计稿复现：
+
+**1. 不重复轮播**（屏保/组件）—— 每一轮把所有句子 Fisher-Yates 洗一次，全部出现过才进入下一轮（`screens.jsx · useNoRepeatShuffle`）。Flutter 里把「本轮顺序 + 当前位置」持久化到 DataStore，重启接着上次走。
+
+**2. 文字自适应**（屏保 + 组件）—— 字号 = f（容器尺寸 × 字数），带上下限。参考 `widgets.jsx · fitFont`：字号 ≈ √(可用面积 / 字数)，夹在 12–30px（屏保可更大）。超长句优雅截断（省略号）而不溢出。Flutter 用 `auto_size_text` 调这套。
+
+**3. 屏保 9 种版式**（`display-layouts.jsx`）—— 页/竖/引/时/满/印/条/片/织，都按壁纸安全区排版（顶 ~120px 留系统钟、底 ~120px 留底栏）。竖排用 `RotatedBox` 等价实现。
+
+> 动画细节：入场动画**只动 transform 不动 opacity**，避免「减弱动态效果」环境下卡在透明。Flutter 同理——用 `SlideTransition`，别单独靠 `FadeTransition` 决定可见性。
+
+**4. 6 套主题**（`colors_and_type.css` 的 `:root` + 5 个 `[data-theme]` 块）—— `XJKTokens` 做成带 6 个静态实例的 ThemeExtension（paper / celadon / moonwhite / cinnabar / night / dai），用 `themeKey`（存 DataStore）决定当前。night 和 dai 是暗色，`brightness: dark`；切换用 `AnimatedTheme` 平滑过渡。
 
 ---
 

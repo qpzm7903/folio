@@ -24,8 +24,8 @@
   display: flex;
   flex-direction: column;
 }
-.phone-screen[data-theme="night"] {
-  background: #0e1612;
+.phone-screen:is([data-theme="night"],[data-theme="dai"]) {
+  background: var(--bg-page);
   color: var(--fg-1);
 }
 .phone-notch {
@@ -54,7 +54,7 @@
   color: var(--fg-1);
   flex-shrink: 0;
 }
-[data-theme="night"] .status-bar { color: var(--ink-900); }
+:is([data-theme="night"],[data-theme="dai"]) .status-bar { color: var(--ink-900); }
 .status-bar .sb-icons { display: flex; gap: 5px; align-items: center; }
 .status-bar .sb-icons svg { width: 14px; height: 14px; }
 
@@ -112,7 +112,7 @@
 .icon-btn:hover { opacity: 0.7; }
 .icon-btn:active { transform: scale(0.96); }
 .icon-btn img { width: 20px; height: 20px; display: block; }
-[data-theme="night"] .icon-btn img { filter: invert(91%) sepia(13%) saturate(379%) hue-rotate(351deg) brightness(98%) contrast(89%); }
+:is([data-theme="night"],[data-theme="dai"]) .icon-btn img { filter: invert(91%) sepia(13%) saturate(379%) hue-rotate(351deg) brightness(98%) contrast(89%); }
 
 /* ─────── Content scroll area ─────── */
 .content {
@@ -127,13 +127,13 @@
 .bottom-nav {
   display: flex;
   padding: 6px 16px 6px;
-  background: rgba(244, 234, 213, 0.85);
+  background: color-mix(in srgb, var(--bg-page) 85%, transparent);
   backdrop-filter: blur(20px) saturate(140%);
   border-top: 1px solid var(--border-1);
   flex-shrink: 0;
 }
-[data-theme="night"] .bottom-nav {
-  background: rgba(20, 17, 13, 0.85);
+:is([data-theme="night"],[data-theme="dai"]) .bottom-nav {
+  background: color-mix(in srgb, var(--bg-page) 85%, transparent);
   border-top-color: var(--paper-300);
 }
 .bottom-nav .nav-item {
@@ -153,7 +153,7 @@
 .bottom-nav .nav-item.active { color: var(--fg-1); }
 .bottom-nav .nav-item img { width: 22px; height: 22px; opacity: 0.75; }
 .bottom-nav .nav-item.active img { opacity: 1; }
-[data-theme="night"] .bottom-nav .nav-item img {
+:is([data-theme="night"],[data-theme="dai"]) .bottom-nav .nav-item img {
   filter: invert(78%) sepia(8%) saturate(457%) hue-rotate(8deg) brightness(95%) contrast(86%);
 }
 
@@ -168,7 +168,7 @@
   transition: transform 160ms var(--ease-paper);
 }
 .quote-card:active { transform: scale(0.985); }
-[data-theme="night"] .quote-card {
+:is([data-theme="night"],[data-theme="dai"]) .quote-card {
   background: var(--paper-200);
   border-color: var(--paper-300);
 }
@@ -195,18 +195,19 @@
   color: var(--fg-2);
 }
 
-/* Featured / dark inline card — soft forest, not near-black */
+/* Featured / dark inline card — accent-driven, adapts to every palette */
 .quote-card.dark {
-  background: linear-gradient(135deg, var(--leaf-700) 0%, #2c3d27 100%);
+  background: linear-gradient(140deg, var(--accent-pressed) 0%, color-mix(in srgb, var(--accent-pressed) 55%, #14110d) 100%);
   border-color: transparent;
-  color: var(--paper-50);
+  color: #f7f8ed;
 }
-[data-theme="night"] .quote-card.dark {
-  background: linear-gradient(135deg, #2c3d27 0%, var(--paper-300) 100%);
+:is([data-theme="night"],[data-theme="dai"]) .quote-card.dark {
+  background: linear-gradient(140deg, var(--paper-300) 0%, var(--paper-100) 100%);
+  color: var(--fg-1);
 }
-.quote-card.dark .q { color: var(--paper-50); }
-.quote-card.dark .qmeta { color: rgba(230, 235, 217, 0.55); }
-.quote-card.dark .qmeta em { color: var(--bamboo-500); }
+.quote-card.dark .q { color: inherit; }
+.quote-card.dark .qmeta { color: color-mix(in srgb, currentColor 60%, transparent); }
+.quote-card.dark .qmeta em { color: var(--mark); }
 
 /* ─────── Tags row ─────── */
 .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -226,7 +227,7 @@
   border-color: var(--ink-900);
   color: var(--paper-50);
 }
-[data-theme="night"] .tag.active {
+:is([data-theme="night"],[data-theme="dai"]) .tag.active {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--paper-100);
@@ -299,8 +300,8 @@
 }
 .fab:active { transform: scale(0.94); }
 .fab img { width: 22px; height: 22px; filter: invert(1); }
-[data-theme="night"] .fab { background: var(--accent); color: var(--paper-100); }
-[data-theme="night"] .fab img { filter: none; }
+:is([data-theme="night"],[data-theme="dai"]) .fab { background: var(--accent); color: var(--paper-100); }
+:is([data-theme="night"],[data-theme="dai"]) .fab img { filter: none; }
 
 /* ─────── Empty / hero blocks ─────── */
 .hero {
@@ -348,7 +349,7 @@
   color: var(--fg-3);
 }
 .setting-row .chev { width: 14px; height: 14px; opacity: 0.4; }
-[data-theme="night"] .setting-row .chev { filter: invert(91%) sepia(13%) saturate(379%) hue-rotate(351deg); }
+:is([data-theme="night"],[data-theme="dai"]) .setting-row .chev { filter: invert(91%) sepia(13%) saturate(379%) hue-rotate(351deg); }
 
 /* Toggle */
 .toggle {
@@ -363,7 +364,7 @@
 .toggle .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--paper-50); box-shadow: var(--shadow-1); transition: transform 200ms var(--ease-paper); }
 .toggle.on { background: var(--ink-900); }
 .toggle.on .dot { transform: translateX(20px); }
-[data-theme="night"] .toggle.on { background: var(--accent); }
+:is([data-theme="night"],[data-theme="dai"]) .toggle.on { background: var(--accent); }
 
 /* ─────── Composer (Editor screen) ─────── */
 .composer {
@@ -432,7 +433,7 @@
   background: var(--ink-900);
   color: var(--paper-50);
 }
-[data-theme="night"] .seg-btn.active {
+:is([data-theme="night"],[data-theme="dai"]) .seg-btn.active {
   background: var(--accent);
   color: var(--paper-100);
 }
@@ -466,7 +467,7 @@
   border-color: var(--ink-900);
   color: var(--paper-50);
 }
-[data-theme="night"] .chip.active {
+:is([data-theme="night"],[data-theme="dai"]) .chip.active {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--paper-100);
@@ -485,7 +486,610 @@
   position: relative; z-index: 2;
 }
 
-/* ─────── Display round indicator ─────── */
+/* ─────── Display layout host + tiny label pip ─────── */
+.display-content.layout-host {
+  padding: 0;
+  display: block;
+}
+.ds-layout {
+  position: absolute;
+  inset: 0;
+  /* --q-scale: length-aware multiplier set per data-len below.
+     Quote font-sizes are calc(<fluid cqw> * var(--q-scale)) so they
+     shrink for long quotes AND scale with the device. */
+  --q-scale: 1; /* @kind other */
+  display: flex;
+  color: var(--fg-1);
+  font-family: var(--serif-display);
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-layout { color: var(--fg-1); }
+.on-photo .ds-layout { color: #fff; }
+
+/* Length tiers — short quotes big, long quotes step down so they fit */
+.ds-layout[data-len="tiny"]   { --q-scale: 1.15; /* @kind other */ }
+.ds-layout[data-len="short"]  { --q-scale: 1.0; /* @kind other */ }
+.ds-layout[data-len="medium"] { --q-scale: 0.82; /* @kind other */ }
+.ds-layout[data-len="long"]   { --q-scale: 0.64; /* @kind other */ }
+.ds-layout[data-len="xlong"]  { --q-scale: 0.5; /* @kind other */ }
+
+.layout-pip {
+  position: absolute;
+  top: 56px; right: 20px;
+  z-index: 6;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-page) 72%, transparent);
+  backdrop-filter: blur(10px);
+  font-family: var(--sans-ui);
+  font-size: 11px;
+  color: var(--fg-2);
+  letter-spacing: 0.04em;
+  opacity: 1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .layout-pip { animation: pipFade 1.8s var(--ease-paper) forwards; }
+}
+.layout-pip em {
+  font-family: var(--serif-italic); font-style: italic;
+  font-size: 11px;
+}
+:is([data-theme="night"],[data-theme="dai"]) .layout-pip,
+.on-photo + .layout-pip,
+.layout-pip.on-photo {
+  background: color-mix(in srgb, var(--bg-page) 70%, transparent);
+  color: rgba(230,235,217,0.85);
+}
+@keyframes pipFade {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  20%  { opacity: 1; transform: translateY(0); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+.layout-glyph {
+  font-family: var(--serif-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--fg-1);
+}
+.on-photo + .display-controls .layout-glyph,
+:is([data-theme="night"],[data-theme="dai"]) .layout-glyph {
+  color: var(--fg-1);
+}
+
+/* ============================================================
+   LAYOUT 1 — 页 Page
+   ============================================================ */
+.ds-page {
+  flex-direction: column;
+  padding: 130px 36px 100px;
+}
+.ds-page-head {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--sans-ui);
+  font-size: 11px;
+  color: var(--fg-3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ds-page-head em {
+  font-family: var(--serif-italic); font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 12px;
+}
+.ds-page-head .cat {
+  text-transform: none; letter-spacing: 0;
+  font-family: var(--serif-italic); font-style: italic;
+  color: var(--fg-2);
+}
+.ds-page-head .rule {
+  flex: 0 0 24px;
+  height: 1px; background: var(--paper-400);
+}
+.ds-page-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* Golden vertical anchor inside the page body */
+.ds-page-body::before { content: ""; flex: var(--phi-minor); min-height: 0; }
+.ds-page-body::after  { content: ""; flex: var(--phi-major); min-height: 0; }
+.ds-page-quote {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(17px, 7.2cqw, 30px) * var(--q-scale));
+  line-height: 1.95;
+  color: var(--fg-1);
+  text-wrap: pretty;
+  font-weight: 400;
+  /* slight first-line indent like a printed page */
+  text-indent: 0;
+}
+.on-photo .ds-page-quote,
+.on-photo .ds-page-head,
+.on-photo .ds-page-foot { color: #fff; }
+.on-photo .ds-page-head { color: rgba(255,255,255,0.7); }
+.ds-page-foot {
+  display: flex; align-items: center; gap: 10px;
+  justify-content: flex-end;
+  font-family: var(--sans-ui);
+  font-size: 11px;
+  color: var(--fg-3);
+  letter-spacing: 0.14em;
+}
+.ds-page-foot .rule { flex: 0 0 24px; height: 1px; background: var(--paper-400); }
+.ds-page-foot .foot-meta {
+  font-family: var(--serif-italic); font-style: italic;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+
+/* ============================================================
+   LAYOUT 2 — 竖 Vertical
+   ============================================================ */
+.ds-vertical {
+  justify-content: center;
+  align-items: center;
+  padding: 130px 24px 110px;
+  gap: 28px;
+  direction: ltr;
+}
+.ds-vert-rule {
+  width: 1px;
+  align-self: stretch;
+  background: var(--paper-400);
+  opacity: 0.5;
+}
+.on-photo .ds-vert-rule { background: rgba(255,255,255,0.4); }
+.ds-vert-quote {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-family: var(--serif-display);
+  font-size: calc(clamp(16px, 6.7cqw, 30px) * var(--q-scale));
+  font-size: 26px;
+  line-height: 1.65;
+  letter-spacing: 0.12em;
+  color: var(--fg-1);
+  max-height: 64%;
+}
+.on-photo .ds-vert-quote { color: #fff; }
+.ds-vert-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  align-self: flex-end;
+  padding-bottom: 4px;
+}
+.ds-vert-cat {
+  writing-mode: vertical-rl;
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--fg-3);
+  letter-spacing: 0.1em;
+}
+.on-photo .ds-vert-cat { color: rgba(255,255,255,0.7); }
+.ds-vert-seal {
+  width: 24px; height: 24px;
+  border-radius: 4px;
+  background: var(--bamboo-500);
+  color: var(--paper-50);
+  font-family: var(--serif-display);
+  font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ============================================================
+   LAYOUT 3 — 引 Pull-quote
+   ============================================================ */
+.ds-pull {
+  flex-direction: column;
+  padding: 110px 28px 96px;
+  justify-content: space-between;
+}
+.ds-pull-open {
+  font-family: var(--serif-display);
+  font-size: 140px;
+  line-height: 1;
+  color: var(--accent);
+  margin-left: -8px;
+  margin-bottom: -20px;
+  font-weight: 400;
+}
+.on-photo .ds-pull-open { color: var(--leaf-300); }
+.ds-pull-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 0;
+}
+.ds-pull-line {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(18px, 8.2cqw, 38px) * var(--q-scale));
+  line-height: 1.6;
+  color: var(--fg-1);
+  letter-spacing: -0.005em;
+  text-wrap: pretty;
+}
+.on-photo .ds-pull-line { color: #fff; }
+.ds-pull-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.ds-pull-attr {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--fg-3);
+}
+.on-photo .ds-pull-attr { color: rgba(255,255,255,0.75); }
+.ds-pull-close {
+  font-family: var(--serif-display);
+  font-size: 64px;
+  line-height: 1;
+  color: var(--accent);
+  align-self: flex-end;
+  margin-bottom: -10px;
+}
+.on-photo .ds-pull-close { color: var(--leaf-300); }
+
+/* ============================================================
+   LAYOUT 4 — 时 Lock screen
+   ============================================================ */
+.ds-lockscreen {
+  flex-direction: column;
+  padding: 90px 36px 96px;
+}
+.ds-lock-time {
+  text-align: left;
+  margin-bottom: auto;
+}
+.ds-lock-clock {
+  font-family: var(--serif-display);
+  font-size: clamp(56px, 22cqw, 96px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--fg-1);
+}
+.on-photo .ds-lock-clock { color: #fff; }
+.ds-lock-date {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--fg-3);
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+.on-photo .ds-lock-date { color: rgba(255,255,255,0.75); }
+.ds-lock-leaf {
+  position: absolute;
+  right: -24px; bottom: 200px;
+  color: var(--leaf-500);
+  pointer-events: none;
+}
+.on-photo .ds-lock-leaf { color: rgba(255,255,255,0.8); }
+.ds-lock-caption {
+  margin-top: auto;
+}
+.ds-lock-quote {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(15px, 5.4cqw, 24px) * var(--q-scale));
+  line-height: 1.7;
+  color: var(--fg-1);
+  text-wrap: pretty;
+  margin-bottom: 8px;
+}
+.on-photo .ds-lock-quote { color: #fff; }
+.ds-lock-attr {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+.on-photo .ds-lock-attr { color: rgba(255,255,255,0.75); }
+
+/* ============================================================
+   LAYOUT 5 — 满 Full bleed
+   ============================================================ */
+.ds-fullbleed {
+  flex-direction: column;
+  justify-content: center;
+}
+/* Golden vertical anchor — quote block rests on the upper golden line */
+.ds-fullbleed::before { content: ""; flex: var(--phi-minor); min-height: 0; }
+.ds-fullbleed::after  { content: ""; flex: var(--phi-major); min-height: 0; }
+.ds-fullbleed {
+  padding: 110px 32px 110px;
+}
+.ds-full-quote {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(20px, 11.3cqw, 54px) * var(--q-scale));
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+  text-wrap: pretty;
+  margin-bottom: 28px;
+  font-weight: 400;
+}
+.on-photo .ds-full-quote { color: #fff; }
+.ds-full-attr {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--fg-3);
+  text-align: right;
+}
+.on-photo .ds-full-attr { color: rgba(255,255,255,0.7); }
+
+/* Display content fades up on quote/layout change.
+   Base state is VISIBLE; entrance only runs when motion is allowed,
+   so reduced-motion (and capture/PDF) shows content, not a stuck opacity:0. */
+.display-content.layout-host { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .display-content.layout-host {
+    animation: fadeUp 480ms var(--ease-paper);
+  }
+}
+
+/* ============================================================
+   LAYOUT 6 — 印 Stamped
+   Giant first character as matcha seal + rest as flowing prose.
+   ============================================================ */
+.ds-stamped {
+  flex-direction: column;
+  padding: 130px 32px 110px;
+}
+.ds-stamped-head {
+  margin-bottom: 32px;
+}
+.ds-stamped-cat {
+  font-family: var(--sans-ui);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--paper-400);
+}
+.on-photo .ds-stamped-cat {
+  color: rgba(255,255,255,0.75);
+  border-color: rgba(255,255,255,0.4);
+}
+.ds-stamped-row {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+.ds-stamped-mark {
+  flex-shrink: 0;
+  width: clamp(84px, 31cqw, 130px); height: clamp(84px, 31cqw, 130px);
+  background: var(--accent);
+  color: var(--paper-50);
+  font-family: var(--serif-display);
+  font-size: clamp(64px, 24cqw, 100px);
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: var(--shadow-2);
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-stamped-mark {
+  background: var(--accent);
+  color: var(--paper-100);
+}
+.ds-stamped-body {
+  flex: 1;
+  padding-top: 14px;
+  font-family: var(--serif-display);
+  font-size: calc(clamp(15px, 5.6cqw, 26px) * var(--q-scale));
+  line-height: 1.85;
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.on-photo .ds-stamped-body { color: #fff; }
+.ds-stamped-foot {
+  margin-top: 36px;
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--fg-3);
+  text-align: right;
+  letter-spacing: 0.04em;
+}
+.on-photo .ds-stamped-foot { color: rgba(255,255,255,0.6); }
+
+/* ============================================================
+   LAYOUT 7 — 条 Ribbon
+   Quote sits inside a wide horizontal cream band that crosses
+   the wallpaper. The band IS the design element.
+   ============================================================ */
+.ds-ribbon {
+  flex-direction: column;
+  justify-content: center;
+  padding: 130px 0 110px;
+}
+.ds-ribbon-band {
+  background: var(--paper-50);
+  padding: 36px 32px;
+  border-top: 1px solid var(--border-2);
+  border-bottom: 1px solid var(--border-2);
+  position: relative;
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-ribbon-band {
+  background: var(--paper-200);
+  border-color: var(--paper-400);
+}
+.ds-ribbon-cat {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-ribbon-cat { color: var(--accent); }
+.ds-ribbon-quote {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(17px, 6.7cqw, 30px) * var(--q-scale));
+  line-height: 1.7;
+  color: var(--fg-1);
+  text-align: center;
+  text-wrap: pretty;
+  font-weight: 400;
+}
+/* Ribbon stays cream even on photo — that's the whole point */
+
+/* ============================================================
+   LAYOUT 8 — 片 Card on field
+   Bookplate-style card pasted on textured field, with corner marks.
+   ============================================================ */
+.ds-card {
+  align-items: center;
+  justify-content: center;
+  padding: 130px 28px 110px;
+}
+.ds-card-field {
+  position: absolute;
+  inset: 130px 28px 110px;
+  background: var(--paper-200);
+  background-image: url('../../assets/paper-grain.svg');
+  background-size: 180px 180px;
+  opacity: 0.5;
+  border-radius: 12px;
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-card-field {
+  background: var(--paper-300);
+  opacity: 0.4;
+}
+.ds-card-paper {
+  position: relative;
+  background: var(--paper-50);
+  padding: 32px 28px;
+  margin: 16px;
+  width: calc(100% - 32px);
+  box-shadow: var(--shadow-3);
+  border: 1px solid var(--border-1);
+  z-index: 2;
+}
+:is([data-theme="night"],[data-theme="dai"]) .ds-card-paper {
+  background: var(--paper-100);
+  border-color: var(--paper-400);
+}
+/* corner marks — minimal */
+.ds-card-corner {
+  position: absolute;
+  width: 12px; height: 12px;
+  border: 1px solid var(--accent);
+}
+.ds-card-corner-tl { top: 6px; left: 6px;    border-right: 0; border-bottom: 0; }
+.ds-card-corner-tr { top: 6px; right: 6px;   border-left: 0;  border-bottom: 0; }
+.ds-card-corner-bl { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
+.ds-card-corner-br { bottom: 6px; right: 6px;border-left: 0;  border-top: 0; }
+.ds-card-cat {
+  font-family: var(--sans-ui);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 22px;
+}
+.ds-card-quote {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(15px, 5.6cqw, 26px) * var(--q-scale));
+  line-height: 1.85;
+  color: var(--fg-1);
+  text-align: center;
+  text-wrap: pretty;
+  margin-bottom: 22px;
+}
+.ds-card-rule {
+  width: 32px; height: 1px;
+  background: var(--accent);
+  margin: 0 auto 14px;
+  opacity: 0.6;
+}
+.ds-card-foot {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--fg-3);
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.ds-card-foot em { color: var(--accent); }
+
+/* ============================================================
+   LAYOUT 9 — 织 Interleaved
+   Big tabular index number + lines of quote separated by hairlines.
+   Editorial / TOC-style.
+   ============================================================ */
+.ds-interleave {
+  flex-direction: column;
+  padding: 110px 32px 100px;
+}
+.ds-inter-num {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: 84px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.on-photo .ds-inter-num { color: var(--leaf-300); }
+.ds-inter-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ds-inter-line {
+  font-family: var(--serif-display);
+  font-size: calc(clamp(16px, 6.7cqw, 30px) * var(--q-scale));
+  line-height: 1.7;
+  color: var(--fg-1);
+  padding: 14px 0;
+  text-wrap: pretty;
+}
+.on-photo .ds-inter-line { color: #fff; }
+.ds-inter-rule {
+  height: 1px;
+  background: var(--paper-400);
+  opacity: 0.5;
+  margin: 0;
+}
+.on-photo .ds-inter-rule { background: rgba(255,255,255,0.3); opacity: 1; }
+.ds-inter-foot {
+  margin-top: 32px;
+  display: flex;
+  justify-content: flex-end;
+}
+.ds-inter-cat {
+  font-family: var(--sans-ui);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding: 4px 10px;
+  border: 1px solid var(--paper-400);
+  border-radius: 999px;
+}
+.on-photo .ds-inter-cat {
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.4);
+}
 .round-indicator {
   position: absolute;
   top: 56px; right: 20px;
@@ -493,14 +1097,14 @@
   display: inline-flex; align-items: baseline; gap: 6px;
   padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(244, 234, 213, 0.6);
+  background: color-mix(in srgb, var(--bg-page) 72%, transparent);
   backdrop-filter: blur(10px);
   font-family: var(--sans-ui);
   font-size: 11px;
   letter-spacing: 0.06em;
   color: var(--fg-2);
 }
-[data-theme="night"] .round-indicator,
+:is([data-theme="night"],[data-theme="dai"]) .round-indicator,
 .on-photo ~ .round-indicator,
 .round-indicator.on-photo {
   background: rgba(20,17,13,0.45);
@@ -512,7 +1116,7 @@
   color: var(--fg-1);
   font-size: 13px;
 }
-[data-theme="night"] .round-indicator .n,
+:is([data-theme="night"],[data-theme="dai"]) .round-indicator .n,
 .round-indicator.on-photo .n { color: #fff; }
 .round-indicator .sep { opacity: 0.4; margin: 0 2px; }
 .round-indicator em {
@@ -520,25 +1124,33 @@
   font-size: 11px; opacity: 0.75;
 }
 
-/* Quote crossfade — applied to .display-content via key change */
-.display-content {
-  animation: fadeUp 640ms var(--ease-paper);
+/* Quote crossfade — applied to .display-content via key change.
+   Visible at rest; animate only under no-preference. */
+.display-content { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .display-content {
+    animation: fadeUp 640ms var(--ease-paper);
+  }
 }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(8px); }
+  to   { transform: translateY(0); }
 }
 
 /* ─────── Screensaver / Display mode ─────── */
 .display-screen {
   position: absolute;
   inset: 0;
+  /* Establish a query container so screensaver type scales to the
+     actual device size (cqw units below), not a fixed px grid. */
+  container-type: inline-size;
+  container-name: saver;
   background: var(--bg-page);
   display: flex;
   flex-direction: column;
   padding: 0;
 }
-.display-screen[data-theme="night"] { background: #0e1612; }
+.display-screen:is([data-theme="night"],[data-theme="dai"]) { background: var(--bg-page); }
 .display-bg {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
@@ -593,15 +1205,15 @@
 .display-controls .dctl {
   width: 44px; height: 44px;
   border-radius: 50%;
-  background: rgba(244,234,213,0.85);
+  background: color-mix(in srgb, var(--bg-page) 80%, transparent);
   backdrop-filter: blur(10px);
   border: 0; display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
 .display-controls .dctl img { width: 18px; height: 18px; }
-[data-theme="night"] .display-controls .dctl,
-.display-content.on-photo ~ .display-controls .dctl { background: rgba(20,17,13,0.65); }
-[data-theme="night"] .display-controls .dctl img,
+:is([data-theme="night"],[data-theme="dai"]) .display-controls .dctl,
+.display-content.on-photo ~ .display-controls .dctl { background: color-mix(in srgb, var(--bg-page) 70%, transparent); }
+:is([data-theme="night"],[data-theme="dai"]) .display-controls .dctl img,
 .display-content.on-photo ~ .display-controls .dctl img { filter: invert(91%) sepia(13%); }
 
 /* ─────── Import sheet ─────── */
@@ -620,7 +1232,7 @@
   display: flex;
   flex-direction: column;
 }
-[data-theme="night"] .sheet-inner { background: #0e1612; }
+:is([data-theme="night"],[data-theme="dai"]) .sheet-inner { background: var(--bg-page); }
 .sheet-grabber {
   width: 36px; height: 4px; border-radius: 999px;
   background: var(--paper-300);
@@ -667,4 +1279,4 @@
   pointer-events: none;
   z-index: 1;
 }
-[data-theme="night"] .grain { opacity: 0.25; mix-blend-mode: overlay; }
+:is([data-theme="night"],[data-theme="dai"]) .grain { opacity: 0.25; mix-blend-mode: overlay; }

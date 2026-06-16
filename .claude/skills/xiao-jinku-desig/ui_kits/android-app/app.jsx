@@ -13,8 +13,8 @@ const App = () => (
     backgroundImage: "url(../../assets/paper-grain.svg)",
     backgroundSize: "240px 240px",
   }}>
-    <PhoneApp initialTheme="paper" initialScreen="library" label="青纸 · Tea Paper" />
-    <PhoneApp initialTheme="night" initialScreen="widget"  label="林夜 · Forest Night" />
+    <PhoneApp initialTheme="cinnabar" initialScreen="display" label="绛霞 · Cinnabar" />
+    <PhoneApp initialTheme="dai"      initialScreen="display" label="青黛 · Ink Indigo" />
   </div>
 );
 

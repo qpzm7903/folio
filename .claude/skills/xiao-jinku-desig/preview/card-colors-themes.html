@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>Themes</title><style>
 /* ============================================================
    小金库 — Colors & Type
    Fresh-green direction · 小清新绿
@@ -102,15 +104,6 @@
   --radius-lg: 14px;
   --radius-xl: 22px;
   --radius-pill: 999px;
-
-  /* ---------- Golden ratio (黄金比) ----------
-     Used for vertical optical anchoring of the quote on screensaver
-     layouts, and as the modular type-scale ratio. The quote's block
-     rests on the UPPER golden line (≈38.2% from top) rather than dead
-     center — the eye's natural resting point, less static than centering. */
-  --phi:       1.618;   /* @kind other */
-  --phi-major: 0.618;   /* @kind other */
-  --phi-minor: 0.382;   /* @kind other */
 
   /* ---------- Shadows ---------- */
   /* Green-tinted, low-spread — pressed-leaf softness */
@@ -354,3 +347,93 @@ html, body {
   color: var(--mark);
   font-weight: 500;
 }
+
+html,body{margin:0;padding:0;}
+body{width:700px;padding:20px 24px;box-sizing:border-box;background:#e8ece2;font-family:var(--serif-body);}
+.trow{display:grid;grid-template-columns:repeat(5,52px) 1fr;gap:8px;align-items:center;
+  background:var(--bg-page);border:1px solid var(--border-1);border-radius:12px;
+  padding:10px 14px;margin-bottom:8px;}
+.swatch{height:44px;border-radius:7px;border:1px solid rgba(0,0,0,0.08);position:relative;}
+.swatch.bg{background:var(--bg-page);display:flex;align-items:center;justify-content:center;}
+.swatch.bg .q{font-family:var(--serif-display);font-size:15px;color:var(--fg-1);}
+.seal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif-display);font-size:15px;font-weight:600;color:var(--fg-on-accent);}
+.meta{padding-left:8px;}
+.meta .zh{font-family:var(--serif-display);font-size:17px;font-weight:500;color:var(--fg-1);}
+.meta .en{font-family:var(--serif-italic);font-style:italic;font-size:12px;color:var(--fg-3);}
+.meta .note{font-family:var(--sans-ui);font-size:10px;letter-spacing:0.08em;color:var(--fg-muted);margin-top:1px;}
+</style></head><body>
+
+  <div class="trow" >
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">青纸</div>
+      <div class="en">Tea Paper</div>
+      <div class="note">default · 清新绿</div>
+    </div>
+  </div>
+  <div class="trow" data-theme="celadon">
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">天青</div>
+      <div class="en">Celadon</div>
+      <div class="note">雨过天青</div>
+    </div>
+  </div>
+  <div class="trow" data-theme="moonwhite">
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">月白</div>
+      <div class="en">Moon White</div>
+      <div class="note">月白风清</div>
+    </div>
+  </div>
+  <div class="trow" data-theme="cinnabar">
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">绛霞</div>
+      <div class="en">Cinnabar</div>
+      <div class="note">朱砂晚霞</div>
+    </div>
+  </div>
+  <div class="trow" data-theme="night">
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">林夜</div>
+      <div class="en">Forest Night</div>
+      <div class="note">dark · 竹林夜</div>
+    </div>
+  </div>
+  <div class="trow" data-theme="dai">
+    <div class="swatch bg"><span class="q">金句</span></div>
+    <div class="swatch" style="background:var(--bg-card)"></div>
+    <div class="swatch" style="background:var(--accent)"></div>
+    <div class="swatch" style="background:var(--accent-2)"></div>
+    <div class="swatch" style="background:var(--mark)"><span class="seal">金</span></div>
+    <div class="meta">
+      <div class="zh">青黛</div>
+      <div class="en">Ink Indigo</div>
+      <div class="note">dark · 水墨夜</div>
+    </div>
+  </div>
+</body></html>
