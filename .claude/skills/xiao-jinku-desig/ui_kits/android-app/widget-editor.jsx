@@ -4,6 +4,7 @@ const WIDGET_SIZES = [
   { key: "small",  label: "小",  pretty: "1×1" },
   { key: "medium", label: "中",  pretty: "2×1" },
   { key: "large",  label: "大",  pretty: "2×2" },
+  { key: "xlarge", label: "巨",  pretty: "4×4" },
 ];
 const CADENCES = [
   { key: 5,    label: "5 分钟" },
@@ -20,24 +21,31 @@ const TEXT_SCALES = [
 ];
 const BG_OPTIONS = [
   { key: "paper", label: "纸面" },
+  { key: "white", label: "留白" },
+  { key: "rice",  label: "米白" },
+  { key: "paperwhite", label: "纸白" },
   { key: "ink",   label: "墨色" },
   { key: "leaf",  label: "色彩" },
   { key: "photo", label: "照片", disabled: true, note: "未上传" },
 ];
 
 // ─────── In-preview widget (size-aware) ───────
-const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg }) => {
+const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg, cardOpacity = 1 }) => {
   const sizeMap = {
     small:  { w: 160, h: 160, qSize: 14, line: 1.6, lineClamp: 5 },
     medium: { w: 320, h: 156, qSize: 16, line: 1.65, lineClamp: 4 },
     large:  { w: 320, h: 320, qSize: 19, line: 1.8, lineClamp: 6 },
+    xlarge: { w: 340, h: 340, qSize: 22, line: 1.85, lineClamp: 9 },
   };
   const tsBoost = textScale === "large" ? 2 : textScale === "small" ? -2 : 0;
   const s = sizeMap[size];
 
   // Background fills — theme-aware via CSS vars
   const bgStyle = (() => {
-    if (bg === "paper") return { background: "var(--bg-raised)", color: "var(--fg-1)" };
+    if (bg === "paper")      return { background: "var(--bg-raised)", color: "var(--fg-1)" };
+    if (bg === "white")      return { background: "#ffffff", color: "#1f1d1a" };
+    if (bg === "rice")       return { background: "#f3ecda", color: "#2a2620" };
+    if (bg === "paperwhite") return { background: "#f7f6f1", color: "#26241f" };
     if (bg === "ink")   return { background: "var(--ink-900)",   color: "var(--bg-page)" };
     if (bg === "leaf")  return {
       background: "linear-gradient(155deg, var(--accent-soft) 0%, var(--accent) 55%, var(--accent-pressed) 100%)",
@@ -56,16 +64,23 @@ const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg }) => {
       style={{
         width: s.w, height: s.h,
         borderRadius: 28,
-        padding: size === "large" ? 24 : 18,
+        padding: size === "large" || size === "xlarge" ? 24 : 18,
         boxShadow: "0 10px 28px rgba(28,26,23,0.18)",
         display: "flex", flexDirection: "column", justifyContent: "space-between",
         fontFamily: "var(--serif-display)",
         overflow: "hidden",
         position: "relative",
-        ...bgStyle,
+        color: bgStyle.color,
       }}
     >
-      {size === "large" && (
+      {/* Background layer — opacity-adjustable so the home screen shows through */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 0,
+        background: bgStyle.background,
+        opacity: cardOpacity,
+      }} />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+      {(size === "large" || size === "xlarge") && (
         <div style={{
           fontFamily: "var(--sans-ui)", fontSize: 11, letterSpacing: "0.04em",
           opacity: 0.6,
@@ -91,6 +106,7 @@ const PreviewWidget = ({ size, quote, theme, textScale, showSource, bg }) => {
           marginTop: size === "small" ? 6 : 8,
         }}>— {quote.tag}</div>
       )}
+      </div>
     </div>
   );
 };
@@ -126,6 +142,22 @@ const ChipRow = ({ value, options, onChange }) => (
   </div>
 );
 
+// ─────── Opacity slider ───────
+const OpacitySlider = ({ value, onChange }) => (
+  <div className="opacity-slider" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <input
+      type="range" min={40} max={100} step={5}
+      value={Math.round(value * 100)}
+      onChange={e => onChange(Number(e.target.value) / 100)}
+      style={{ flex: 1, accentColor: "var(--ink-900)", height: 4 }}
+    />
+    <span style={{
+      fontFamily: "var(--sans-ui)", fontSize: 13, fontVariantNumeric: "tabular-nums",
+      color: "var(--fg-2)", minWidth: 40, textAlign: "right",
+    }}>{Math.round(value * 100)}%</span>
+  </div>
+);
+
 // ─────── Widget editor screen ───────
 const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
   const [size,       setSize]       = React.useState("medium");
@@ -134,6 +166,7 @@ const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
   const [showSource, setShowSource] = React.useState(true);
   const [textScale,  setTextScale]  = React.useState("normal");
   const [bg,         setBg]         = React.useState("paper");
+  const [cardOpacity, setCardOpacity] = React.useState(1);
 
   const filteredQuotes = source === "全部" ? quotes : quotes.filter(q => q.tag === source);
   const previewQ = filteredQuotes[0] || quotes[0];
@@ -152,15 +185,13 @@ const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
             <PreviewWidget
               size={size} quote={previewQ} theme={theme}
               textScale={textScale} showSource={showSource} bg={bg}
+              cardOpacity={cardOpacity}
             />
           </div>
         </div>
 
         <div className="section-h">尺寸</div>
         <Seg value={size}      options={WIDGET_SIZES} onChange={setSize} />
-
-        <div className="section-h">主题</div>
-        <ChipRow value={theme} options={THEMES.map(t => ({ key: t.key, label: t.name }))} onChange={onTheme} />
 
         <div className="section-h">字号</div>
         <Seg value={textScale} options={TEXT_SCALES}   onChange={setTextScale} />
@@ -173,6 +204,9 @@ const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
 
         <div className="section-h">背景</div>
         <ChipRow value={bg} options={BG_OPTIONS} onChange={setBg} />
+
+        <div className="section-h">卡片不透明度</div>
+        <OpacitySlider value={cardOpacity} onChange={setCardOpacity} />
 
         <div className="settings-group" style={{ marginTop: 16 }}>
           <SettingRow label="显示出处" sub="show attribution" toggle={showSource} onToggle={setShowSource} chev={false} />
@@ -193,6 +227,6 @@ const WidgetEditorScreen = ({ go, theme, onTheme, quotes }) => {
 };
 
 Object.assign(window, {
-  WidgetEditorScreen, PreviewWidget, Seg, ChipRow,
+  WidgetEditorScreen, PreviewWidget, Seg, ChipRow, OpacitySlider,
   WIDGET_SIZES, CADENCES, TEXT_SCALES, BG_OPTIONS,
 });

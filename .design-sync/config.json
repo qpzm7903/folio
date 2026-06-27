@@ -1,0 +1,8 @@
+{
+  "projectId": "e8d12aa9-3047-48f9-9a30-75441b21b756",
+  "projectName": "小金库 Design System",
+  "sourceDir": ".claude/skills/xiao-jinku-desig",
+  "shape": "package",
+  "namespace": "DesignSystem_e8d12a",
+  "lastSync": { "direction": "pull", "note": "remote was ahead; pulled into repo" }
+}

@@ -1,4 +1,4 @@
-// 小金库 — Screens (Library, Editor, Display, Settings, Widget editor, Import sheet)
+// 小金库 — Screens (Home/Library/Editor/Settings/Widget editor/Import sheet)
 
 // ─────────────────────────────────────────────────────────────
 // REAL CORPUS — provided by user
@@ -69,13 +69,93 @@ const useNoRepeatShuffle = (items) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Confirm dialog — small centered sheet
+// ─────────────────────────────────────────────────────────────
+const ConfirmDialog = ({ open, title, body, confirmLabel = "删除", danger = true, onConfirm, onCancel }) => {
+  if (!open) return null;
+  return (
+    <div className="confirm-scrim" onClick={onCancel}>
+      <div className="confirm-box" onClick={e => e.stopPropagation()}>
+        <div className="confirm-title">{title}</div>
+        {body && <div className="confirm-body">{body}</div>}
+        <div className="confirm-actions">
+          <button className="btn ghost" onClick={onCancel}>取消</button>
+          <button className={"btn" + (danger ? " danger" : "")} onClick={onConfirm}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
 // LIBRARY
 // ─────────────────────────────────────────────────────────────
-const LibraryScreen = ({ go, openSheet, quotes }) => {
+const LibraryScreen = ({ go, openSheet, quotes, tags, onDeleteQuotes, onDeleteTag }) => {
   const [tag, setTag] = React.useState("全部");
+  const [selecting, setSelecting] = React.useState(false);
+  const [picked, setPicked] = React.useState(() => new Set());
+  const [managingTags, setManagingTags] = React.useState(false);
+  const [confirm, setConfirm] = React.useState(null); // {type, ...}
+
+  // Reset selection when leaving select mode or changing filter
+  React.useEffect(() => { if (!selecting) setPicked(new Set()); }, [selecting]);
+
   const filtered = tag === "全部" ? quotes : quotes.filter(q => q.tag === tag);
-  const today = filtered[0] || quotes[0];
-  const rest = filtered.filter(q => q.id !== today?.id);
+  // In select mode the "today" card is folded into the list so everything is selectable
+  const today = !selecting ? (filtered[0] || quotes[0]) : null;
+  const rest = today ? filtered.filter(q => q.id !== today.id) : filtered;
+
+  const togglePick = (id) => setPicked(p => {
+    const n = new Set(p);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const allPicked = rest.length > 0 && rest.every(q => picked.has(q.id));
+  const toggleAll = () => setPicked(allPicked ? new Set() : new Set(rest.map(q => q.id)));
+
+  const doDeleteQuotes = () => {
+    onDeleteQuotes([...picked]);
+    setConfirm(null);
+    setSelecting(false);
+  };
+
+  // ── Select-mode header ──
+  if (selecting) {
+    return (
+      <React.Fragment>
+        <div className="topbar select-bar">
+          <button className="icon-btn" onClick={() => setSelecting(false)} aria-label="cancel"><Icon name="x" /></button>
+          <span className="select-count">{picked.size > 0 ? `已选 ${picked.size} 句` : "选择金句"}</span>
+          <button className="text-btn" onClick={toggleAll}>{allPicked ? "取消全选" : "全选"}</button>
+        </div>
+        <div className="content">
+          {rest.map(q => (
+            <QuoteCard key={q.id} quote={q.q} source={q.tag} date={q.date}
+              selectable selected={picked.has(q.id)} onToggle={() => togglePick(q.id)} />
+          ))}
+          {rest.length === 0 && <div className="empty-note">这个标签下还没有金句。</div>}
+          <div style={{ height: 90 }} />
+        </div>
+        <div className="action-bar">
+          <button className="btn danger block" disabled={picked.size === 0}
+            style={{ opacity: picked.size === 0 ? 0.4 : 1 }}
+            onClick={() => setConfirm({ type: "quotes" })}>
+            <Icon name="trash-2" size={18} /> 取出 {picked.size > 0 ? picked.size : ""} 句
+          </button>
+        </div>
+        <ConfirmDialog
+          open={confirm?.type === "quotes"}
+          title={`从金库取出这 ${picked.size} 句？`}
+          body="取出后将不再出现在首页和组件里。"
+          confirmLabel="取出"
+          onConfirm={doDeleteQuotes}
+          onCancel={() => setConfirm(null)}
+        />
+      </React.Fragment>
+    );
+  }
+
+  // ── Normal header ──
   return (
     <React.Fragment>
       <TopBar
@@ -83,7 +163,7 @@ const LibraryScreen = ({ go, openSheet, quotes }) => {
         subtitle="est. 2026"
         actions={[
           { icon: "search", label: "搜索" },
-          { icon: "more-horizontal", label: "更多" },
+          { icon: "check-square", label: "多选", onClick: () => setSelecting(true) },
         ]}
       />
       <div className="content">
@@ -96,10 +176,22 @@ const LibraryScreen = ({ go, openSheet, quotes }) => {
           <span>你的金库</span>
           <span className="ct">{quotes.length} 句</span>
         </div>
+
         <div className="tag-row">
-          {TAGS.map(t => (
-            <span key={t} className={"tag" + (t === tag ? " active" : "")} onClick={() => setTag(t)}>{t}</span>
-          ))}
+          {tags.map(t => {
+            const removable = managingTags && t !== "全部";
+            return (
+              <span key={t} className={"tag" + (t === tag ? " active" : "") + (removable ? " removable" : "")}
+                onClick={() => removable ? setConfirm({ type: "tag", tag: t }) : setTag(t)}>
+                {t}
+                {removable && <span className="tag-x"><Icon name="x" size={12} /></span>}
+              </span>
+            );
+          })}
+          <span className="tag manage-tag" onClick={() => setManagingTags(m => !m)}>
+            <Icon name={managingTags ? "check" : "pencil"} size={12} />
+            {managingTags ? " 完成" : " 管理"}
+          </span>
         </div>
 
         {rest.map(q => (
@@ -109,6 +201,15 @@ const LibraryScreen = ({ go, openSheet, quotes }) => {
       </div>
       <Fab onClick={() => go("editor")} />
       <BottomNav current="library" onChange={go} />
+
+      <ConfirmDialog
+        open={confirm?.type === "tag"}
+        title={`删除标签「${confirm?.tag}」？`}
+        body="标签下的金句会移到「未分类」，不会被删除。"
+        confirmLabel="删除标签"
+        onConfirm={() => { onDeleteTag(confirm.tag); if (tag === confirm.tag) setTag("全部"); setConfirm(null); }}
+        onCancel={() => setConfirm(null)}
+      />
     </React.Fragment>
   );
 };
@@ -149,7 +250,7 @@ const EditorScreen = ({ go, onSave, openSheet }) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// DISPLAY — full-screen, no-repeat shuffle, no seal
+// 首页 HOME — full-screen, no-repeat shuffle, switchable layouts
 // ─────────────────────────────────────────────────────────────
 const DisplayScreen = ({ go, quotes }) => {
   const [withPhoto, setWithPhoto] = React.useState(false);
@@ -170,11 +271,6 @@ const DisplayScreen = ({ go, quotes }) => {
       )}
       <div className="grain" />
 
-      <button className="icon-btn" onClick={() => go("library")}
-        style={{ position: "absolute", top: 48, left: 16, zIndex: 5, color: withPhoto ? "#fff" : undefined }}>
-        <Icon name="chevron-left" size={22} />
-      </button>
-
       {/* Layout name — appears top-right, fades after 1.5s */}
       <div className={"layout-pip" + (withPhoto ? " on-photo" : "")} key={"pip-" + layoutIdx}>
         {layout.label} · <em>{layout.name}</em>
@@ -184,7 +280,7 @@ const DisplayScreen = ({ go, quotes }) => {
         <LayoutComp quote={current} />
       </div>
 
-      <div className="display-controls">
+      <div className="display-controls" style={{ bottom: 84 }}>
         <button className="dctl" onClick={advance} aria-label="next"><Icon name="shuffle" /></button>
         <button className="dctl" onClick={() => setLayoutIdx(i => (i + 1) % LAYOUTS.length)} aria-label="layout">
           <span className="layout-glyph">{layout.label}</span>
@@ -192,6 +288,8 @@ const DisplayScreen = ({ go, quotes }) => {
         <button className="dctl" onClick={() => setWithPhoto(p => !p)} aria-label="photo"><Icon name="image" /></button>
         <button className="dctl" aria-label="save"><Icon name="bookmark" /></button>
       </div>
+
+      <BottomNav current="display" onChange={go} />
     </div>
   );
 };
@@ -205,9 +303,9 @@ const SettingsScreen = ({ go, theme, onTheme }) => {
   const [showSrc, setShowSrc]   = React.useState(true);
   return (
     <React.Fragment>
-      <TopBar title="设置" subtitle="settings" />
+      <TopBar title="我的" subtitle="profile" />
       <div className="content">
-        <div className="section-h">屏保 / 小组件</div>
+        <div className="section-h">小组件</div>
         <SettingsGroup>
           <SettingRow label="自定义小组件" sub="尺寸、频率、来源、字号" chev onClick={() => go("widget")} />
           <SettingRow label="更换频率" sub="一句话停留多久" value={cadence} chev />
@@ -281,6 +379,6 @@ const ImportSheet = ({ open, onClose, onImport }) => {
 };
 
 Object.assign(window, {
-  SEED_QUOTES, TAGS, shuffleArr, useNoRepeatShuffle,
+  SEED_QUOTES, TAGS, shuffleArr, useNoRepeatShuffle, ConfirmDialog,
   LibraryScreen, EditorScreen, DisplayScreen, SettingsScreen, ImportSheet,
 });

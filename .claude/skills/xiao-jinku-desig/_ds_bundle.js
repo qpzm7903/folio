@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":3,"namespace":"DesignSystem_e8d12a","components":[],"sourceHashes":{"ui_kits/android-app/app.jsx":"e2cb4d33bed8","ui_kits/android-app/components.jsx":"ff297d27c602","ui_kits/android-app/display-layouts.jsx":"71e1a28ca0f2","ui_kits/android-app/screens.jsx":"5e526ed8917c","ui_kits/android-app/widget-editor.jsx":"89f3a5600033","ui_kits/android-widgets/widgets.jsx":"cbb55b3d29f9"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":3,"namespace":"DesignSystem_e8d12a","components":[],"sourceHashes":{"ui_kits/android-app/app.jsx":"073ec1973e51","ui_kits/android-app/components.jsx":"a6ceb28f82da","ui_kits/android-app/display-layouts.jsx":"c035adad0a19","ui_kits/android-app/screens.jsx":"4444ca579bad","ui_kits/android-app/widget-editor.jsx":"c9cf97fed550","ui_kits/android-widgets/widgets.jsx":"cbb55b3d29f9"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -26,12 +26,12 @@ const App = () => /*#__PURE__*/React.createElement("div", {
     backgroundSize: "240px 240px"
   }
 }, /*#__PURE__*/React.createElement(PhoneApp, {
-  initialTheme: "cinnabar",
+  initialTheme: "paper",
   initialScreen: "display",
-  label: "\u7EDB\u971E \xB7 Cinnabar"
+  label: "\u9752\u7EB8 \xB7 \u9996\u9875\uFF08\u9996\u9875 / \u91D1\u5E93 / \u6211\u7684\uFF09"
 }), /*#__PURE__*/React.createElement(PhoneApp, {
   initialTheme: "dai",
-  initialScreen: "display",
+  initialScreen: "library",
   label: "\u9752\u9EDB \xB7 Ink Indigo"
 }));
 const PhoneApp = ({
@@ -43,20 +43,41 @@ const PhoneApp = ({
   const [screen, setScreen] = React.useState(initialScreen);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [quotes, setQuotes] = React.useState(SEED_QUOTES);
-  const onSave = (q, src) => setQuotes(qs => [{
-    id: Date.now(),
-    q,
-    tag: src || "未分类",
-    src: "—",
-    date: "刚刚"
-  }, ...qs]);
-  const onImport = lines => setQuotes(qs => [...lines.map((l, i) => ({
-    id: Date.now() + i,
-    q: l,
-    tag: "导入",
-    src: "—",
-    date: "刚刚"
-  })), ...qs]);
+  const [tags, setTags] = React.useState(TAGS);
+  const onSave = (q, src) => {
+    const tag = src || "未分类";
+    setQuotes(qs => [{
+      id: Date.now(),
+      q,
+      tag,
+      src: "—",
+      date: "刚刚"
+    }, ...qs]);
+    setTags(ts => ts.includes(tag) ? ts : [...ts, tag]);
+  };
+  const onImport = lines => {
+    setQuotes(qs => [...lines.map((l, i) => ({
+      id: Date.now() + i,
+      q: l,
+      tag: "导入",
+      src: "—",
+      date: "刚刚"
+    })), ...qs]);
+    setTags(ts => ts.includes("导入") ? ts : [...ts, "导入"]);
+  };
+  // Batch remove quotes by id
+  const onDeleteQuotes = ids => {
+    const kill = new Set(ids);
+    setQuotes(qs => qs.filter(q => !kill.has(q.id)));
+  };
+  // Remove a tag: its quotes fall back to 未分类
+  const onDeleteTag = t => {
+    setQuotes(qs => qs.map(q => q.tag === t ? {
+      ...q,
+      tag: "未分类"
+    } : q));
+    setTags(ts => ts.filter(x => x !== t));
+  };
   return /*#__PURE__*/React.createElement(Phone, {
     theme: theme,
     label: label
@@ -71,7 +92,10 @@ const PhoneApp = ({
   }, screen === "library" && /*#__PURE__*/React.createElement(LibraryScreen, {
     go: setScreen,
     openSheet: () => setSheetOpen(true),
-    quotes: quotes
+    quotes: quotes,
+    tags: tags,
+    onDeleteQuotes: onDeleteQuotes,
+    onDeleteTag: onDeleteTag
   }), screen === "editor" && /*#__PURE__*/React.createElement(EditorScreen, {
     go: setScreen,
     onSave: onSave,
@@ -263,21 +287,17 @@ const BottomNav = ({
   onChange
 }) => {
   const items = [{
+    key: "display",
+    icon: "home",
+    label: "首页"
+  }, {
     key: "library",
     icon: "book-open",
     label: "金库"
   }, {
-    key: "display",
-    icon: "sparkles",
-    label: "屏保"
-  }, {
-    key: "widget",
-    icon: "layout-grid",
-    label: "组件"
-  }, {
     key: "settings",
-    icon: "settings",
-    label: "设置"
+    icon: "user-round",
+    label: "我的"
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "bottom-nav"
@@ -292,22 +312,32 @@ const BottomNav = ({
 };
 
 // ─────────────────────────────────────────────────────────────
-// Quote card
+// Quote card  (supports multi-select mode)
 // ─────────────────────────────────────────────────────────────
 const QuoteCard = ({
   quote,
   source,
   date,
   variant = "default",
-  onClick
+  onClick,
+  selectable = false,
+  selected = false,
+  onToggle
 }) => /*#__PURE__*/React.createElement("div", {
-  className: "quote-card" + (variant === "dark" ? " dark" : ""),
-  onClick: onClick
+  className: "quote-card" + (variant === "dark" ? " dark" : "") + (selectable ? " selectable" : "") + (selected ? " selected" : ""),
+  onClick: selectable ? onToggle : onClick
+}, selectable && /*#__PURE__*/React.createElement("span", {
+  className: "qcheck" + (selected ? " on" : "")
+}, selected && /*#__PURE__*/React.createElement(Icon, {
+  name: "check",
+  size: 13
+})), /*#__PURE__*/React.createElement("div", {
+  className: "qbody"
 }, /*#__PURE__*/React.createElement("div", {
   className: "q"
 }, quote), /*#__PURE__*/React.createElement("div", {
   className: "qmeta"
-}, /*#__PURE__*/React.createElement("span", null, source && /*#__PURE__*/React.createElement("em", null, source)), /*#__PURE__*/React.createElement("span", null, date)));
+}, /*#__PURE__*/React.createElement("span", null, source && /*#__PURE__*/React.createElement("em", null, source)), /*#__PURE__*/React.createElement("span", null, date))));
 
 // ─────────────────────────────────────────────────────────────
 // Setting row
@@ -399,13 +429,11 @@ Object.assign(window, {
 
 // ui_kits/android-app/display-layouts.jsx
 try { (() => {
-// 小金库 · Folio — Screensaver layout variants
+// 小金库 · Folio — 首页 (Home) layout variants
 //
-// Each layout is a different "page" of the wallpaper experience.
-// All assume the SAFE ZONES on a phone home / lock screen:
-//   • Top ~120px is taken by the system clock + status bar
-//   • Bottom ~120px is taken by the dock / unlock indicator
-//   • The MIDDLE BAND is where our type lives.
+// Each layout is a different "page" of the home / wallpaper experience.
+// They share .ds-layout (base) + a per-layout class defined in kit.css.
+// The MIDDLE BAND is where our type lives.
 
 const LAYOUTS = [{
   key: "page",
@@ -418,15 +446,15 @@ const LAYOUTS = [{
 }, {
   key: "pull",
   label: "引",
-  name: "Pull-quote"
+  name: "Pull"
 }, {
   key: "lockscreen",
   label: "时",
-  name: "Lock screen"
+  name: "Lock"
 }, {
   key: "fullbleed",
   label: "满",
-  name: "Full bleed"
+  name: "Fullbleed"
 }, {
   key: "stamped",
   label: "印",
@@ -438,69 +466,67 @@ const LAYOUTS = [{
 }, {
   key: "card",
   label: "片",
-  name: "Card on field"
+  name: "Card"
 }, {
   key: "interleave",
   label: "织",
   name: "Interleaved"
 }];
 
-// Roman numeral for a tiny "edition" mark
-const toRoman = n => {
-  const m = [["X", 10], ["IX", 9], ["V", 5], ["IV", 4], ["I", 1]];
-  let s = "",
-    x = (n - 1) % 30 + 1;
-  for (const [c, v] of m) while (x >= v) {
-    s += c;
-    x -= v;
-  }
-  return s;
-};
-
-// ── Length tier ──────────────────────────────────────────────
-// Chinese char count → a tier that drives a CSS --q-scale multiplier.
-// Short quotes get big type; long quotes step down so they always fit.
-const lengthTier = text => {
-  const n = [...(text || "")].length;
+// ─────── Helpers ───────
+// Length tier drives --q-scale in CSS so long quotes step down to fit.
+const lengthTier = q => {
+  const n = (q || "").length;
   if (n <= 10) return "tiny";
-  if (n <= 18) return "short";
-  if (n <= 30) return "medium";
-  if (n <= 46) return "long";
+  if (n <= 16) return "short";
+  if (n <= 26) return "medium";
+  if (n <= 40) return "long";
   return "xlong";
 };
-
-// Tiny decorative leaf — used in Lockscreen layout
+const toRoman = num => {
+  const map = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let n = num,
+    out = "";
+  for (const [v, s] of map) while (n >= v) {
+    out += s;
+    n -= v;
+  }
+  return out || "I";
+};
 const LeafSVG = ({
-  size = 100,
-  opacity = 0.12
+  size = 40
 }) => /*#__PURE__*/React.createElement("svg", {
-  viewBox: "0 0 100 100",
   width: size,
   height: size,
-  style: {
-    position: "absolute",
-    opacity,
-    pointerEvents: "none"
-  }
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "1.3",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
 }, /*#__PURE__*/React.createElement("path", {
-  d: "M50 5 Q 90 30 75 70 Q 50 95 25 70 Q 10 30 50 5 Z",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: "1"
+  d: "M11 20A7 7 0 0 1 4 13C4 7 9 3 20 3c0 9-4 14-9 14a7 7 0 0 1-7-7Z"
 }), /*#__PURE__*/React.createElement("path", {
-  d: "M50 5 Q 50 50 50 95",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: "0.6"
-}), /*#__PURE__*/React.createElement("path", {
-  d: "M50 25 Q 65 30 70 45 M50 25 Q 35 30 30 45 M50 50 Q 70 55 75 70 M50 50 Q 30 55 25 70 M50 75 Q 60 80 62 90 M50 75 Q 40 80 38 90",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: "0.5"
+  d: "M2 22c4-5 7-8 12-10"
 }));
 
+// Split a Chinese quote into clauses at punctuation (keeps the mark).
+const clauses = q => {
+  const segs = [];
+  let buf = "";
+  for (const ch of q || "") {
+    buf += ch;
+    if ("，。！？；、".includes(ch)) {
+      segs.push(buf);
+      buf = "";
+    }
+  }
+  if (buf) segs.push(buf);
+  return segs.length ? segs : [q];
+};
+
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 1: 页 Page — looks like a single page of a book
+// LAYOUT 1: 页 Page
 // ─────────────────────────────────────────────────────────────
 const LayoutPage = ({
   quote
@@ -509,11 +535,11 @@ const LayoutPage = ({
   "data-len": lengthTier(quote.q)
 }, /*#__PURE__*/React.createElement("div", {
   className: "ds-page-head"
-}, /*#__PURE__*/React.createElement("span", null, "no. ", /*#__PURE__*/React.createElement("em", null, toRoman(quote.id))), /*#__PURE__*/React.createElement("span", {
-  className: "rule"
-}), /*#__PURE__*/React.createElement("span", {
+}, /*#__PURE__*/React.createElement("span", {
   className: "cat"
-}, quote.tag)), /*#__PURE__*/React.createElement("div", {
+}, quote.tag), /*#__PURE__*/React.createElement("span", {
+  className: "rule"
+}), /*#__PURE__*/React.createElement("em", null, "\u91D1\u53E5")), /*#__PURE__*/React.createElement("div", {
   className: "ds-page-body"
 }, /*#__PURE__*/React.createElement("div", {
   className: "ds-page-quote"
@@ -523,10 +549,10 @@ const LayoutPage = ({
   className: "rule"
 }), /*#__PURE__*/React.createElement("span", {
   className: "foot-meta"
-}, "\u4E94\u6708 \xB7 MMXXVI")));
+}, quote.date)));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 2: 竖 Vertical — Chinese traditional vertical typesetting
+// LAYOUT 2: 竖 Vertical
 // ─────────────────────────────────────────────────────────────
 const LayoutVertical = ({
   quote
@@ -534,10 +560,10 @@ const LayoutVertical = ({
   className: "ds-layout ds-vertical",
   "data-len": lengthTier(quote.q)
 }, /*#__PURE__*/React.createElement("div", {
-  className: "ds-vert-rule"
-}), /*#__PURE__*/React.createElement("div", {
   className: "ds-vert-quote"
 }, quote.q), /*#__PURE__*/React.createElement("div", {
+  className: "ds-vert-rule"
+}), /*#__PURE__*/React.createElement("div", {
   className: "ds-vert-meta"
 }, /*#__PURE__*/React.createElement("span", {
   className: "ds-vert-cat"
@@ -546,34 +572,29 @@ const LayoutVertical = ({
 }, "\u91D1")));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 3: 引 Pull-quote — oversized 「 」 brackets
+// LAYOUT 3: 引 Pull-quote
 // ─────────────────────────────────────────────────────────────
 const LayoutPull = ({
   quote
-}) => {
-  // Split into ~2 lines on a comma if available, for breath
-  const parts = quote.q.includes("，") ? quote.q.split(/，/) : [quote.q];
-  return /*#__PURE__*/React.createElement("div", {
-    className: "ds-layout ds-pull",
-    "data-len": lengthTier(quote.q)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ds-pull-open"
-  }, "\u300C"), /*#__PURE__*/React.createElement("div", {
-    className: "ds-pull-body"
-  }, parts.map((p, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    className: "ds-pull-line"
-  }, p, i < parts.length - 1 ? "，" : ""))), /*#__PURE__*/React.createElement("div", {
-    className: "ds-pull-foot"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "ds-pull-attr"
-  }, /*#__PURE__*/React.createElement("em", null, quote.tag)), /*#__PURE__*/React.createElement("span", {
-    className: "ds-pull-close"
-  }, "\u300D")));
-};
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "ds-layout ds-pull",
+  "data-len": lengthTier(quote.q)
+}, /*#__PURE__*/React.createElement("div", {
+  className: "ds-pull-open"
+}, "\u201C"), /*#__PURE__*/React.createElement("div", {
+  className: "ds-pull-body"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "ds-pull-line"
+}, quote.q)), /*#__PURE__*/React.createElement("div", {
+  className: "ds-pull-foot"
+}, /*#__PURE__*/React.createElement("span", {
+  className: "ds-pull-attr"
+}, quote.tag), /*#__PURE__*/React.createElement("span", {
+  className: "ds-pull-close"
+}, "\u201D")));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 4: 时 Lock screen — clock + date prominent, quote as caption
+// LAYOUT 4: 时 Lock screen
 // ─────────────────────────────────────────────────────────────
 const LayoutLockscreen = ({
   quote
@@ -586,21 +607,20 @@ const LayoutLockscreen = ({
   className: "ds-lock-clock"
 }, "9:41"), /*#__PURE__*/React.createElement("div", {
   className: "ds-lock-date"
-}, "\u4E94\u6708\u4E8C\u5341\u56DB\u65E5 \xB7 \u5468\u516D")), /*#__PURE__*/React.createElement("div", {
+}, quote.date, " \xB7 \u5468\u4E94")), /*#__PURE__*/React.createElement("div", {
   className: "ds-lock-leaf"
 }, /*#__PURE__*/React.createElement(LeafSVG, {
-  size: 220,
-  opacity: 0.10
+  size: 120
 })), /*#__PURE__*/React.createElement("div", {
   className: "ds-lock-caption"
 }, /*#__PURE__*/React.createElement("div", {
   className: "ds-lock-quote"
 }, quote.q), /*#__PURE__*/React.createElement("div", {
   className: "ds-lock-attr"
-}, "\u2014 ", /*#__PURE__*/React.createElement("em", null, quote.tag))));
+}, "\u2014 ", quote.tag)));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 5: 满 Full bleed — the quote IS the wallpaper
+// LAYOUT 5: 满 Full bleed
 // ─────────────────────────────────────────────────────────────
 const LayoutFullbleed = ({
   quote
@@ -611,7 +631,7 @@ const LayoutFullbleed = ({
   className: "ds-full-quote"
 }, quote.q), /*#__PURE__*/React.createElement("div", {
   className: "ds-full-attr"
-}, "\u2014 ", /*#__PURE__*/React.createElement("em", null, quote.tag)));
+}, "\u2014 ", quote.tag));
 
 // ─────────────────────────────────────────────────────────────
 // LAYOUT 6: 印 Stamped — first character is a giant matcha seal
@@ -636,11 +656,11 @@ const LayoutStamped = ({
     className: "ds-stamped-body"
   }, rest)), /*#__PURE__*/React.createElement("div", {
     className: "ds-stamped-foot"
-  }, "\u4E94\u6708 \xB7 MMXXVI"));
+  }, quote.date));
 };
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 7: 条 Ribbon — Quote crosses a horizontal cream ribbon
+// LAYOUT 7: 条 Ribbon
 // ─────────────────────────────────────────────────────────────
 const LayoutRibbon = ({
   quote
@@ -651,12 +671,12 @@ const LayoutRibbon = ({
   className: "ds-ribbon-band"
 }, /*#__PURE__*/React.createElement("div", {
   className: "ds-ribbon-cat"
-}, "\u2014 ", quote.tag, " \u2014"), /*#__PURE__*/React.createElement("div", {
+}, quote.tag), /*#__PURE__*/React.createElement("div", {
   className: "ds-ribbon-quote"
 }, quote.q)));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 8: 片 Card on field — small card floating on textured field
+// LAYOUT 8: 片 Card on field
 // ─────────────────────────────────────────────────────────────
 const LayoutCard = ({
   quote
@@ -667,13 +687,13 @@ const LayoutCard = ({
   className: "ds-card-field"
 }), /*#__PURE__*/React.createElement("div", {
   className: "ds-card-paper"
-}, /*#__PURE__*/React.createElement("div", {
+}, /*#__PURE__*/React.createElement("span", {
   className: "ds-card-corner ds-card-corner-tl"
-}), /*#__PURE__*/React.createElement("div", {
+}), /*#__PURE__*/React.createElement("span", {
   className: "ds-card-corner ds-card-corner-tr"
-}), /*#__PURE__*/React.createElement("div", {
+}), /*#__PURE__*/React.createElement("span", {
   className: "ds-card-corner ds-card-corner-bl"
-}), /*#__PURE__*/React.createElement("div", {
+}), /*#__PURE__*/React.createElement("span", {
   className: "ds-card-corner ds-card-corner-br"
 }), /*#__PURE__*/React.createElement("div", {
   className: "ds-card-cat"
@@ -686,27 +706,26 @@ const LayoutCard = ({
 }, "\u5C0F\u91D1\u5E93 \xB7 ", /*#__PURE__*/React.createElement("em", null, "Folio"))));
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 9: 织 Interleaved — quote interleaved with romanized echo
+// LAYOUT 9: 织 Interleaved — index number + clauses on hairlines
 // ─────────────────────────────────────────────────────────────
 const LayoutInterleave = ({
   quote
 }) => {
-  // Split quote at the comma if available
-  const parts = quote.q.includes("，") ? quote.q.split(/，/) : [quote.q];
+  const parts = clauses(quote.q);
   return /*#__PURE__*/React.createElement("div", {
     className: "ds-layout ds-interleave",
     "data-len": lengthTier(quote.q)
   }, /*#__PURE__*/React.createElement("div", {
     className: "ds-inter-num"
-  }, String(quote.id).padStart(2, "0")), /*#__PURE__*/React.createElement("div", {
+  }, toRoman(quote.id)), /*#__PURE__*/React.createElement("div", {
     className: "ds-inter-body"
   }, parts.map((p, i) => /*#__PURE__*/React.createElement(React.Fragment, {
     key: i
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ds-inter-line"
-  }, p, i < parts.length - 1 ? "，" : ""), i < parts.length - 1 && /*#__PURE__*/React.createElement("div", {
+  }, i > 0 && /*#__PURE__*/React.createElement("div", {
     className: "ds-inter-rule"
-  })))), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "ds-inter-line"
+  }, p)))), /*#__PURE__*/React.createElement("div", {
     className: "ds-inter-foot"
   }, /*#__PURE__*/React.createElement("span", {
     className: "ds-inter-cat"
@@ -734,7 +753,7 @@ Object.assign(window, {
 
 // ui_kits/android-app/screens.jsx
 try { (() => {
-// 小金库 — Screens (Library, Editor, Display, Settings, Widget editor, Import sheet)
+// 小金库 — Screens (Home/Library/Editor/Settings/Widget editor/Import sheet)
 
 // ─────────────────────────────────────────────────────────────
 // REAL CORPUS — provided by user
@@ -856,17 +875,133 @@ const useNoRepeatShuffle = items => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Confirm dialog — small centered sheet
+// ─────────────────────────────────────────────────────────────
+const ConfirmDialog = ({
+  open,
+  title,
+  body,
+  confirmLabel = "删除",
+  danger = true,
+  onConfirm,
+  onCancel
+}) => {
+  if (!open) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "confirm-scrim",
+    onClick: onCancel
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "confirm-box",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "confirm-title"
+  }, title), body && /*#__PURE__*/React.createElement("div", {
+    className: "confirm-body"
+  }, body), /*#__PURE__*/React.createElement("div", {
+    className: "confirm-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn ghost",
+    onClick: onCancel
+  }, "\u53D6\u6D88"), /*#__PURE__*/React.createElement("button", {
+    className: "btn" + (danger ? " danger" : ""),
+    onClick: onConfirm
+  }, confirmLabel))));
+};
+
+// ─────────────────────────────────────────────────────────────
 // LIBRARY
 // ─────────────────────────────────────────────────────────────
 const LibraryScreen = ({
   go,
   openSheet,
-  quotes
+  quotes,
+  tags,
+  onDeleteQuotes,
+  onDeleteTag
 }) => {
   const [tag, setTag] = React.useState("全部");
+  const [selecting, setSelecting] = React.useState(false);
+  const [picked, setPicked] = React.useState(() => new Set());
+  const [managingTags, setManagingTags] = React.useState(false);
+  const [confirm, setConfirm] = React.useState(null); // {type, ...}
+
+  // Reset selection when leaving select mode or changing filter
+  React.useEffect(() => {
+    if (!selecting) setPicked(new Set());
+  }, [selecting]);
   const filtered = tag === "全部" ? quotes : quotes.filter(q => q.tag === tag);
-  const today = filtered[0] || quotes[0];
-  const rest = filtered.filter(q => q.id !== today?.id);
+  // In select mode the "today" card is folded into the list so everything is selectable
+  const today = !selecting ? filtered[0] || quotes[0] : null;
+  const rest = today ? filtered.filter(q => q.id !== today.id) : filtered;
+  const togglePick = id => setPicked(p => {
+    const n = new Set(p);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const allPicked = rest.length > 0 && rest.every(q => picked.has(q.id));
+  const toggleAll = () => setPicked(allPicked ? new Set() : new Set(rest.map(q => q.id)));
+  const doDeleteQuotes = () => {
+    onDeleteQuotes([...picked]);
+    setConfirm(null);
+    setSelecting(false);
+  };
+
+  // ── Select-mode header ──
+  if (selecting) {
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "topbar select-bar"
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "icon-btn",
+      onClick: () => setSelecting(false),
+      "aria-label": "cancel"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "x"
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "select-count"
+    }, picked.size > 0 ? `已选 ${picked.size} 句` : "选择金句"), /*#__PURE__*/React.createElement("button", {
+      className: "text-btn",
+      onClick: toggleAll
+    }, allPicked ? "取消全选" : "全选")), /*#__PURE__*/React.createElement("div", {
+      className: "content"
+    }, rest.map(q => /*#__PURE__*/React.createElement(QuoteCard, {
+      key: q.id,
+      quote: q.q,
+      source: q.tag,
+      date: q.date,
+      selectable: true,
+      selected: picked.has(q.id),
+      onToggle: () => togglePick(q.id)
+    })), rest.length === 0 && /*#__PURE__*/React.createElement("div", {
+      className: "empty-note"
+    }, "\u8FD9\u4E2A\u6807\u7B7E\u4E0B\u8FD8\u6CA1\u6709\u91D1\u53E5\u3002"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: 90
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "action-bar"
+    }, /*#__PURE__*/React.createElement("button", {
+      className: "btn danger block",
+      disabled: picked.size === 0,
+      style: {
+        opacity: picked.size === 0 ? 0.4 : 1
+      },
+      onClick: () => setConfirm({
+        type: "quotes"
+      })
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash-2",
+      size: 18
+    }), " \u53D6\u51FA ", picked.size > 0 ? picked.size : "", " \u53E5")), /*#__PURE__*/React.createElement(ConfirmDialog, {
+      open: confirm?.type === "quotes",
+      title: `从金库取出这 ${picked.size} 句？`,
+      body: "\u53D6\u51FA\u540E\u5C06\u4E0D\u518D\u51FA\u73B0\u5728\u9996\u9875\u548C\u7EC4\u4EF6\u91CC\u3002",
+      confirmLabel: "\u53D6\u51FA",
+      onConfirm: doDeleteQuotes,
+      onCancel: () => setConfirm(null)
+    }));
+  }
+
+  // ── Normal header ──
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(TopBar, {
     title: "\u5C0F\u91D1\u5E93",
     subtitle: "est. 2026",
@@ -874,8 +1009,9 @@ const LibraryScreen = ({
       icon: "search",
       label: "搜索"
     }, {
-      icon: "more-horizontal",
-      label: "更多"
+      icon: "check-square",
+      label: "多选",
+      onClick: () => setSelecting(true)
     }]
   }), /*#__PURE__*/React.createElement("div", {
     className: "content"
@@ -898,11 +1034,28 @@ const LibraryScreen = ({
     className: "ct"
   }, quotes.length, " \u53E5")), /*#__PURE__*/React.createElement("div", {
     className: "tag-row"
-  }, TAGS.map(t => /*#__PURE__*/React.createElement("span", {
-    key: t,
-    className: "tag" + (t === tag ? " active" : ""),
-    onClick: () => setTag(t)
-  }, t))), rest.map(q => /*#__PURE__*/React.createElement(QuoteCard, {
+  }, tags.map(t => {
+    const removable = managingTags && t !== "全部";
+    return /*#__PURE__*/React.createElement("span", {
+      key: t,
+      className: "tag" + (t === tag ? " active" : "") + (removable ? " removable" : ""),
+      onClick: () => removable ? setConfirm({
+        type: "tag",
+        tag: t
+      }) : setTag(t)
+    }, t, removable && /*#__PURE__*/React.createElement("span", {
+      className: "tag-x"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "x",
+      size: 12
+    })));
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "tag manage-tag",
+    onClick: () => setManagingTags(m => !m)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: managingTags ? "check" : "pencil",
+    size: 12
+  }), managingTags ? " 完成" : " 管理")), rest.map(q => /*#__PURE__*/React.createElement(QuoteCard, {
     key: q.id,
     quote: q.q,
     source: q.tag,
@@ -916,6 +1069,17 @@ const LibraryScreen = ({
   }), /*#__PURE__*/React.createElement(BottomNav, {
     current: "library",
     onChange: go
+  }), /*#__PURE__*/React.createElement(ConfirmDialog, {
+    open: confirm?.type === "tag",
+    title: `删除标签「${confirm?.tag}」？`,
+    body: "\u6807\u7B7E\u4E0B\u7684\u91D1\u53E5\u4F1A\u79FB\u5230\u300C\u672A\u5206\u7C7B\u300D\uFF0C\u4E0D\u4F1A\u88AB\u5220\u9664\u3002",
+    confirmLabel: "\u5220\u9664\u6807\u7B7E",
+    onConfirm: () => {
+      onDeleteTag(confirm.tag);
+      if (tag === confirm.tag) setTag("全部");
+      setConfirm(null);
+    },
+    onCancel: () => setConfirm(null)
   }));
 };
 
@@ -981,7 +1145,7 @@ const EditorScreen = ({
 };
 
 // ─────────────────────────────────────────────────────────────
-// DISPLAY — full-screen, no-repeat shuffle, no seal
+// 首页 HOME — full-screen, no-repeat shuffle, switchable layouts
 // ─────────────────────────────────────────────────────────────
 const DisplayScreen = ({
   go,
@@ -1009,20 +1173,7 @@ const DisplayScreen = ({
     }
   }), /*#__PURE__*/React.createElement("div", {
     className: "grain"
-  }), /*#__PURE__*/React.createElement("button", {
-    className: "icon-btn",
-    onClick: () => go("library"),
-    style: {
-      position: "absolute",
-      top: 48,
-      left: 16,
-      zIndex: 5,
-      color: withPhoto ? "#fff" : undefined
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "chevron-left",
-    size: 22
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "layout-pip" + (withPhoto ? " on-photo" : ""),
     key: "pip-" + layoutIdx
   }, layout.label, " \xB7 ", /*#__PURE__*/React.createElement("em", null, layout.name)), /*#__PURE__*/React.createElement("div", {
@@ -1031,7 +1182,10 @@ const DisplayScreen = ({
   }, /*#__PURE__*/React.createElement(LayoutComp, {
     quote: current
   })), /*#__PURE__*/React.createElement("div", {
-    className: "display-controls"
+    className: "display-controls",
+    style: {
+      bottom: 84
+    }
   }, /*#__PURE__*/React.createElement("button", {
     className: "dctl",
     onClick: advance,
@@ -1055,7 +1209,10 @@ const DisplayScreen = ({
     "aria-label": "save"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "bookmark"
-  }))));
+  }))), /*#__PURE__*/React.createElement(BottomNav, {
+    current: "display",
+    onChange: go
+  }));
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -1070,13 +1227,13 @@ const SettingsScreen = ({
   const [shuffle, setShuffle] = React.useState(true);
   const [showSrc, setShowSrc] = React.useState(true);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(TopBar, {
-    title: "\u8BBE\u7F6E",
-    subtitle: "settings"
+    title: "\u6211\u7684",
+    subtitle: "profile"
   }), /*#__PURE__*/React.createElement("div", {
     className: "content"
   }, /*#__PURE__*/React.createElement("div", {
     className: "section-h"
-  }, "\u5C4F\u4FDD / \u5C0F\u7EC4\u4EF6"), /*#__PURE__*/React.createElement(SettingsGroup, null, /*#__PURE__*/React.createElement(SettingRow, {
+  }, "\u5C0F\u7EC4\u4EF6"), /*#__PURE__*/React.createElement(SettingsGroup, null, /*#__PURE__*/React.createElement(SettingRow, {
     label: "\u81EA\u5B9A\u4E49\u5C0F\u7EC4\u4EF6",
     sub: "\u5C3A\u5BF8\u3001\u9891\u7387\u3001\u6765\u6E90\u3001\u5B57\u53F7",
     chev: true,
@@ -1203,6 +1360,7 @@ Object.assign(window, {
   TAGS,
   shuffleArr,
   useNoRepeatShuffle,
+  ConfirmDialog,
   LibraryScreen,
   EditorScreen,
   DisplayScreen,
@@ -1227,6 +1385,10 @@ const WIDGET_SIZES = [{
   key: "large",
   label: "大",
   pretty: "2×2"
+}, {
+  key: "xlarge",
+  label: "巨",
+  pretty: "4×4"
 }];
 const CADENCES = [{
   key: 5,
@@ -1261,6 +1423,15 @@ const BG_OPTIONS = [{
   key: "paper",
   label: "纸面"
 }, {
+  key: "white",
+  label: "留白"
+}, {
+  key: "rice",
+  label: "米白"
+}, {
+  key: "paperwhite",
+  label: "纸白"
+}, {
   key: "ink",
   label: "墨色"
 }, {
@@ -1280,7 +1451,8 @@ const PreviewWidget = ({
   theme,
   textScale,
   showSource,
-  bg
+  bg,
+  cardOpacity = 1
 }) => {
   const sizeMap = {
     small: {
@@ -1303,6 +1475,13 @@ const PreviewWidget = ({
       qSize: 19,
       line: 1.8,
       lineClamp: 6
+    },
+    xlarge: {
+      w: 340,
+      h: 340,
+      qSize: 22,
+      line: 1.85,
+      lineClamp: 9
     }
   };
   const tsBoost = textScale === "large" ? 2 : textScale === "small" ? -2 : 0;
@@ -1313,6 +1492,18 @@ const PreviewWidget = ({
     if (bg === "paper") return {
       background: "var(--bg-raised)",
       color: "var(--fg-1)"
+    };
+    if (bg === "white") return {
+      background: "#ffffff",
+      color: "#1f1d1a"
+    };
+    if (bg === "rice") return {
+      background: "#f3ecda",
+      color: "#2a2620"
+    };
+    if (bg === "paperwhite") return {
+      background: "#f7f6f1",
+      color: "#26241f"
     };
     if (bg === "ink") return {
       background: "var(--ink-900)",
@@ -1334,7 +1525,7 @@ const PreviewWidget = ({
       width: s.w,
       height: s.h,
       borderRadius: 28,
-      padding: size === "large" ? 24 : 18,
+      padding: size === "large" || size === "xlarge" ? 24 : 18,
       boxShadow: "0 10px 28px rgba(28,26,23,0.18)",
       display: "flex",
       flexDirection: "column",
@@ -1342,9 +1533,26 @@ const PreviewWidget = ({
       fontFamily: "var(--serif-display)",
       overflow: "hidden",
       position: "relative",
-      ...bgStyle
+      color: bgStyle.color
     }
-  }, size === "large" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      zIndex: 0,
+      background: bgStyle.background,
+      opacity: cardOpacity
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      zIndex: 1,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      height: "100%"
+    }
+  }, (size === "large" || size === "xlarge") && /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "var(--sans-ui)",
       fontSize: 11,
@@ -1375,7 +1583,7 @@ const PreviewWidget = ({
       opacity: 0.55,
       marginTop: size === "small" ? 6 : 8
     }
-  }, "\u2014 ", quote.tag));
+  }, "\u2014 ", quote.tag)));
 };
 
 // ─────── Segmented control ───────
@@ -1409,6 +1617,40 @@ const ChipRow = ({
   onClick: () => onChange(o.key ?? o)
 }, o.label ?? o)));
 
+// ─────── Opacity slider ───────
+const OpacitySlider = ({
+  value,
+  onChange
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "opacity-slider",
+  style: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12
+  }
+}, /*#__PURE__*/React.createElement("input", {
+  type: "range",
+  min: 40,
+  max: 100,
+  step: 5,
+  value: Math.round(value * 100),
+  onChange: e => onChange(Number(e.target.value) / 100),
+  style: {
+    flex: 1,
+    accentColor: "var(--ink-900)",
+    height: 4
+  }
+}), /*#__PURE__*/React.createElement("span", {
+  style: {
+    fontFamily: "var(--sans-ui)",
+    fontSize: 13,
+    fontVariantNumeric: "tabular-nums",
+    color: "var(--fg-2)",
+    minWidth: 40,
+    textAlign: "right"
+  }
+}, Math.round(value * 100), "%"));
+
 // ─────── Widget editor screen ───────
 const WidgetEditorScreen = ({
   go,
@@ -1422,6 +1664,7 @@ const WidgetEditorScreen = ({
   const [showSource, setShowSource] = React.useState(true);
   const [textScale, setTextScale] = React.useState("normal");
   const [bg, setBg] = React.useState("paper");
+  const [cardOpacity, setCardOpacity] = React.useState(1);
   const filteredQuotes = source === "全部" ? quotes : quotes.filter(q => q.tag === source);
   const previewQ = filteredQuotes[0] || quotes[0];
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(TopBar, {
@@ -1444,22 +1687,14 @@ const WidgetEditorScreen = ({
     theme: theme,
     textScale: textScale,
     showSource: showSource,
-    bg: bg
+    bg: bg,
+    cardOpacity: cardOpacity
   }))), /*#__PURE__*/React.createElement("div", {
     className: "section-h"
   }, "\u5C3A\u5BF8"), /*#__PURE__*/React.createElement(Seg, {
     value: size,
     options: WIDGET_SIZES,
     onChange: setSize
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "section-h"
-  }, "\u4E3B\u9898"), /*#__PURE__*/React.createElement(ChipRow, {
-    value: theme,
-    options: THEMES.map(t => ({
-      key: t.key,
-      label: t.name
-    })),
-    onChange: onTheme
   }), /*#__PURE__*/React.createElement("div", {
     className: "section-h"
   }, "\u5B57\u53F7"), /*#__PURE__*/React.createElement(Seg, {
@@ -1484,6 +1719,11 @@ const WidgetEditorScreen = ({
     value: bg,
     options: BG_OPTIONS,
     onChange: setBg
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "section-h"
+  }, "\u5361\u7247\u4E0D\u900F\u660E\u5EA6"), /*#__PURE__*/React.createElement(OpacitySlider, {
+    value: cardOpacity,
+    onChange: setCardOpacity
   }), /*#__PURE__*/React.createElement("div", {
     className: "settings-group",
     style: {
@@ -1530,6 +1770,7 @@ Object.assign(window, {
   PreviewWidget,
   Seg,
   ChipRow,
+  OpacitySlider,
   WIDGET_SIZES,
   CADENCES,
   TEXT_SCALES,

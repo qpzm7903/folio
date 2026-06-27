@@ -83,10 +83,9 @@ const TopBar = ({ title, subtitle, actions = [], leading = null }) => (
 // ─────────────────────────────────────────────────────────────
 const BottomNav = ({ current, onChange }) => {
   const items = [
+    { key: "display",  icon: "home",        label: "首页" },
     { key: "library",  icon: "book-open",   label: "金库" },
-    { key: "display",  icon: "sparkles",    label: "屏保" },
-    { key: "widget",   icon: "layout-grid", label: "组件" },
-    { key: "settings", icon: "settings",    label: "设置" },
+    { key: "settings", icon: "user-round",  label: "我的" },
   ];
   return (
     <div className="bottom-nav">
@@ -105,14 +104,25 @@ const BottomNav = ({ current, onChange }) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Quote card
+// Quote card  (supports multi-select mode)
 // ─────────────────────────────────────────────────────────────
-const QuoteCard = ({ quote, source, date, variant = "default", onClick }) => (
-  <div className={"quote-card" + (variant === "dark" ? " dark" : "")} onClick={onClick}>
-    <div className="q">{quote}</div>
-    <div className="qmeta">
-      <span>{source && <em>{source}</em>}</span>
-      <span>{date}</span>
+const QuoteCard = ({ quote, source, date, variant = "default", onClick,
+                     selectable = false, selected = false, onToggle }) => (
+  <div
+    className={"quote-card" + (variant === "dark" ? " dark" : "") + (selectable ? " selectable" : "") + (selected ? " selected" : "")}
+    onClick={selectable ? onToggle : onClick}
+  >
+    {selectable && (
+      <span className={"qcheck" + (selected ? " on" : "")}>
+        {selected && <Icon name="check" size={13} />}
+      </span>
+    )}
+    <div className="qbody">
+      <div className="q">{quote}</div>
+      <div className="qmeta">
+        <span>{source && <em>{source}</em>}</span>
+        <span>{date}</span>
+      </div>
     </div>
   </div>
 );

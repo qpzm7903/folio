@@ -1,84 +1,86 @@
-// 小金库 · Folio — Screensaver layout variants
+// 小金库 · Folio — 首页 (Home) layout variants
 //
-// Each layout is a different "page" of the wallpaper experience.
-// All assume the SAFE ZONES on a phone home / lock screen:
-//   • Top ~120px is taken by the system clock + status bar
-//   • Bottom ~120px is taken by the dock / unlock indicator
-//   • The MIDDLE BAND is where our type lives.
+// Each layout is a different "page" of the home / wallpaper experience.
+// They share .ds-layout (base) + a per-layout class defined in kit.css.
+// The MIDDLE BAND is where our type lives.
 
 const LAYOUTS = [
   { key: "page",       label: "页", name: "Page" },
   { key: "vertical",   label: "竖", name: "Vertical" },
-  { key: "pull",       label: "引", name: "Pull-quote" },
-  { key: "lockscreen", label: "时", name: "Lock screen" },
-  { key: "fullbleed",  label: "满", name: "Full bleed" },
+  { key: "pull",       label: "引", name: "Pull" },
+  { key: "lockscreen", label: "时", name: "Lock" },
+  { key: "fullbleed",  label: "满", name: "Fullbleed" },
   { key: "stamped",    label: "印", name: "Stamped" },
   { key: "ribbon",     label: "条", name: "Ribbon" },
-  { key: "card",       label: "片", name: "Card on field" },
+  { key: "card",       label: "片", name: "Card" },
   { key: "interleave", label: "织", name: "Interleaved" },
 ];
 
-// Roman numeral for a tiny "edition" mark
-const toRoman = (n) => {
-  const m = [["X",10],["IX",9],["V",5],["IV",4],["I",1]];
-  let s = "", x = ((n - 1) % 30) + 1;
-  for (const [c, v] of m) while (x >= v) { s += c; x -= v; }
-  return s;
-};
-
-// ── Length tier ──────────────────────────────────────────────
-// Chinese char count → a tier that drives a CSS --q-scale multiplier.
-// Short quotes get big type; long quotes step down so they always fit.
-const lengthTier = (text) => {
-  const n = [...(text || "")].length;
+// ─────── Helpers ───────
+// Length tier drives --q-scale in CSS so long quotes step down to fit.
+const lengthTier = (q) => {
+  const n = (q || "").length;
   if (n <= 10) return "tiny";
-  if (n <= 18) return "short";
-  if (n <= 30) return "medium";
-  if (n <= 46) return "long";
+  if (n <= 16) return "short";
+  if (n <= 26) return "medium";
+  if (n <= 40) return "long";
   return "xlong";
 };
 
-// Tiny decorative leaf — used in Lockscreen layout
-const LeafSVG = ({ size = 100, opacity = 0.12 }) => (
-  <svg viewBox="0 0 100 100" width={size} height={size}
-       style={{ position: "absolute", opacity, pointerEvents: "none" }}>
-    <path d="M50 5 Q 90 30 75 70 Q 50 95 25 70 Q 10 30 50 5 Z"
-          fill="none" stroke="currentColor" strokeWidth="1"/>
-    <path d="M50 5 Q 50 50 50 95" fill="none" stroke="currentColor" strokeWidth="0.6"/>
-    <path d="M50 25 Q 65 30 70 45 M50 25 Q 35 30 30 45
-             M50 50 Q 70 55 75 70 M50 50 Q 30 55 25 70
-             M50 75 Q 60 80 62 90 M50 75 Q 40 80 38 90"
-          fill="none" stroke="currentColor" strokeWidth="0.5"/>
+const toRoman = (num) => {
+  const map = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let n = num, out = "";
+  for (const [v, s] of map) while (n >= v) { out += s; n -= v; }
+  return out || "I";
+};
+
+const LeafSVG = ({ size = 40 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 20A7 7 0 0 1 4 13C4 7 9 3 20 3c0 9-4 14-9 14a7 7 0 0 1-7-7Z" />
+    <path d="M2 22c4-5 7-8 12-10" />
   </svg>
 );
 
+// Split a Chinese quote into clauses at punctuation (keeps the mark).
+const clauses = (q) => {
+  const segs = [];
+  let buf = "";
+  for (const ch of (q || "")) {
+    buf += ch;
+    if ("，。！？；、".includes(ch)) { segs.push(buf); buf = ""; }
+  }
+  if (buf) segs.push(buf);
+  return segs.length ? segs : [q];
+};
+
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 1: 页 Page — looks like a single page of a book
+// LAYOUT 1: 页 Page
 // ─────────────────────────────────────────────────────────────
 const LayoutPage = ({ quote }) => (
   <div className="ds-layout ds-page" data-len={lengthTier(quote.q)}>
     <div className="ds-page-head">
-      <span>no. <em>{toRoman(quote.id)}</em></span>
-      <span className="rule" />
       <span className="cat">{quote.tag}</span>
+      <span className="rule" />
+      <em>金句</em>
     </div>
     <div className="ds-page-body">
       <div className="ds-page-quote">{quote.q}</div>
     </div>
     <div className="ds-page-foot">
       <span className="rule" />
-      <span className="foot-meta">五月 · MMXXVI</span>
+      <span className="foot-meta">{quote.date}</span>
     </div>
   </div>
 );
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 2: 竖 Vertical — Chinese traditional vertical typesetting
+// LAYOUT 2: 竖 Vertical
 // ─────────────────────────────────────────────────────────────
 const LayoutVertical = ({ quote }) => (
   <div className="ds-layout ds-vertical" data-len={lengthTier(quote.q)}>
-    <div className="ds-vert-rule" />
     <div className="ds-vert-quote">{quote.q}</div>
+    <div className="ds-vert-rule" />
     <div className="ds-vert-meta">
       <span className="ds-vert-cat">{quote.tag}</span>
       <span className="ds-vert-seal">金</span>
@@ -87,53 +89,45 @@ const LayoutVertical = ({ quote }) => (
 );
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 3: 引 Pull-quote — oversized 「 」 brackets
+// LAYOUT 3: 引 Pull-quote
 // ─────────────────────────────────────────────────────────────
-const LayoutPull = ({ quote }) => {
-  // Split into ~2 lines on a comma if available, for breath
-  const parts = quote.q.includes("，") ? quote.q.split(/，/) : [quote.q];
-  return (
-    <div className="ds-layout ds-pull" data-len={lengthTier(quote.q)}>
-      <div className="ds-pull-open">「</div>
-      <div className="ds-pull-body">
-        {parts.map((p, i) => (
-          <div key={i} className="ds-pull-line">
-            {p}{i < parts.length - 1 ? "，" : ""}
-          </div>
-        ))}
-      </div>
-      <div className="ds-pull-foot">
-        <span className="ds-pull-attr"><em>{quote.tag}</em></span>
-        <span className="ds-pull-close">」</span>
-      </div>
+const LayoutPull = ({ quote }) => (
+  <div className="ds-layout ds-pull" data-len={lengthTier(quote.q)}>
+    <div className="ds-pull-open">“</div>
+    <div className="ds-pull-body">
+      <div className="ds-pull-line">{quote.q}</div>
     </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────
-// LAYOUT 4: 时 Lock screen — clock + date prominent, quote as caption
-// ─────────────────────────────────────────────────────────────
-const LayoutLockscreen = ({ quote }) => (
-  <div className="ds-layout ds-lockscreen" data-len={lengthTier(quote.q)}>
-    <div className="ds-lock-time">
-      <div className="ds-lock-clock">9:41</div>
-      <div className="ds-lock-date">五月二十四日 · 周六</div>
-    </div>
-    <div className="ds-lock-leaf"><LeafSVG size={220} opacity={0.10} /></div>
-    <div className="ds-lock-caption">
-      <div className="ds-lock-quote">{quote.q}</div>
-      <div className="ds-lock-attr">— <em>{quote.tag}</em></div>
+    <div className="ds-pull-foot">
+      <span className="ds-pull-attr">{quote.tag}</span>
+      <span className="ds-pull-close">”</span>
     </div>
   </div>
 );
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 5: 满 Full bleed — the quote IS the wallpaper
+// LAYOUT 4: 时 Lock screen
+// ─────────────────────────────────────────────────────────────
+const LayoutLockscreen = ({ quote }) => (
+  <div className="ds-layout ds-lockscreen" data-len={lengthTier(quote.q)}>
+    <div className="ds-lock-time">
+      <div className="ds-lock-clock">9:41</div>
+      <div className="ds-lock-date">{quote.date} · 周五</div>
+    </div>
+    <div className="ds-lock-leaf"><LeafSVG size={120} /></div>
+    <div className="ds-lock-caption">
+      <div className="ds-lock-quote">{quote.q}</div>
+      <div className="ds-lock-attr">— {quote.tag}</div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────
+// LAYOUT 5: 满 Full bleed
 // ─────────────────────────────────────────────────────────────
 const LayoutFullbleed = ({ quote }) => (
   <div className="ds-layout ds-fullbleed" data-len={lengthTier(quote.q)}>
     <div className="ds-full-quote">{quote.q}</div>
-    <div className="ds-full-attr">— <em>{quote.tag}</em></div>
+    <div className="ds-full-attr">— {quote.tag}</div>
   </div>
 );
 
@@ -152,34 +146,34 @@ const LayoutStamped = ({ quote }) => {
         <div className="ds-stamped-mark">{firstChar}</div>
         <div className="ds-stamped-body">{rest}</div>
       </div>
-      <div className="ds-stamped-foot">五月 · MMXXVI</div>
+      <div className="ds-stamped-foot">{quote.date}</div>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 7: 条 Ribbon — Quote crosses a horizontal cream ribbon
+// LAYOUT 7: 条 Ribbon
 // ─────────────────────────────────────────────────────────────
 const LayoutRibbon = ({ quote }) => (
   <div className="ds-layout ds-ribbon" data-len={lengthTier(quote.q)}>
     <div className="ds-ribbon-band">
-      <div className="ds-ribbon-cat">— {quote.tag} —</div>
+      <div className="ds-ribbon-cat">{quote.tag}</div>
       <div className="ds-ribbon-quote">{quote.q}</div>
     </div>
   </div>
 );
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 8: 片 Card on field — small card floating on textured field
+// LAYOUT 8: 片 Card on field
 // ─────────────────────────────────────────────────────────────
 const LayoutCard = ({ quote }) => (
   <div className="ds-layout ds-card" data-len={lengthTier(quote.q)}>
     <div className="ds-card-field" />
     <div className="ds-card-paper">
-      <div className="ds-card-corner ds-card-corner-tl" />
-      <div className="ds-card-corner ds-card-corner-tr" />
-      <div className="ds-card-corner ds-card-corner-bl" />
-      <div className="ds-card-corner ds-card-corner-br" />
+      <span className="ds-card-corner ds-card-corner-tl" />
+      <span className="ds-card-corner ds-card-corner-tr" />
+      <span className="ds-card-corner ds-card-corner-bl" />
+      <span className="ds-card-corner ds-card-corner-br" />
       <div className="ds-card-cat">{quote.tag}</div>
       <div className="ds-card-quote">{quote.q}</div>
       <div className="ds-card-rule" />
@@ -189,19 +183,18 @@ const LayoutCard = ({ quote }) => (
 );
 
 // ─────────────────────────────────────────────────────────────
-// LAYOUT 9: 织 Interleaved — quote interleaved with romanized echo
+// LAYOUT 9: 织 Interleaved — index number + clauses on hairlines
 // ─────────────────────────────────────────────────────────────
 const LayoutInterleave = ({ quote }) => {
-  // Split quote at the comma if available
-  const parts = quote.q.includes("，") ? quote.q.split(/，/) : [quote.q];
+  const parts = clauses(quote.q);
   return (
     <div className="ds-layout ds-interleave" data-len={lengthTier(quote.q)}>
-      <div className="ds-inter-num">{String(quote.id).padStart(2, "0")}</div>
+      <div className="ds-inter-num">{toRoman(quote.id)}</div>
       <div className="ds-inter-body">
         {parts.map((p, i) => (
           <React.Fragment key={i}>
-            <div className="ds-inter-line">{p}{i < parts.length - 1 ? "，" : ""}</div>
-            {i < parts.length - 1 && <div className="ds-inter-rule" />}
+            {i > 0 && <div className="ds-inter-rule" />}
+            <div className="ds-inter-line">{p}</div>
           </React.Fragment>
         ))}
       </div>
