@@ -1,0 +1,356 @@
+/* ============================================================
+   小金库 — Colors & Type
+   Fresh-green direction · 小清新绿
+   Two parallel themes: A (青纸 Tea Paper) light  and  B (林夜 Forest Night) dark.
+   They share spacing, type, and component vocabulary.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+:root {
+  /* ============================================================
+     DIRECTION A — 青纸 TEA PAPER (default / light)
+     Cream-tea paper, moss ink, matcha + jade accents.
+     ============================================================ */
+
+  /* Surfaces (page → card → raised) */
+  --paper-50:   #f7f8ed;   /* lightest tea cream */
+  --paper-100:  #eef0df;   /* page bg — soft tea */
+  --paper-200:  #e2e6cf;   /* card */
+  --paper-300:  #cdd4b6;   /* divider */
+  --paper-400:  #a8b58c;   /* ruled line / faded leaf */
+
+  /* Ink (text + iconography) — deep moss-greens, never neutral grey */
+  --ink-900:    #1d2a1f;   /* primary text */
+  --ink-700:    #324638;
+  --ink-500:    #5e7263;
+  --ink-300:    #91a290;
+
+  /* Accents */
+  --leaf-300:   #c4d5a8;
+  --leaf-500:   #7ba05b;   /* primary action — matcha */
+  --leaf-700:   #4a6b35;   /* pressed / focus */
+
+  --jade-300:   #c2d8d5;
+  --jade-500:   #7ea8a3;   /* secondary — cool jade water */
+  --jade-700:   #4a6e6a;
+
+  --bamboo-500: #b8a866;   /* warm contrast / "seal" mark */
+  --bamboo-700: #8a7c45;
+
+  /* Semantic roles (components reference THESE, not raw colors) */
+  --bg-page:        var(--paper-100);
+  --bg-surface:     var(--paper-50);
+  --bg-card:        var(--paper-200);
+  --bg-raised:      #fbfcf3;
+  --bg-overlay:     rgba(29, 42, 31, 0.55);
+
+  --fg-1:           var(--ink-900);
+  --fg-2:           var(--ink-700);
+  --fg-3:           var(--ink-500);
+  --fg-muted:       var(--ink-300);
+  --fg-on-accent:   #f7f8ed;
+
+  --accent:         var(--leaf-500);
+  --accent-pressed: var(--leaf-700);
+  --accent-soft:    var(--leaf-300);
+  --accent-2:       var(--jade-500);
+  --mark:           var(--bamboo-500);
+
+  --border-1:       var(--paper-300);
+  --border-2:       var(--paper-400);
+  --divider:        rgba(29, 42, 31, 0.08);
+
+  --success:        #4a6b35;
+  --warning:        #b8a866;
+  --danger:         #a04030;
+
+  /* ---------- Typography ---------- */
+  --serif-display:  "Noto Serif SC", "EB Garamond", "Songti SC", Georgia, serif; /* @kind font */
+  --serif-body:     "Noto Serif SC", "EB Garamond", "Songti SC", Georgia, serif; /* @kind font */
+  --serif-italic:   "EB Garamond", "Noto Serif SC", Georgia, serif; /* @kind font */
+  --sans-ui:        "Noto Sans SC", -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; /* @kind font */
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:  0.08em;
+  --tracking-label: 0.16em;
+
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.55;
+  --leading-loose:  1.8;
+
+  --fs-quote-hero:  44px;
+  --fs-quote:       28px;
+  --fs-h1:          26px;
+  --fs-h2:          20px;
+  --fs-h3:          17px;
+  --fs-body:        15px;
+  --fs-small:       13px;
+  --fs-label:       11px;
+
+  /* ---------- Spacing ---------- */
+  --space-1:  4px;  --space-2:  8px;  --space-3:  12px; --space-4:  16px;
+  --space-5:  20px; --space-6:  24px; --space-8:  32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px; --space-20: 80px;
+
+  /* ---------- Radii ---------- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  /* ---------- Golden ratio (黄金比) ----------
+     Used for vertical optical anchoring of the quote on screensaver
+     layouts, and as the modular type-scale ratio. The quote's block
+     rests on the UPPER golden line (≈38.2% from top) rather than dead
+     center — the eye's natural resting point, less static than centering. */
+  --phi:       1.618;   /* @kind other */
+  --phi-major: 0.618;   /* @kind other */
+  --phi-minor: 0.382;   /* @kind other */
+
+  /* ---------- Shadows ---------- */
+  /* Green-tinted, low-spread — pressed-leaf softness */
+  --shadow-1: 0 1px 0 rgba(29, 42, 31, 0.04), 0 1px 2px rgba(29, 42, 31, 0.06);
+  --shadow-2: 0 2px 4px rgba(29, 42, 31, 0.06), 0 4px 12px rgba(29, 42, 31, 0.05);
+  --shadow-3: 0 8px 24px rgba(29, 42, 31, 0.10), 0 2px 6px rgba(29, 42, 31, 0.06);
+  --shadow-inset: inset 0 0 0 1px rgba(29, 42, 31, 0.06), inset 0 1px 2px rgba(29, 42, 31, 0.04);
+
+  /* ---------- Motion ---------- */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1); /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* @kind other */
+  --ease-paper:  cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --dur-fast:    160ms; /* @kind other */
+  --dur-base:    240ms; /* @kind other */
+  --dur-slow:    480ms; /* @kind other */
+  --dur-page:    640ms; /* @kind other */
+}
+
+/* ============================================================
+   DIRECTION B — 林夜 FOREST NIGHT (dark)
+   ============================================================ */
+[data-theme="night"] {
+  --paper-50:   #1a2520;
+  --paper-100:  #0e1612;
+  --paper-200:  #182218;
+  --paper-300:  #243024;
+  --paper-400:  #34452e;
+
+  --ink-900:    #e6ebd9;
+  --ink-700:    #c0c9a9;
+  --ink-500:    #8a9a82;
+  --ink-300:    #5e6e57;
+
+  --leaf-300:   #5e7e48;
+  --leaf-500:   #9ec88a;     /* primary lifts brighter on dark */
+  --leaf-700:   #b9d49d;
+
+  --jade-300:   #4a6e6a;
+  --jade-500:   #87aaa6;
+  --jade-700:   #b0d2cc;
+
+  --bamboo-500: #d4c47e;     /* warmer + brighter at night */
+  --bamboo-700: #b8a866;
+
+  --bg-page:        var(--paper-100);
+  --bg-surface:     var(--paper-200);
+  --bg-card:        var(--paper-200);
+  --bg-raised:      #1f2a1f;
+  --bg-overlay:     rgba(0, 0, 0, 0.7);
+
+  --fg-1:           var(--ink-900);
+  --fg-2:           var(--ink-700);
+  --fg-3:           var(--ink-500);
+  --fg-muted:       var(--ink-300);
+  --fg-on-accent:   var(--paper-100);
+
+  --accent:         var(--leaf-500);
+  --accent-pressed: var(--leaf-700);
+  --accent-soft:    rgba(158, 200, 138, 0.16);
+  --accent-2:       var(--jade-500);
+  --mark:           var(--bamboo-500);
+
+  --border-1:       var(--paper-300);
+  --border-2:       var(--paper-400);
+  --divider:        rgba(230, 235, 217, 0.08);
+
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-inset: inset 0 0 0 1px rgba(230, 235, 217, 0.06);
+}
+
+/* ============================================================
+   DIRECTION C — 天青 CELADON (light) · 雨过天青
+   Song-porcelain pale blue-green. The most "classical poetry" of the set.
+   ============================================================ */
+[data-theme="celadon"] {
+  --paper-50:#eef3ef; --paper-100:#e1ebe4; --paper-200:#d4e0d8; --paper-300:#bdcdc3; --paper-400:#92a89c;
+  --ink-900:#1b2b29; --ink-700:#2f4441; --ink-500:#5b716c; --ink-300:#8ea39d;
+  --leaf-300:#b3cfc6; --leaf-500:#5f968c; --leaf-700:#3d6a61;        /* celadon */
+  --jade-300:#c0d4d0; --jade-500:#7ba0a6; --jade-700:#4d6e72;
+  --bamboo-500:#c0a05e; --bamboo-700:#8f7640;                        /* warm seal */
+  --bg-page:var(--paper-100); --bg-surface:var(--paper-50); --bg-card:var(--paper-200); --bg-raised:#f6faf6;
+  --bg-overlay:rgba(27,43,41,0.55);
+  --fg-1:var(--ink-900); --fg-2:var(--ink-700); --fg-3:var(--ink-500); --fg-muted:var(--ink-300); --fg-on-accent:#eef3ef;
+  --accent:var(--leaf-500); --accent-pressed:var(--leaf-700); --accent-soft:var(--leaf-300);
+  --accent-2:var(--jade-500); --mark:var(--bamboo-500);
+  --border-1:var(--paper-300); --border-2:var(--paper-400); --divider:rgba(27,43,41,0.08);
+}
+
+/* ============================================================
+   DIRECTION D — 月白 MOON WHITE (light, cool) · 月白风清
+   Cool moon-blue-grey paper, indigo ink. A quiet reading light.
+   ============================================================ */
+[data-theme="moonwhite"] {
+  --paper-50:#f0f1f7; --paper-100:#e6e8f1; --paper-200:#d9dcec; --paper-300:#c3c8de; --paper-400:#969db8;
+  --ink-900:#1d2336; --ink-700:#333b54; --ink-500:#5d6783; --ink-300:#9098b2;
+  --leaf-300:#c6cfe8; --leaf-500:#6f84bb; --leaf-700:#495a96;       /* 月白蓝 */
+  --jade-300:#cdd6e0; --jade-500:#8497ad; --jade-700:#56697f;
+  --bamboo-500:#a6a4bd; --bamboo-700:#807e98;                       /* silver-violet seal */
+  --bg-page:var(--paper-100); --bg-surface:var(--paper-50); --bg-card:var(--paper-200); --bg-raised:#f8f9fd;
+  --bg-overlay:rgba(29,35,54,0.55);
+  --fg-1:var(--ink-900); --fg-2:var(--ink-700); --fg-3:var(--ink-500); --fg-muted:var(--ink-300); --fg-on-accent:#f0f1f7;
+  --accent:var(--leaf-500); --accent-pressed:var(--leaf-700); --accent-soft:var(--leaf-300);
+  --accent-2:var(--jade-500); --mark:var(--bamboo-500);
+  --border-1:var(--paper-300); --border-2:var(--paper-400); --divider:rgba(29,35,54,0.08);
+}
+
+/* ============================================================
+   DIRECTION E — 绛霞 CINNABAR (warm light) · 朱砂晚霞
+   Cinnabar seal-ink red + ochre on a warm cream. Old books at dusk.
+   ============================================================ */
+[data-theme="cinnabar"] {
+  --paper-50:#f7ede1; --paper-100:#f0e1d0; --paper-200:#e7d3bc; --paper-300:#d7bd9f; --paper-400:#b9997a;
+  --ink-900:#2e1b13; --ink-700:#4a3024; --ink-500:#7c5848; --ink-300:#aa8670;
+  --leaf-300:#e7b09b; --leaf-500:#c14a30; --leaf-700:#8f2e1c;       /* 朱砂 cinnabar */
+  --jade-300:#d9bd92; --jade-500:#a07a48; --jade-700:#74552f;       /* ochre */
+  --bamboo-500:#b8722e; --bamboo-700:#8a531f;
+  --bg-page:var(--paper-100); --bg-surface:var(--paper-50); --bg-card:var(--paper-200); --bg-raised:#fbf2e8;
+  --bg-overlay:rgba(46,27,19,0.55);
+  --fg-1:var(--ink-900); --fg-2:var(--ink-700); --fg-3:var(--ink-500); --fg-muted:var(--ink-300); --fg-on-accent:#f7ede1;
+  --accent:var(--leaf-500); --accent-pressed:var(--leaf-700); --accent-soft:var(--leaf-300);
+  --accent-2:var(--jade-500); --mark:var(--bamboo-500);
+  --border-1:var(--paper-300); --border-2:var(--paper-400); --divider:rgba(46,27,19,0.08);
+}
+
+/* ============================================================
+   DIRECTION F — 青黛 INK INDIGO (dark) · 青黛水墨夜
+   Deep indigo-black with moon-white type. Ink-wash painting at night.
+   ============================================================ */
+[data-theme="dai"] {
+  --paper-50:#1b2230; --paper-100:#11151e; --paper-200:#1a2030; --paper-300:#283149; --paper-400:#3a4561;
+  --ink-900:#e6e9f2; --ink-700:#bcc4da; --ink-500:#828ba6; --ink-300:#58607a;
+  --leaf-300:#5a7398; --leaf-500:#88a4cc; --leaf-700:#aec4e4;       /* 黛蓝, lifts on dark */
+  --jade-300:#4a6172; --jade-500:#8aa3b6; --jade-700:#b2cadb;
+  --bamboo-500:#cba968; --bamboo-700:#b8975a;                       /* warm gold seal */
+  --bg-page:var(--paper-100); --bg-surface:var(--paper-200); --bg-card:var(--paper-200); --bg-raised:#1c2433;
+  --bg-overlay:rgba(0,0,0,0.72);
+  --fg-1:var(--ink-900); --fg-2:var(--ink-700); --fg-3:var(--ink-500); --fg-muted:var(--ink-300); --fg-on-accent:#11151e;
+  --accent:var(--leaf-500); --accent-pressed:var(--leaf-700); --accent-soft:rgba(136,164,204,0.16);
+  --accent-2:var(--jade-500); --mark:var(--bamboo-500);
+  --border-1:var(--paper-300); --border-2:var(--paper-400); --divider:rgba(230,233,242,0.08);
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.45);
+  --shadow-3: 0 12px 32px rgba(0,0,0,0.6);
+  --shadow-inset: inset 0 0 0 1px rgba(230,233,242,0.06);
+}
+
+/* ============================================================
+   Semantic element styles
+   ============================================================ */
+html, body {
+  background: var(--bg-page);
+  color: var(--fg-1);
+  font-family: var(--serif-body);
+  font-size: var(--fs-body);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.h1, h1 {
+  font-family: var(--serif-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+  margin: 0;
+}
+.h2, h2 {
+  font-family: var(--serif-display);
+  font-size: var(--fs-h2);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--fg-1);
+  margin: 0;
+}
+.h3, h3 {
+  font-family: var(--serif-display);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--fg-1);
+  margin: 0;
+}
+
+.quote-hero {
+  font-family: var(--serif-display);
+  font-size: var(--fs-quote-hero);
+  font-weight: 400;
+  line-height: var(--leading-loose);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.quote {
+  font-family: var(--serif-display);
+  font-size: var(--fs-quote);
+  font-weight: 400;
+  line-height: var(--leading-loose);
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.attribution {
+  font-family: var(--serif-italic);
+  font-style: italic;
+  font-size: var(--fs-small);
+  color: var(--fg-3);
+  letter-spacing: var(--tracking-normal);
+}
+
+.p, p {
+  font-family: var(--serif-body);
+  font-size: var(--fs-body);
+  line-height: var(--leading-normal);
+  color: var(--fg-2);
+  margin: 0;
+}
+.small {
+  font-size: var(--fs-small);
+  color: var(--fg-3);
+}
+
+.label {
+  font-family: var(--sans-ui);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.92em;
+}
+
+.seal-mark {
+  font-family: var(--serif-display);
+  color: var(--mark);
+  font-weight: 500;
+}

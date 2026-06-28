@@ -13,3 +13,13 @@
 - Tool note: `DesignSync.get_file` returns content into the agent (no download-to-disk),
   so a pull is reconstructed via `json.loads` on the exact tool output. JSX byte-exactness
   was verified against the bundle header hashes (`sha256(file)[:12]`).
+- 2026-06-29: remote was ahead again. New additions pulled (remote → local):
+  1. `styles.css` — entry stylesheet (imports `colors_and_type.css`)
+  2. `design_handoff_xiaojinku/` — full design-handoff directory with:
+     - `README.md` — complete design spec (8 screens, data model, 6 themes, 9 layouts)
+     - `design_files/colors_and_type.css` — all 6 theme token blocks + typography scale
+     - `design_files/assets/paper-grain.svg` — SVG paper texture (feTurbulence)
+     - `design_files/android-app/` — interactive React prototype:
+       `index.html`, `app.jsx`, `components.jsx`, `screens.jsx`,
+       `display-layouts.jsx`, `widget-editor.jsx`, `kit.css`
+  Screenshots directory (`screenshots/`) skipped — 9 PNG binaries exceed 256KB cap.

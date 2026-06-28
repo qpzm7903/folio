@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- @dsCard group="UI Kit — Android App" name="UI Kit — Android app" subtitle="Click-thru prototype: home, library, profile, widget editor (both themes)" viewport="1100x980" -->
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<title>小金库 · Android UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  body { margin: 0; }
+  /* Kit-wide tweaks — the phones live on this surface */
+  .kit-frame {
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+    background: var(--paper-100);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .kit-frame .legend {
+    text-align: center;
+    max-width: 640px;
+  }
+  .kit-frame .legend h1 {
+    font-family: var(--serif-display);
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .kit-frame .legend p {
+    font-family: var(--serif-italic);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--fg-3);
+    margin-bottom: 0;
+  }
+  /* Subtle paper grain on the kit background */
+  .kit-frame::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image: url('../../assets/paper-grain.svg');
+    background-size: 240px 240px;
+    opacity: 0.25;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+</style>
+</head>
+<body data-screen-label="Android app kit">
+  <div class="kit-frame">
+    <div class="legend">
+      <h1>小金库 · Android UI Kit</h1>
+      <p>底栏三标签：首页（点右下「版式」切 9 种排版）· 金库 · 我的。小组件的设置收进「我的」里；进「我的」或「组件」页可切 6 种主题（青纸/天青/月白/绛霞/林夜/青黛）。</p>
+    </div>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="display-layouts.jsx"></script>
+  <script type="text/babel" src="screens.jsx"></script>
+  <script type="text/babel" src="widget-editor.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

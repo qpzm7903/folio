@@ -1,0 +1,5 @@
+/* ============================================================
+   小金库 · Folio — Design System entry stylesheet
+   Consumers should link THIS file; it pulls in the rest.
+   ============================================================ */
+@import url('./colors_and_type.css');
