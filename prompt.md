@@ -43,7 +43,7 @@
 
 ## **开发与测试 (Development & Testing)**
 
-根据plan.md文件中规划的新版本需求清单, 完成开发与测试。
+根据plan.md文件中规划的新版本需求清单, 完成开发与测试。开发过程使用TDD模式。
 
 - **更新版本号**：将涉及到版本号的地方(`pubspec.yaml`的`version`、Android `build.gradle`的`versionName/versionCode`、iOS `Info.plist`的`CFBundleShortVersionString/CFBundleVersion`等)更新为新版本的版本号。
 - **需求开发**：完成plan.md文件中规划的新版本需求清单。
