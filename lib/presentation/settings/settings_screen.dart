@@ -34,7 +34,7 @@ class SettingsScreen extends ConsumerWidget {
     return MaxWidthBody(
       child: Column(
         children: <Widget>[
-          const XJKTopBar(title: '设置', subtitle: 'settings'),
+          const XJKTopBar(title: '我的', subtitle: 'profile'),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
@@ -87,9 +87,14 @@ class _RotationSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const _SectionLabel('屏保 / 小组件'),
+        const _SectionLabel('小组件'),
         SettingsGroup(
           children: <Widget>[
+            SettingRow(
+              label: '自定义小组件',
+              sub: '尺寸、频率、来源、字号',
+              onTap: () => context.push(FolioRoutes.widgets),
+            ),
             SettingRow(
               label: '更换频率',
               sub: '一句话停留多久',

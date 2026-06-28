@@ -29,15 +29,16 @@ void main() {
     });
 
     test('fromLocation 匹配 prefix', () {
-      expect(XJKNavTabRoute.fromLocation('/library'), XJKNavTab.library);
       expect(XJKNavTabRoute.fromLocation('/display'), XJKNavTab.display);
-      expect(XJKNavTabRoute.fromLocation('/widgets'), XJKNavTab.widgetsTab);
+      expect(XJKNavTabRoute.fromLocation('/library'), XJKNavTab.library);
       expect(XJKNavTabRoute.fromLocation('/settings'), XJKNavTab.settings);
-      // sub 路由也算
+      // sub 路由也算 (display 是初始 tab)
       expect(
         XJKNavTabRoute.fromLocation('/library/something'),
         XJKNavTab.library,
       );
+      // /widgets 是从「我的」push 进来的子路由, 非底栏 tab → fallback
+      expect(XJKNavTabRoute.fromLocation('/widgets'), XJKNavTab.library);
       // 不认识的 fallback
       expect(XJKNavTabRoute.fromLocation('/unknown'), XJKNavTab.library);
     });

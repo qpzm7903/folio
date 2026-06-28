@@ -153,6 +153,29 @@
 
 ## 版本日志
 
+### v0.20.1 — 重构 PATCH: 三栏导航对齐设计系统 (首页 / 金库 / 我的)
+
+兑现 prompt.md 优先级 #3 (当前 MINOR 0.20.x 缺重构 PATCH)。对照 xiao-jinku-desig
+skill 的 `components.jsx` BottomNav + `screens.jsx` SettingsScreen, 把当前 4 tab
+(金库 / 屏保 / 组件 / 设置) 重构为设计系统规定的 3 tab (首页 / 金库 / 我的), 并把
+小组件配置从独立 tab 收进「我的」section。属结构重构, 向下兼容。
+
+- [x] T1 · 底栏 4→3 tab (`bottom_nav.dart`, 对照 `components.jsx:84-88`):
+  enum `XJKNavTab` 去掉 `widgetsTab`; `_items` 三项 首页(`home`/display) ·
+  金库(`book-open`/library) · 我的(`user-round`/settings)。
+- [x] T2 · 路由结构 (`router.dart`): 初始路由 `/library` → `/display` (首页为落地页,
+  对照 `app.jsx:16` `initialScreen="display"`); `/widgets` 从 shell branch 改为
+  顶层 push 子路由 (同 `/search` `/tags`); `XJKNavTabRoute.tabs` 三项 display 首位。
+- [x] T3 · 我的屏 (`settings_screen.dart`, 对照 `screens.jsx:306`): TopBar 标题
+  设置→我的 / subtitle `settings`→`profile`; `_RotationSection` 标题
+  屏保/小组件→小组件, 首行加「自定义小组件」(→ push `/widgets` 预览引导)。
+- [x] T4 · 组件预览屏 (`widgets_preview_screen.dart`): 从 tab 改为 push 子路由,
+  包 `Scaffold` + `SafeArea` + TopBar `leading` 返回 (`chevron-left`), 对照 tags_screen。
+- [x] T5 · 测试: `nav_tab_route_test` 更新 3 tab + `/widgets` 不再映射 tab;
+  `flutter analyze` 0 警告 + `dart format`。新增 `home.svg` / `user-round.svg`
+  (Lucide v1.21.0, stroke-width 2 对齐既有图标集)。
+- [x] T6 · 版本号 0.20.0+62 → 0.20.1+63。124 测试全过, analyze 0 警告。
+
 ### v0.20.0 — 鸿蒙卡片视觉改版 (对标 西窗烛/句子控) + 展示去序号
 
 用户真机对比西窗烛/句子控觉得我们卡片不够优美。用 xiao-jinku-desig skill

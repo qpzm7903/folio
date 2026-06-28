@@ -15,17 +15,18 @@ import '../presentation/widgets/bottom_nav.dart';
 import '../presentation/widgets_preview/widgets_preview_screen.dart';
 import '../theme/tokens.dart';
 
-/// 4 个底部 tab 的 path —— `/library` / `/display` / `/widgets` / `/settings`,
+/// 3 个底部 tab 的 path —— `/display` / `/library` / `/settings`,
 /// 跟 [XJKNavTab] 一一对应; 加 [XJKNavTabRoute] extension 后 tab ↔ path ↔
 /// shell branch index 三个角度的映射都在 [XJKNavTabRoute] 里。
+/// `/widgets` 是从「我的」push 进来的子路由 (非底栏 tab)。
 class FolioRoutes {
   const FolioRoutes._();
-  static const String library = '/library';
   static const String display = '/display';
-  static const String widgets = '/widgets';
+  static const String library = '/library';
   static const String settings = '/settings';
 
-  // sub routes
+  // sub routes (push, 覆盖底栏)
+  static const String widgets = '/widgets';
   static const String editorNew = '/editor';
   static const String editorEdit = '/editor/:id';
   static const String search = '/search';
@@ -39,21 +40,18 @@ class FolioRoutes {
 /// 里的 branch 顺序; 增 / 删 tab 时只动 enum + 这里。
 extension XJKNavTabRoute on XJKNavTab {
   static const List<XJKNavTab> tabs = <XJKNavTab>[
-    XJKNavTab.library,
     XJKNavTab.display,
-    XJKNavTab.widgetsTab,
+    XJKNavTab.library,
     XJKNavTab.settings,
   ];
 
   /// 对应的 go_router top-level path。
   String get path {
     switch (this) {
-      case XJKNavTab.library:
-        return FolioRoutes.library;
       case XJKNavTab.display:
         return FolioRoutes.display;
-      case XJKNavTab.widgetsTab:
-        return FolioRoutes.widgets;
+      case XJKNavTab.library:
+        return FolioRoutes.library;
       case XJKNavTab.settings:
         return FolioRoutes.settings;
     }
@@ -82,7 +80,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
 
 GoRouter _buildRouter() {
   return GoRouter(
-    initialLocation: FolioRoutes.library,
+    initialLocation: FolioRoutes.display,
     routes: <RouteBase>[
       StatefulShellRoute.indexedStack(
         builder:
@@ -90,15 +88,6 @@ GoRouter _buildRouter() {
           return _ShellScaffold(shell: shell);
         },
         branches: <StatefulShellBranch>[
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: FolioRoutes.library,
-                builder: (BuildContext _, GoRouterState __) =>
-                    const LibraryScreen(),
-              ),
-            ],
-          ),
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
@@ -111,9 +100,9 @@ GoRouter _buildRouter() {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: FolioRoutes.widgets,
+                path: FolioRoutes.library,
                 builder: (BuildContext _, GoRouterState __) =>
-                    const WidgetsPreviewScreen(),
+                    const LibraryScreen(),
               ),
             ],
           ),
@@ -129,6 +118,11 @@ GoRouter _buildRouter() {
         ],
       ),
       // Push 的子路由 (覆盖底栏)
+      GoRoute(
+        path: FolioRoutes.widgets,
+        builder: (BuildContext _, GoRouterState __) =>
+            const WidgetsPreviewScreen(),
+      ),
       GoRoute(
         path: FolioRoutes.editorNew,
         builder: (BuildContext _, GoRouterState __) => const EditorScreen(),

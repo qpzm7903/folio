@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import '../../theme/tokens.dart';
 import 'xjk_icon.dart';
 
-enum XJKNavTab { library, display, widgetsTab, settings }
+enum XJKNavTab { display, library, settings }
 
 /// 底部导航 —— 对应 components.jsx 的 `BottomNav`。
-/// 4 项: 金库 / 屏保 / 组件 / 设置。
+/// 3 项: 首页 / 金库 / 我的 (对照 skill `components.jsx:84-88`)。
 class XJKBottomNav extends StatelessWidget {
   const XJKBottomNav({
     required this.current,
@@ -20,10 +20,9 @@ class XJKBottomNav extends StatelessWidget {
   final ValueChanged<XJKNavTab> onChanged;
 
   static const List<_NavItem> _items = <_NavItem>[
+    _NavItem(tab: XJKNavTab.display, icon: 'home', label: '首页'),
     _NavItem(tab: XJKNavTab.library, icon: 'book-open', label: '金库'),
-    _NavItem(tab: XJKNavTab.display, icon: 'sparkles', label: '屏保'),
-    _NavItem(tab: XJKNavTab.widgetsTab, icon: 'grid-2x2', label: '组件'),
-    _NavItem(tab: XJKNavTab.settings, icon: 'settings', label: '设置'),
+    _NavItem(tab: XJKNavTab.settings, icon: 'user-round', label: '我的'),
   ];
 
   @override

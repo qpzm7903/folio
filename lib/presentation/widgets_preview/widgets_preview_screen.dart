@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/router.dart';
 import '../../data/quote.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/top_bar.dart';
+import '../widgets/xjk_icon.dart';
 
 /// 组件预览屏 —— 真实 Android widget 在 v0.11.0 (L07) 已落地,
 /// iOS 在 v0.12.0 (L08) 已落地; 这屏保留为"主屏添加引导 + 视觉预览"。
@@ -23,42 +26,63 @@ class WidgetsPreviewScreen extends ConsumerWidget {
     final Quote? medium = quotes.length > 1 ? quotes[1] : small;
     final Quote? large = quotes.length > 2 ? quotes[2] : small;
 
-    return MaxWidthBody(
-      child: Column(
-        children: <Widget>[
-          const XJKTopBar(title: '小组件', subtitle: 'widgets'),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-              children: <Widget>[
-                Text(
-                  '把金句放到主屏。',
-                  style: TextStyle(
-                    fontFamily: XJKTokens.serifDisplay,
-                    fontSize: 22,
-                    color: t.fg1,
-                  ),
+    return Scaffold(
+      backgroundColor: t.bgPage,
+      body: SafeArea(
+        child: MaxWidthBody(
+          child: Column(
+            children: <Widget>[
+              XJKTopBar(
+                title: '小组件',
+                subtitle: 'widgets',
+                leading: XJKIconButton(
+                  icon: 'chevron-left',
+                  tooltip: '返回',
+                  onPressed: () {
+                    // 组件预览屏是从「我的」push 进来的, 优先 pop 回我的;
+                    // 兜底 go 回首页 (顶层 tab)。
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(FolioRoutes.display);
+                    }
+                  },
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面。',
-                  style: TextStyle(
-                    fontFamily: XJKTokens.serifItalic,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 13,
-                    color: t.fg3,
-                  ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                  children: <Widget>[
+                    Text(
+                      '把金句放到主屏。',
+                      style: TextStyle(
+                        fontFamily: XJKTokens.serifDisplay,
+                        fontSize: 22,
+                        color: t.fg1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面。',
+                      style: TextStyle(
+                        fontFamily: XJKTokens.serifItalic,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 13,
+                        color: t.fg3,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    if (small != null) _SmallWidgetMock(quote: small),
+                    const SizedBox(height: 16),
+                    if (medium != null) _MediumWidgetMock(quote: medium),
+                    const SizedBox(height: 16),
+                    if (large != null) _LargeWidgetMock(quote: large),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                if (small != null) _SmallWidgetMock(quote: small),
-                const SizedBox(height: 16),
-                if (medium != null) _MediumWidgetMock(quote: medium),
-                const SizedBox(height: 16),
-                if (large != null) _LargeWidgetMock(quote: large),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
