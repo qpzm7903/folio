@@ -94,7 +94,12 @@
 - v0.18 (进行中) = L21 鸿蒙服务卡片 (用户已选定主攻方向)。里程碑① 静态卡片
   scaffold 已真机验证 (编译+装机+form 注册), 见下方 v0.18.0-dev 版本日志;
   里程碑②(数据桥)③(刷新闭环)待续。完整跑通 + 桌面卡片可视验收后发 v0.18.0。
-- v0.21.3 (开发完成) · 重构 PATCH: 卡片按钮图标 → 刷新样式 + 消除 widget_color_picker magic color
+- v0.21.3 (已完成) · 重构 PATCH: 卡片按钮图标 → 刷新样式 + 消除 widget_color_picker magic color
+- v0.22.0 (开发完成) · 功能 MINOR: 金库批量操作 (多选 + 批量取出)。触发依据:
+  无开放 issue、最新 workflow 全绿、0.21.x 已有 v0.21.3 重构 PATCH (prompt.md
+  优先级落到"开发新功能")。严格对齐 `xiao-jinku-desig` skill 的 select-mode 设计
+  (screens.jsx LibraryScreen + components.jsx QuoteCard.selectable + kit.css
+  `.select-bar` / `.qcheck` / `.action-bar`)。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -153,6 +158,30 @@
 ---
 
 ## 版本日志
+
+### v0.22.0 — 金库批量操作 (多选 + 批量取出)
+
+> 功能 MINOR。在「金库」主屏加入多选模式: 顶栏「多选」进入 → 整列卡片可勾选 →
+> 底部「取出 N 句」批量删除。视觉/交互严格对齐 `xiao-jinku-desig` skill 的
+> select-mode 设计 (screens.jsx / components.jsx / kit.css), 删除口吻沿用品牌
+> 「取出」而非「删除」。
+
+- [x] T1 · `QuotesNotifier.removeMany(ids)`: 批量删除只 saveAll + 写一次 state
+  (避免循环 `remove` 反复落盘), 空集合不落盘。`test/remove_many_test.dart`
+  覆盖: 命中删除/只落盘一次/空集合不动/不存在 id 静默跳过。
+- [x] T2 · `QuoteCard` 加 `selectable / selected / onToggle`: 左侧圆形勾选框
+  (`.qcheck`), 选中态描边换 accent + 底色叠 8% accent (对照 kit.css)。
+- [x] T3 · `LibraryScreen` 改 `ConsumerStatefulWidget`, 加多选模式: 顶栏「多选」
+  (check-square) 进入; select-bar (✕ 取消 / 已选 N 句 / 全选·取消全选);
+  底部 `_RemoveActionBar` 危险色「取出 N 句」(空选禁用); ✕ 或删除后退出。
+- [x] T4 · 复用 `showConfirmDeleteDialog` 加可选 `detail` 行: 标题「从金库取出这 N 句？」
+  + 副文「取出后将不再出现在首页和组件里。」。新增 `assets/icons/check-square.svg`
+  (Lucide v1.16, ISC)。
+- [x] T5 · l10n: ARB(zh/en) + 生成文件新增 actionMultiSelect / selectModeIdle /
+  selectedCount(n) / selectAll / deselectAll / removeSelected(n) /
+  confirmRemoveSelected(n) / confirmRemoveSelectedBody / selectEmptyNote。
+- [x] T6 · 测试: `library_select_mode_test.dart` 覆盖进入/勾选/全选/取消/✕退出/
+  确认批量取出 6 个流程。版本号 0.21.3+67 → 0.22.0+68 (pubspec + kAppVersion)。
 
 ### v0.21.2 — 修鸿蒙卡片: 去掉「金」印 + 去掉模式切换按钮 (真机反馈)
 
