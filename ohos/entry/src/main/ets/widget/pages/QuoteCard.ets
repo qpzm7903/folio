@@ -9,7 +9,9 @@
 // UI 遵循 skill xiao-jinku-desig · 六主题配色。
 // v0.21.1: 去掉「金」朱印 + 模式切换按钮 (模式在 app「我的」里调)。
 // v0.21.2: 墨色调暖 + 行距加大 + 内边距加大, 接近西窗烛/句子控的舒服感。
-//   衬线字体待更高 API SDK (getLocalInstance 需要 API 22+, 当前 SDK 20 不含)。
+//   衬线字体: compileSdkVersion 23, 用 text.FontCollection.getLocalInstance() 加载 Noto Serif SC。
+
+import { text } from '@kit.ArkGraphics2D';
 
 // 卡片数据由 FormExtensionAbility 通过 formBindingData 注入到 LocalStorage。
 let storage = new LocalStorage();
@@ -104,6 +106,17 @@ struct QuoteCard {
     postCardAction(this, routerAction);
   }
 
+  aboutToAppear(): void {
+    try {
+      text.FontCollection.getLocalInstance().loadFontSync(
+        'NotoSerifSC',
+        $rawfile('flutter_assets/assets/fonts/NotoSerifSC-Regular.ttf')
+      );
+    } catch (_e) {
+      // ponytail: silent fallback to system font; card renders fine without serif.
+    }
+  }
+
   build() {
     Column() {
       // 正文 —— 占满卡片绝大部分高度 (layoutWeight, flex 受限不压页脚)。
@@ -111,6 +124,7 @@ struct QuoteCard {
       // v0.21.2: 行距加大 (fontSize+18, 原 +13) 让文字更"安住"。
       Text(this.quoteText)
         .fontSize(this.quoteFontSize())
+        .fontFamily('NotoSerifSC')
         .fontWeight(FontWeight.Medium)
         .fontColor(this.ink())
         .lineHeight(this.quoteFontSize() + 18)
@@ -138,8 +152,8 @@ struct QuoteCard {
           Blank().layoutWeight(1)
         }
 
-        // 下一句 (skip-forward), 桌面直接换, 不打开 app。
-        Image($r('app.media.ic_next'))
+        // 换一句 (refresh), 桌面直接换, 不打开 app。
+        Image($r('app.media.ic_refresh'))
           .width(22)
           .height(22)
           .fillColor(this.accent())

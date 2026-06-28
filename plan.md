@@ -94,6 +94,7 @@
 - v0.18 (进行中) = L21 鸿蒙服务卡片 (用户已选定主攻方向)。里程碑① 静态卡片
   scaffold 已真机验证 (编译+装机+form 注册), 见下方 v0.18.0-dev 版本日志;
   里程碑②(数据桥)③(刷新闭环)待续。完整跑通 + 桌面卡片可视验收后发 v0.18.0。
+- v0.21.3 (开发完成) · 重构 PATCH: 卡片按钮图标 → 刷新样式 + 消除 widget_color_picker magic color
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -153,7 +154,7 @@
 
 ## 版本日志
 
-### v0.21.1 — 修鸿蒙卡片: 去掉「金」印 + 去掉模式切换按钮 (真机反馈)
+### v0.21.2 — 修鸿蒙卡片: 去掉「金」印 + 去掉模式切换按钮 (真机反馈)
 
 用户真机反馈桌面卡片两点: (1) 左下角「金」朱印难看, 去掉;
 (2) 右下角两个按钮里的「随机/顺序」模式切换按钮多余 —— 模式已在
@@ -168,11 +169,27 @@ app「我的」→「小组件播放模式」里调, 卡片上不需要。只保
   (只剩 refresh 一类消息); `CardData` 接口 + `seed()` + `nextCard()` 返回值
   去掉 `playMode` 字段 (卡片不再消费)。`readMode`/`KEY_MODE` 保留 —— 仍用于
   nextCard 决定随机/顺序推进, 模式由 app 侧设置写入 prefs。
-- [x] T3 · 版本号 0.21.0+64 → 0.21.2+66。鸿蒙 hap 构建成功 + 真机验收待设备重连。
-  v0.21.2 附带: 墨色调暖 (ink 6 主题都调暖) + 行距加大 (fontSize+18) +
-  内边距加大 (20→24) + 修复 ArkTS 编译 (postCardAction untyped literal →
-  显式 interface)。衬线字体方案: 下载的 "6.0.0.2-Release" SDK 实际是
-  API 20 (无 getLocalInstance)，待找到真正 API 22+ SDK 再上字体。
+- [x] T3 · 版本号 0.21.0+64 → 0.21.2+66。鸿蒙 hap 构建成功 + **真机验收通过 (含衬线字体)**。
+   v0.21.2 附带: 墨色调暖 (ink 6 主题都调暖) + 行距加大 (fontSize+18) +
+   内边距加大 (20→24) + 修复 ArkTS 编译 (postCardAction untyped literal →
+   显式 interface) + **衬线字体 (Noto Serif SC, compileSdkVersion 23 +
+    text.FontCollection.getLocalInstance().loadFontSync())**。
+
+### v0.21.3 — 重构 PATCH: 卡片按钮图标 → 刷新样式 + 消除 widget_color_picker magic color
+
+> 触发依据: 0.21.x MINOR 在 plan.md 尚无已完成的重构 PATCH (prompt.md 优先级 #3)。
+> 用户需求: 鸿蒙卡片右下角按钮从「下一句」图标改为「刷新」图标 (两箭头圆环)。
+
+- [x] T1 · 创建 Lucide `refresh-cw` (v1.16.0, ISC) SVG 到 `ohos/entry/src/main/resources/base/media/ic_refresh.svg` + `assets/icons/refresh-cw.svg`。
+  保持跟现有图标统一 stroke-width=2, fill=none, stroke=currentColor (ArkTS `.fillColor()` 覆盖)。
+- [x] T2 · `QuoteCard.ets`: 按钮图标 `ic_next` → `ic_refresh`, 注释同步 (下一句→换一句)。
+  行为不变: 仍通过 `postCardAction` 发 `{action:'message', event:'refresh'}`, 卡片在桌面直接刷新。
+- [x] T3 · 重构 `WidgetColorTheme` 加 `xjkThemeId` getter (同 `XJKThemeId` 1:1 映射),
+  消除 `_Swatch._color` 内 6 个 magic `Color` 字面量 (值 = `XJKTokens.paper100`),
+  改为 `XJKTokens.forId(theme.xjkThemeId).paper100` 一条委托。
+- [x] T4 · 测试: `theme_registry_test.dart` 新增 `WidgetColorTheme ↔ XJKThemeId` 映射测试
+  (条数相等/同名/isDark一致/paper100 值不漂移), 127 测试全过。
+- [x] T5 · flutter analyze 0 警告 + dart format 0 变更。版本号 0.21.2+66 → 0.21.3+67。
 
 ### v0.21.0 — 小组件配色对齐六主题 + 预览屏尺寸对齐鸿蒙三档
 

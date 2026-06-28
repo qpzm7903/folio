@@ -69,23 +69,8 @@ class _Swatch extends StatelessWidget {
   final XJKTokens t;
 
   /// 色卡圆点用各主题的 paper-100 (卡片底色), 让用户直观看卡片背景色。
-  /// 色值对照 `colors_and_type.css` 各 `[data-theme]` 块的 --paper-100。
-  Color get _color {
-    switch (theme) {
-      case WidgetColorTheme.paper:
-        return const Color(0xFFEEF0DF);
-      case WidgetColorTheme.celadon:
-        return const Color(0xFFE1EBE4);
-      case WidgetColorTheme.moonwhite:
-        return const Color(0xFFE6E8F1);
-      case WidgetColorTheme.cinnabar:
-        return const Color(0xFFF0E1D0);
-      case WidgetColorTheme.night:
-        return const Color(0xFF0E1612);
-      case WidgetColorTheme.dai:
-        return const Color(0xFF11151E);
-    }
-  }
+  /// 委托 [XJKTokens.forId], 消除 magic Color 字面量。
+  Color get _color => XJKTokens.forId(theme.xjkThemeId).paper100;
 
   @override
   Widget build(BuildContext context) {

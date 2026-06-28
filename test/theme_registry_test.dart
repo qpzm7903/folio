@@ -114,4 +114,22 @@ void main() {
       expect(resolveIsDark(AppThemeMode.system, Brightness.dark), isTrue);
     });
   });
+
+  group('WidgetColorTheme ↔ XJKThemeId 1:1 映射 (v0.21.3 消除 magic color)', () {
+    test('两 enum 条目数相等, 同名映射, isDark 一致', () {
+      expect(WidgetColorTheme.values.length, XJKThemeId.values.length);
+      for (final WidgetColorTheme wct in WidgetColorTheme.values) {
+        final XJKThemeId tid = wct.xjkThemeId;
+        expect(tid.name, wct.name, reason: '$wct → $tid 非同名');
+        expect(tid.isDark, wct.isDark, reason: '$wct isDark 不一致');
+      }
+    });
+
+    test('xjkThemeId 映射到单源 tokens.paper100 (值不漂移)', () {
+      for (final WidgetColorTheme wct in WidgetColorTheme.values) {
+        final XJKTokens t = XJKTokens.forId(wct.xjkThemeId);
+        expect(t.paper100, isA<Color>(), reason: '$wct paper100 应为 Color');
+      }
+    });
+  });
 }

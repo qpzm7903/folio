@@ -1,3 +1,5 @@
+import '../theme/xjk_theme_id.dart';
+
 /// 桌面小组件的配色预设 (Issue #6 子任务 4 v0.15.7 起)。
 ///
 /// 六个预设跟 skill `colors_and_type.css` 的六主题色板一一对齐
@@ -59,4 +61,14 @@ enum WidgetColorTheme {
   /// 是否暗色 (卡片背景取深底) —— 对照 `XJKThemeId.isDark`。
   bool get isDark =>
       this == WidgetColorTheme.night || this == WidgetColorTheme.dai;
+
+  // ponytail: 与 XJKThemeId 1:1 映射, 消除 widget_color_picker 的 magic color。
+  XJKThemeId get xjkThemeId => switch (this) {
+        WidgetColorTheme.paper => XJKThemeId.paper,
+        WidgetColorTheme.celadon => XJKThemeId.celadon,
+        WidgetColorTheme.moonwhite => XJKThemeId.moonwhite,
+        WidgetColorTheme.cinnabar => XJKThemeId.cinnabar,
+        WidgetColorTheme.night => XJKThemeId.night,
+        WidgetColorTheme.dai => XJKThemeId.dai,
+      };
 }
