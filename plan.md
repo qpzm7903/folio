@@ -153,6 +153,27 @@
 
 ## 版本日志
 
+### v0.21.1 — 修鸿蒙卡片: 去掉「金」印 + 去掉模式切换按钮 (真机反馈)
+
+用户真机反馈桌面卡片两点: (1) 左下角「金」朱印难看, 去掉;
+(2) 右下角两个按钮里的「随机/顺序」模式切换按钮多余 —— 模式已在
+app「我的」→「小组件播放模式」里调, 卡片上不需要。只保留「下一句」按钮。
+顺带清理因此变成死代码的 toggleMode / sealBg / sealFg / playMode 字段。
+
+- [x] T1 · `QuoteCard.ets`: 页脚 Row 去掉 `Text('金')` 朱印块 + 去掉模式
+  切换 `Image`(ic_list/ic_shuffle); 只留出处文本 + 下一句按钮(ic_next)。
+  删掉因此不再被引用的 `sealBg()` / `sealFg()` / `isDark()` / `playMode` LocalStorageProp。
+- [x] T2 · `QuoteFormAbility.ets`: 删 `toggleMode()` 函数 (死代码, 模式按钮
+  没了不再有 'mode' event); `onFormEvent` 简化为始终 `nextCard(advance=true)`
+  (只剩 refresh 一类消息); `CardData` 接口 + `seed()` + `nextCard()` 返回值
+  去掉 `playMode` 字段 (卡片不再消费)。`readMode`/`KEY_MODE` 保留 —— 仍用于
+  nextCard 决定随机/顺序推进, 模式由 app 侧设置写入 prefs。
+- [x] T3 · 版本号 0.21.0+64 → 0.21.2+66。鸿蒙 hap 构建成功 + 真机验收待设备重连。
+  v0.21.2 附带: 墨色调暖 (ink 6 主题都调暖) + 行距加大 (fontSize+18) +
+  内边距加大 (20→24) + 修复 ArkTS 编译 (postCardAction untyped literal →
+  显式 interface)。衬线字体方案: 下载的 "6.0.0.2-Release" SDK 实际是
+  API 20 (无 getLocalInstance)，待找到真正 API 22+ SDK 再上字体。
+
 ### v0.21.0 — 小组件配色对齐六主题 + 预览屏尺寸对齐鸿蒙三档
 
 用户真机验收 v0.20.1 后提两点: (1) 「小组件配色」只有 3 个预设不够;

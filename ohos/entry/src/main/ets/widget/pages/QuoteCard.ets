@@ -2,16 +2,28 @@
 //
 // 交互 (docs/adr/0002):
 //   - 点正文 → postCardAction(router) 拉起 Folio 到屏保;
-//   - 点"换一句" → postCardAction(message {action:'refresh'}) → 卡片在桌面
-//     直接换下一句, 不打开 app (FormExtensionAbility.onFormEvent 处理)。
+//   - 点"换一句" → postCardAction(message) → 卡片在桌面直接换下一句,
+//     不打开 app (FormExtensionAbility.onFormEvent 处理)。
 //   - 系统每 30min (form updateDuration) 也会自动推进 cursor 换句 (onUpdateForm)。
 //
-// UI 遵循 skill xiao-jinku-desig · 青纸 (Tea Paper) 主题:
-//   bg-card #e2e6cf · ink-900 #1d2a1f (正文) · ink-500 #5e7263 (出处, 斜体)
-//   accent leaf-500 #7ba05b (换一句) · 衬线字体, 出处右下角。
+// UI 遵循 skill xiao-jinku-desig · 六主题配色。
+// v0.21.1: 去掉「金」朱印 + 模式切换按钮 (模式在 app「我的」里调)。
+// v0.21.2: 墨色调暖 + 行距加大 + 内边距加大, 接近西窗烛/句子控的舒服感。
+//   衬线字体待更高 API SDK (getLocalInstance 需要 API 22+, 当前 SDK 20 不含)。
 
 // 卡片数据由 FormExtensionAbility 通过 formBindingData 注入到 LocalStorage。
 let storage = new LocalStorage();
+
+// postCardAction 的参数需要显式接口类型 (arkts-no-untyped-obj-literals)。
+interface CardRouterAction {
+  action: string;
+  abilityName: string;
+}
+
+interface CardMessageAction {
+  action: string;
+  event: string;
+}
 
 @Entry(storage)
 @Component
@@ -20,16 +32,11 @@ struct QuoteCard {
   // 默认值是数据桥未通时的静态降级文案 (决策四: 不白屏)。
   @LocalStorageProp('quoteText') quoteText: string = '把光收进来，从裂缝里。';
   @LocalStorageProp('quoteTag') quoteTag: string = '';
-  // 播放模式 random/sequential —— 决定底部模式图标显示 shuffle 还是 list (Issue #13)。
-  @LocalStorageProp('playMode') playMode: string = 'random';
   // 配色主题 paper/celadon/moonwhite/cinnabar/night/dai —— 跟随 app "小组件配色" 设置 (v0.21.0 六主题)。
   @LocalStorageProp('colorTheme') colorTheme: string = 'paper';
 
   // ── 主题色 (跟 skill colors_and_type.css 六主题对齐, 卡片自洽 6 套) ──
-  private isDark(): boolean {
-    return this.colorTheme === 'night' || this.colorTheme === 'dai';
-  }
-
+  // v0.21.2: ink 调暖 (从纯墨绿/墨黑改成带暖灰倾向, 接近西窗烛/句子控的墨色)。
   private bg(): string {
     switch (this.colorTheme) {
       case 'celadon':   return '#e1ebe4';
@@ -43,12 +50,12 @@ struct QuoteCard {
 
   private ink(): string {
     switch (this.colorTheme) {
-      case 'celadon':   return '#1b2b29';
-      case 'moonwhite': return '#1d2336';
-      case 'cinnabar':  return '#2e1b13';
+      case 'celadon':   return '#2a3a37';
+      case 'moonwhite': return '#2a3050';
+      case 'cinnabar':  return '#3a2418';
       case 'night':     return '#e6ebd9';
       case 'dai':       return '#e6e9f2';
-      default:          return '#1d2a1f'; // paper
+      default:          return '#2a3328'; // paper (暖墨, 原 #1d2a1f)
     }
   }
 
@@ -74,21 +81,6 @@ struct QuoteCard {
     }
   }
 
-  private sealBg(): string {
-    switch (this.colorTheme) {
-      case 'celadon':   return '#c0a05e';
-      case 'moonwhite': return '#a6a4bd';
-      case 'cinnabar':  return '#b8722e';
-      case 'night':     return '#d4c47e';
-      case 'dai':       return '#cba968';
-      default:          return '#b8a866'; // paper
-    }
-  }
-
-  private sealFg(): string {
-    return this.isDark() ? '#11151e' : '#fbf7ec';
-  }
-
   // 字号随句长自适应 (2x2 卡片空间有限, 长句缩小避免溢出)。
   private quoteFontSize(): number {
     const n = this.quoteText.length;
@@ -105,42 +97,35 @@ struct QuoteCard {
   }
 
   private openApp(): void {
-    postCardAction(this, {
+    const routerAction: CardRouterAction = {
       action: 'router',
       abilityName: 'EntryAbility',
-    });
+    };
+    postCardAction(this, routerAction);
   }
 
   build() {
     Column() {
       // 正文 —— 占满卡片绝大部分高度 (layoutWeight, flex 受限不压页脚)。
       // 字号随句长自适应, 超长省略号。点它拉起 app。
+      // v0.21.2: 行距加大 (fontSize+18, 原 +13) 让文字更"安住"。
       Text(this.quoteText)
         .fontSize(this.quoteFontSize())
         .fontWeight(FontWeight.Medium)
         .fontColor(this.ink())
-        .lineHeight(this.quoteFontSize() + 13)
+        .lineHeight(this.quoteFontSize() + 18)
         .maxLines(8)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .width('100%')
         .layoutWeight(1)
-        .margin({ bottom: 10 })
+        .margin({ bottom: 12 })
         .onClick(() => {
           this.openApp();
         })
 
-      // 页脚: 「金」朱印 + 出处 (左) + 模式/下一句 两个淡图标 (右)。
+      // 页脚: 出处 (左, 占满) + 下一句按钮 (右)。v0.21.1 起去掉「金」朱印
+      // 和模式切换按钮 (模式在 app「我的」里调, 卡片上只留换句)。
       Row() {
-        Text('金')
-          .width(20)
-          .height(20)
-          .borderRadius(5)
-          .textAlign(TextAlign.Center)
-          .fontSize(12)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(this.sealFg())
-          .backgroundColor(this.sealBg())
-          .margin({ right: 8 })
         if (this.quoteTag.length > 0) {
           Text(this.quoteTag)
             .fontSize(13)
@@ -153,33 +138,17 @@ struct QuoteCard {
           Blank().layoutWeight(1)
         }
 
-        // 模式切换 (随机=shuffle / 顺序=list), 桌面直接切, 不打开 app。
-        Image(this.playMode === 'sequential'
-          ? $r('app.media.ic_list')
-          : $r('app.media.ic_shuffle'))
-          .width(22)
-          .height(22)
-          .fillColor(this.ink2())
-          .opacity(0.65)
-          .margin({ right: 14 })
-          .onClick(() => {
-            postCardAction(this, {
-              action: 'message',
-              params: { event: 'mode' } as Record<string, string>,
-            });
-          })
-
         // 下一句 (skip-forward), 桌面直接换, 不打开 app。
         Image($r('app.media.ic_next'))
           .width(22)
           .height(22)
           .fillColor(this.accent())
           .onClick(() => {
-            // params 用 "event" 不用 "action" (会被系统 action:'message' 覆盖)。
-            postCardAction(this, {
+            const msgAction: CardMessageAction = {
               action: 'message',
-              params: { event: 'refresh' } as Record<string, string>,
-            });
+              event: 'refresh',
+            };
+            postCardAction(this, msgAction);
           })
       }
       .width('100%')
@@ -189,7 +158,7 @@ struct QuoteCard {
     .height('100%')
     .justifyContent(FlexAlign.Start)
     .alignItems(HorizontalAlign.Start)
-    .padding(20)
+    .padding(24)
     .backgroundColor(this.bg())
   }
 }

@@ -40,15 +40,13 @@ interface QuoteItem {
 interface CardData {
   quoteText: string;
   quoteTag: string;
-  playMode: string;
   colorTheme: string;
 }
 
-function seed(mode: string = MODE_RANDOM, color: string = 'paper'): CardData {
+function seed(color: string = 'paper'): CardData {
   return {
     quoteText: SEED_TEXT,
     quoteTag: SEED_TAG,
-    playMode: mode,
     colorTheme: color,
   };
 }
@@ -104,7 +102,7 @@ function nextCard(context: common.Context, advance: boolean): CardData {
     const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
     if (list.length === 0) {
       hilog.info(LOG_DOMAIN, LOG_TAG, 'form read: timeline empty -> seed');
-      return seed(mode, color);
+      return seed(color);
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
     let cursor = isNaN(raw) ? 0 : raw;
@@ -122,41 +120,10 @@ function nextCard(context: common.Context, advance: boolean): CardData {
     return {
       quoteText: item.q ?? SEED_TEXT,
       quoteTag: item.s ?? '',
-      playMode: mode,
       colorTheme: color,
     };
   } catch (err) {
     hilog.error(LOG_DOMAIN, LOG_TAG, 'form read failed: %{public}s', JSON.stringify(err) ?? '');
-    return seed();
-  }
-}
-
-// 切换 random <-> sequential 写回, 展示当前 cursor 句 (不前进), 仅更新模式图标。
-function toggleMode(context: common.Context): CardData {
-  try {
-    preferences.removePreferencesFromCacheSync(context, { name: WIDGET_STORE });
-    const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
-    const next = readMode(store) === MODE_SEQUENTIAL ? MODE_RANDOM : MODE_SEQUENTIAL;
-    store.putSync(KEY_MODE, next);
-    store.flush();
-    const color = readColor(store);
-    const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
-    if (list.length === 0) {
-      return seed(next, color);
-    }
-    const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
-    const cursor = isNaN(raw) ? 0 : raw;
-    const idx = ((cursor % list.length) + list.length) % list.length;
-    const item = list[idx];
-    hilog.info(LOG_DOMAIN, LOG_TAG, 'form mode toggled -> %{public}s', next);
-    return {
-      quoteText: item.q ?? SEED_TEXT,
-      quoteTag: item.s ?? '',
-      playMode: next,
-      colorTheme: color,
-    };
-  } catch (err) {
-    hilog.error(LOG_DOMAIN, LOG_TAG, 'form toggle mode failed: %{public}s', JSON.stringify(err) ?? '');
     return seed();
   }
 }
@@ -178,18 +145,12 @@ export default class QuoteFormAbility extends FormExtensionAbility {
 
   // 卡片"换一句"按钮 (postCardAction message) → 这里收到。立即换下一句, 不打开 app。
   //
-  // 坑: postCardAction 会把 params 平铺到顶层 message, 且系统会追加自己的
-  // "action":"message" —— 若 params 用 "action" 当 key 会被覆盖 (JSON 重复 key
-  // 后者胜), 解析不到。本卡片只有"换一句"一个消息事件, 故收到任何 onFormEvent
-  // 都换下一句, 不依赖具体字段, 最稳。
+  // v0.21.1 起卡片只有"下一句"一个按钮, 故收到任何 onFormEvent 都换下一句。
+  // (坑: postCardAction 会把 params 平铺到顶层 message, 且系统会追加自己的
+  // "action":"message" —— 若 params 用 "action" 当 key 会被覆盖, 解析不到。)
   onFormEvent(formId: string, message: string): void {
     hilog.info(LOG_DOMAIN, LOG_TAG, 'onFormEvent msg=%{public}s', message ?? '');
-    // event=mode → 切随机/顺序模式 (不前进); 否则 (refresh) → 下一句。
-    const isMode = (message ?? '').indexOf('mode') >= 0;
-    this.render(
-      formId,
-      isMode ? toggleMode(this.appCtx()) : nextCard(this.appCtx(), true),
-    );
+    this.render(formId, nextCard(this.appCtx(), true));
   }
 
   private render(formId: string, data: CardData): void {
