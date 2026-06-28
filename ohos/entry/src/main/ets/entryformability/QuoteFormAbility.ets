@@ -22,6 +22,7 @@ const WIDGET_STORE: string = 'folio_widget';
 const KEY_TIMELINE: string = 'widgetTimeline';
 const KEY_CURSOR: string = 'widgetTimelineCursor';
 const KEY_MODE: string = 'widgetPlayMode';
+const KEY_COLOR: string = 'widgetColorTheme';
 const MODE_SEQUENTIAL: string = 'sequential';
 const MODE_RANDOM: string = 'random';
 const LOG_TAG: string = 'FolioWidget';
@@ -40,15 +41,26 @@ interface CardData {
   quoteText: string;
   quoteTag: string;
   playMode: string;
+  colorTheme: string;
 }
 
-function seed(mode: string = MODE_RANDOM): CardData {
-  return { quoteText: SEED_TEXT, quoteTag: SEED_TAG, playMode: mode };
+function seed(mode: string = MODE_RANDOM, color: string = 'paper'): CardData {
+  return {
+    quoteText: SEED_TEXT,
+    quoteTag: SEED_TAG,
+    playMode: mode,
+    colorTheme: color,
+  };
 }
 
 function readMode(store: preferences.Preferences): string {
   const m = store.getSync(KEY_MODE, MODE_RANDOM) as string;
   return m === MODE_SEQUENTIAL ? MODE_SEQUENTIAL : MODE_RANDOM;
+}
+
+function readColor(store: preferences.Preferences): string {
+  const c = store.getSync(KEY_COLOR, 'paper') as string;
+  return (c === 'night' || c === 'bamboo') ? c : 'paper';
 }
 
 function parseTimeline(json: string): QuoteItem[] {
@@ -83,10 +95,11 @@ function nextCard(context: common.Context, advance: boolean): CardData {
     preferences.removePreferencesFromCacheSync(context, { name: WIDGET_STORE });
     const store = preferences.getPreferencesSync(context, { name: WIDGET_STORE });
     const mode = readMode(store);
+    const color = readColor(store);
     const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
     if (list.length === 0) {
       hilog.info(LOG_DOMAIN, LOG_TAG, 'form read: timeline empty -> seed');
-      return seed(mode);
+      return seed(mode, color);
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
     let cursor = isNaN(raw) ? 0 : raw;
@@ -101,7 +114,12 @@ function nextCard(context: common.Context, advance: boolean): CardData {
     const item = list[idx];
     hilog.info(LOG_DOMAIN, LOG_TAG, 'form card: len=%{public}d cursor=%{public}d mode=%{public}s advance=%{public}s',
       list.length, idx, mode, String(advance));
-    return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '', playMode: mode };
+    return {
+      quoteText: item.q ?? SEED_TEXT,
+      quoteTag: item.s ?? '',
+      playMode: mode,
+      colorTheme: color,
+    };
   } catch (err) {
     hilog.error(LOG_DOMAIN, LOG_TAG, 'form read failed: %{public}s', JSON.stringify(err) ?? '');
     return seed();
@@ -116,16 +134,22 @@ function toggleMode(context: common.Context): CardData {
     const next = readMode(store) === MODE_SEQUENTIAL ? MODE_RANDOM : MODE_SEQUENTIAL;
     store.putSync(KEY_MODE, next);
     store.flush();
+    const color = readColor(store);
     const list = parseTimeline(store.getSync(KEY_TIMELINE, '') as string);
     if (list.length === 0) {
-      return seed(next);
+      return seed(next, color);
     }
     const raw = parseInt(store.getSync(KEY_CURSOR, '0') as string, 10);
     const cursor = isNaN(raw) ? 0 : raw;
     const idx = ((cursor % list.length) + list.length) % list.length;
     const item = list[idx];
     hilog.info(LOG_DOMAIN, LOG_TAG, 'form mode toggled -> %{public}s', next);
-    return { quoteText: item.q ?? SEED_TEXT, quoteTag: item.s ?? '', playMode: next };
+    return {
+      quoteText: item.q ?? SEED_TEXT,
+      quoteTag: item.s ?? '',
+      playMode: next,
+      colorTheme: color,
+    };
   } catch (err) {
     hilog.error(LOG_DOMAIN, LOG_TAG, 'form toggle mode failed: %{public}s', JSON.stringify(err) ?? '');
     return seed();

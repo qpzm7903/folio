@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/router.dart';
 import '../../data/quote.dart';
+import '../../domain/quote_display.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
@@ -81,7 +82,7 @@ class LibraryScreen extends ConsumerWidget {
                           const _HelloHero(),
                           const SizedBox(height: 12),
                           QuoteCard(
-                            quote: today.text,
+                            quote: displayQuoteText(today.text),
                             source: today.tag,
                             date: _fmtDate(today.createdAt),
                             variant: QuoteCardVariant.featured,
@@ -102,7 +103,7 @@ class LibraryScreen extends ConsumerWidget {
                           const SizedBox(height: 12),
                           for (final Quote q in rest)
                             QuoteCard(
-                              quote: q.text,
+                              quote: displayQuoteText(q.text),
                               source: q.tag,
                               date: _fmtDate(q.createdAt),
                               onTap: () => _openEditExisting(context, q),

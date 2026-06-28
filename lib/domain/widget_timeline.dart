@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import '../data/quote.dart';
+import 'quote_display.dart';
 import 'shuffle.dart';
 
 /// 桌面小组件的"未来 N 条" 时间线 —— Dart 端预生成, native 按 cursor 推进。
@@ -62,7 +63,8 @@ class WidgetTimeline {
   static String serialize(List<Quote> timeline) {
     final List<Map<String, String>> raw = timeline
         .map(
-          (Quote q) => <String, String>{'q': q.text, 's': q.tag},
+          (Quote q) =>
+              <String, String>{'q': displayQuoteText(q.text), 's': q.tag},
         )
         .toList(growable: false);
     return jsonEncode(raw);

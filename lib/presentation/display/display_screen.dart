@@ -9,6 +9,7 @@ import '../../core/logger.dart';
 import '../../core/platform_capabilities.dart';
 import '../../data/quote.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/quote_display.dart';
 import '../../data/wallpaper_service.dart';
 import '../../domain/rotation_controller.dart';
 import '../../theme/tokens.dart';
@@ -213,7 +214,9 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                         key: ValueKey<String>('${layout.key}-$_fadeKey'),
                         child: layout.build(
                           DisplayLayoutData(
-                            quote: current,
+                            quote: current.copyWith(
+                              text: displayQuoteText(current.text),
+                            ),
                             tokens: t,
                             textColor: textColor,
                             subColor: subColor,

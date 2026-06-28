@@ -153,6 +153,23 @@
 
 ## 版本日志
 
+### v0.20.0 — 鸿蒙卡片视觉改版 (对标 西窗烛/句子控) + 展示去序号
+
+用户真机对比西窗烛/句子控觉得我们卡片不够优美。用 xiao-jinku-desig skill
+重新设计 (先出 HTML mock 对齐方向, 再落 ArkTS):
+
+- **展示去序号**: 新增 `displayQuoteText` 剥掉开头 "200." / "9、" 等序号前缀
+  (原数据不动), 应用到卡片/小组件 timeline + 屏保 5 版式 + 金库列表卡片。
+- **卡片重排** (QuoteCard.ets): 16px 顶贴 → 22px 大字 + 黄金比锚点 (上 0.38/
+  下 0.62 留白); 顶部「金」朱印 + 小金库·Folio 落款; 出处斜体; 两个控制图标
+  按用户要求保留但做淡 (fillColor 跟随主题 + 低透明度), 不抢正文。
+- **跟随主题配色**: 卡片读 `widgetColorTheme` (青纸/林夜/翠竹) 自映射 bg/ink/
+  accent/seal 三套色 (QuoteFormAbility 把 colorTheme 注入 CardData)。
+- 局限: 鸿蒙卡片仍用系统字体 (非衬线) —— ArkUI 卡片不能用 Flutter 端
+  Noto Serif SC, 后续可注册 rawfile 衬线字体再上。
+- Dart analyze 0 警告 + 124 测试 (新增 quote_display 8 例); 鸿蒙 hap 编译 +
+  Mate 80 真机验收。版本号 0.19.3+61 → 0.20.0+62。
+
 ### v0.19.3 — 修 v0.19.2 卡片回归 (图标太小 + 顺序模式仍随机)
 
 用户真机反馈两点:

@@ -22,34 +22,122 @@ struct QuoteCard {
   @LocalStorageProp('quoteTag') quoteTag: string = '';
   // 播放模式 random/sequential —— 决定底部模式图标显示 shuffle 还是 list (Issue #13)。
   @LocalStorageProp('playMode') playMode: string = 'random';
+  // 配色主题 paper/night/bamboo —— 跟随 app "小组件配色" 设置 (v0.20.0)。
+  @LocalStorageProp('colorTheme') colorTheme: string = 'paper';
+
+  // ── 主题色 (跟 skill colors_and_type.css 对齐, 卡片自洽的 3 套) ──
+  private isDark(): boolean {
+    return this.colorTheme === 'night';
+  }
+
+  private bg(): string {
+    if (this.colorTheme === 'night') {
+      return '#15211a';
+    }
+    if (this.colorTheme === 'bamboo') {
+      return '#ece2c4';
+    }
+    return '#e8ead6';
+  }
+
+  private ink(): string {
+    if (this.colorTheme === 'night') {
+      return '#e6ebd9';
+    }
+    if (this.colorTheme === 'bamboo') {
+      return '#33301c';
+    }
+    return '#1d2a1f';
+  }
+
+  private ink2(): string {
+    if (this.colorTheme === 'night') {
+      return '#8a9a82';
+    }
+    if (this.colorTheme === 'bamboo') {
+      return '#7a6f4a';
+    }
+    return '#5e7263';
+  }
+
+  private accent(): string {
+    if (this.colorTheme === 'night') {
+      return '#9ec88a';
+    }
+    if (this.colorTheme === 'bamboo') {
+      return '#9a7b3a';
+    }
+    return '#7ba05b';
+  }
+
+  private sealBg(): string {
+    if (this.colorTheme === 'night') {
+      return '#d4c47e';
+    }
+    return '#b07a2e';
+  }
+
+  private sealFg(): string {
+    return this.isDark() ? '#15211a' : '#fbf7ec';
+  }
+
+  // 字号随句长自适应 (2x2 卡片空间有限, 长句缩小避免溢出)。
+  private quoteFontSize(): number {
+    const n = this.quoteText.length;
+    if (n <= 12) {
+      return 23;
+    }
+    if (n <= 22) {
+      return 19;
+    }
+    if (n <= 38) {
+      return 16;
+    }
+    return 14;
+  }
+
+  private openApp(): void {
+    postCardAction(this, {
+      action: 'router',
+      abilityName: 'EntryAbility',
+    });
+  }
 
   build() {
     Column() {
-      // 正文金句 —— 衬线、深墨绿、行距宽松。点它拉起 app。
+      // 正文 —— 占满卡片绝大部分高度 (layoutWeight, flex 受限不压页脚)。
+      // 字号随句长自适应, 超长省略号。点它拉起 app。
       Text(this.quoteText)
-        .fontSize(16)
-        .fontWeight(FontWeight.Normal)
-        .fontColor('#1d2a1f')
-        .lineHeight(28)
-        .maxLines(4)
+        .fontSize(this.quoteFontSize())
+        .fontWeight(FontWeight.Medium)
+        .fontColor(this.ink())
+        .lineHeight(this.quoteFontSize() + 13)
+        .maxLines(8)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .width('100%')
+        .layoutWeight(1)
+        .margin({ bottom: 10 })
         .onClick(() => {
-          postCardAction(this, {
-            action: 'router',
-            abilityName: 'EntryAbility',
-          });
+          this.openApp();
         })
 
-      Blank()
-
-      // 底部行: 出处 (左, 斜体淡墨) + "换一句" 按钮 (右, accent)。
+      // 页脚: 「金」朱印 + 出处 (左) + 模式/下一句 两个淡图标 (右)。
       Row() {
+        Text('金')
+          .width(20)
+          .height(20)
+          .borderRadius(5)
+          .textAlign(TextAlign.Center)
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(this.sealFg())
+          .backgroundColor(this.sealBg())
+          .margin({ right: 8 })
         if (this.quoteTag.length > 0) {
-          Text('— ' + this.quoteTag)
-            .fontSize(12)
+          Text(this.quoteTag)
+            .fontSize(13)
             .fontStyle(FontStyle.Italic)
-            .fontColor('#5e7263')
+            .fontColor(this.ink2())
             .layoutWeight(1)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -57,16 +145,15 @@ struct QuoteCard {
           Blank().layoutWeight(1)
         }
 
-        // 模式切换 —— 音乐播放器式图标 (随机=shuffle / 顺序=list), 不打开 app。
+        // 模式切换 (随机=shuffle / 顺序=list), 桌面直接切, 不打开 app。
         Image(this.playMode === 'sequential'
           ? $r('app.media.ic_list')
           : $r('app.media.ic_shuffle'))
-          .width(26)
-          .height(26)
-          .padding(8)
-          .margin({ right: 8 })
-          .borderRadius(14)
-          .backgroundColor('#f7f8ed')
+          .width(22)
+          .height(22)
+          .fillColor(this.ink2())
+          .opacity(0.65)
+          .margin({ right: 14 })
           .onClick(() => {
             postCardAction(this, {
               action: 'message',
@@ -74,16 +161,13 @@ struct QuoteCard {
             });
           })
 
-        // 下一句 —— 在桌面直接换下一句, 不打开 app (skip-forward 图标)。
+        // 下一句 (skip-forward), 桌面直接换, 不打开 app。
         Image($r('app.media.ic_next'))
-          .width(26)
-          .height(26)
-          .padding(8)
-          .borderRadius(14)
-          .backgroundColor('#f7f8ed')
+          .width(22)
+          .height(22)
+          .fillColor(this.accent())
           .onClick(() => {
-            // 注意: params 别用 "action" 当 key, 会跟系统追加的 action:'message'
-            // 撞名被覆盖。用 "event": refresh=下一句 / mode=切模式。
+            // params 用 "event" 不用 "action" (会被系统 action:'message' 覆盖)。
             postCardAction(this, {
               action: 'message',
               params: { event: 'refresh' } as Record<string, string>,
@@ -97,7 +181,7 @@ struct QuoteCard {
     .height('100%')
     .justifyContent(FlexAlign.Start)
     .alignItems(HorizontalAlign.Start)
-    .padding(16)
-    .backgroundColor('#e2e6cf')
+    .padding(20)
+    .backgroundColor(this.bg())
   }
 }
