@@ -238,6 +238,21 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     );
   }
 
+  /// 一次性从金库取出多句 (金库多选批量删除)。
+  ///
+  /// 只 saveAll + 写一次 state, 避免循环调用 [remove] 反复落盘;
+  /// 空集合直接返回, 不产生空写。
+  Future<void> removeMany(Iterable<String> ids) async {
+    final Set<String> targets = ids.toSet();
+    if (targets.isEmpty) return;
+    await _mutate(
+      log: 'removed ${targets.length} quotes (batch)',
+      transform: (List<Quote> cur) => cur
+          .where((Quote q) => !targets.contains(q.id))
+          .toList(growable: false),
+    );
+  }
+
   /// 共用的"读 current → 算 next → 落盘 + 写状态 + 记日志"流程。
   /// 把所有 mutate 方法里重复的样板压成一行 transform。
   ///

@@ -17,6 +17,7 @@ import '../../theme/tokens.dart';
 Future<bool?> showConfirmDeleteDialog(
   BuildContext context, {
   String message = '从金库取出这句话？',
+  String? detail,
   String keepLabel = '留着',
   String removeLabel = '取出',
 }) {
@@ -29,13 +30,31 @@ Future<bool?> showConfirmDeleteDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
         ),
-        content: Text(
-          message,
-          style: TextStyle(
-            fontFamily: XJKTokens.serifDisplay,
-            fontSize: 17,
-            color: t.fg1,
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              message,
+              style: TextStyle(
+                fontFamily: XJKTokens.serifDisplay,
+                fontSize: 17,
+                color: t.fg1,
+              ),
+            ),
+            if (detail != null) ...<Widget>[
+              const SizedBox(height: 10),
+              Text(
+                detail,
+                style: TextStyle(
+                  fontFamily: XJKTokens.serifDisplay,
+                  fontSize: 14,
+                  height: 1.6,
+                  color: t.fg3,
+                ),
+              ),
+            ],
+          ],
         ),
         actions: <Widget>[
           TextButton(

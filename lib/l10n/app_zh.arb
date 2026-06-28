@@ -33,6 +33,31 @@
   "actionRemove": "取出",
   "actionKeep": "留着",
 
+  "actionMultiSelect": "多选",
+  "selectModeIdle": "选择金句",
+  "selectedCount": "已选 {n} 句",
+  "@selectedCount": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "selectAll": "全选",
+  "deselectAll": "取消全选",
+  "removeSelected": "取出 {n} 句",
+  "@removeSelected": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "confirmRemoveSelected": "从金库取出这 {n} 句？",
+  "@confirmRemoveSelected": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "confirmRemoveSelectedBody": "取出后将不再出现在首页和组件里。",
+  "selectEmptyNote": "这个标签下还没有金句。",
+
   "fabNewQuote": "新的一句",
   "editorTitleNew": "新的一句",
   "editorTitleEdit": "改一改",

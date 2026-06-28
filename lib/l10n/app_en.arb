@@ -23,6 +23,16 @@
   "actionRemove": "Remove",
   "actionKeep": "Keep",
 
+  "actionMultiSelect": "Select",
+  "selectModeIdle": "Select quotes",
+  "selectedCount": "{n} selected",
+  "selectAll": "Select all",
+  "deselectAll": "Deselect all",
+  "removeSelected": "Take out {n}",
+  "confirmRemoveSelected": "Take these {n} out of the library?",
+  "confirmRemoveSelectedBody": "They will no longer appear on the home screen or in widgets.",
+  "selectEmptyNote": "No quotes under this tag yet.",
+
   "fabNewQuote": "New quote",
   "editorTitleNew": "New quote",
   "editorTitleEdit": "Tweak",
