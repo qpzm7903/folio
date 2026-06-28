@@ -31,7 +31,7 @@ void main() {
           .setBackgroundImagePath('/tmp/bg.jpg');
       await c
           .read(settingsProvider.notifier)
-          .setWidgetColorTheme(WidgetColorTheme.bamboo);
+          .setWidgetColorTheme(WidgetColorTheme.celadon);
       await c
           .read(settingsProvider.notifier)
           .setWidgetPlayMode(WidgetPlayMode.sequential);
@@ -43,7 +43,7 @@ void main() {
       expect(s.shuffleNoRepeat, isFalse);
       expect(s.showAttribution, isFalse);
       expect(s.backgroundImagePath, '/tmp/bg.jpg');
-      expect(s.widgetColorTheme, WidgetColorTheme.bamboo);
+      expect(s.widgetColorTheme, WidgetColorTheme.celadon);
       expect(s.widgetPlayMode, WidgetPlayMode.sequential);
 
       // 验证落盘: 重新建一个 container, 应该 load 出同样的值
@@ -66,6 +66,33 @@ void main() {
       final ProviderContainer c2 = await makeContainer();
       expect(c2.read(settingsProvider).backgroundImagePath, isNull);
       c2.dispose();
+    });
+
+    test('WidgetColorTheme 六主题 round-trip + 旧值 bamboo fallback paper',
+        () async {
+      // 六主题都能 round-trip
+      for (final WidgetColorTheme c in WidgetColorTheme.values) {
+        final ProviderContainer container = await makeContainer();
+        await container.read(settingsProvider.notifier).setWidgetColorTheme(c);
+        expect(container.read(settingsProvider).widgetColorTheme, c);
+        container.dispose();
+
+        // 重新加载验证落盘
+        final ProviderContainer c2 = await makeContainer();
+        expect(c2.read(settingsProvider).widgetColorTheme, c);
+        c2.dispose();
+      }
+
+      // 旧版持久化的 'bamboo' 值 (v0.21.0 已移除) 应 fallback 到 paper
+      SharedPreferences.setMockInitialValues(
+        <String, Object>{'folio.settings.widgetColorTheme': 'bamboo'},
+      );
+      final ProviderContainer c3 = await makeContainer();
+      expect(
+        c3.read(settingsProvider).widgetColorTheme,
+        WidgetColorTheme.paper,
+      );
+      c3.dispose();
     });
   });
 }

@@ -153,6 +153,31 @@
 
 ## 版本日志
 
+### v0.21.0 — 小组件配色对齐六主题 + 预览屏尺寸对齐鸿蒙三档
+
+用户真机验收 v0.20.1 后提两点: (1) 「小组件配色」只有 3 个预设不够;
+(2) 「自定义小组件」预览屏只显示 3 个 mock 尺寸, 跟鸿蒙 form_config 实际
+支持的 2×2 / 2×4 / 4×4 三档不对应 (v0.20.0 刚加了 4×4 但预览屏没跟上)。
+本版把组件配色对齐设计系统六主题, 预览屏对齐鸿蒙三档。
+
+- [x] T1 · `WidgetColorTheme` enum 3→6 (对照 `colors_and_type.css` 六主题):
+  现有 paper/night 保留, 新增 celadon(天青)/moonwhite(月白)/
+  cinnabar(绛霞)/dai(青黛); 移除 bamboo(不在六主题内, 旧值 fallback paper)。
+  displayLabel/displaySub 跟 `XJKThemeId` 对齐。持久化 `.name` 向后兼容。
+- [x] T2 · `widget_color_picker.dart` `_Swatch` 6 套色卡: 色值对照
+  `colors_and_type.css` 各主题 paper-100。picker 自动列全 6 项 (遍历 values)。
+  加 SingleChildScrollView 防长列表溢出。
+- [x] T3 · `widgets_preview_screen.dart` 三档 mock 对齐鸿蒙 `form_config.json`:
+  小/中/大 → 2×2 (方块 160×160) / 2×4 (横长条 宽×150) / 4×4 (大方块 宽×340)。
+  文案改「2×2 / 2×4 / 4×4 · 长按主屏添加「小金库」卡片」。
+- [x] T4 · ArkTS 卡片配色扩 6 主题 (`QuoteCard.ets` + `QuoteFormAbility.ets`):
+  `readColor` 白名单 6 项; `QuoteCard` 的 bg/ink/ink2/accent/sealBg 5 个色函数
+  从 if-chain 改成 6 路 switch, 色值对照 `colors_and_type.css` 各 `[data-theme]`。
+- [x] T5 · 测试: `settings_notifier_test` 加六主题 round-trip + 旧值 bamboo
+  fallback paper; 125 测试全过, analyze 0 警告。版本号 0.20.1+63 → 0.21.0+64。
+- [x] T6 · 鸿蒙 hap 构建 + AGC 签名装机 + Mate 80 真机验收 (用户确认):
+  配色 6 选项 ✓ + 预览屏三档 ✓ + 桌面卡片跟随配色变色 ✓。
+
 ### v0.20.1 — 重构 PATCH: 三栏导航对齐设计系统 (首页 / 金库 / 我的)
 
 兑现 prompt.md 优先级 #3 (当前 MINOR 0.20.x 缺重构 PATCH)。对照 xiao-jinku-desig

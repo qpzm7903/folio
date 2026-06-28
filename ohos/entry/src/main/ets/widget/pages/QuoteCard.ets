@@ -22,63 +22,71 @@ struct QuoteCard {
   @LocalStorageProp('quoteTag') quoteTag: string = '';
   // 播放模式 random/sequential —— 决定底部模式图标显示 shuffle 还是 list (Issue #13)。
   @LocalStorageProp('playMode') playMode: string = 'random';
-  // 配色主题 paper/night/bamboo —— 跟随 app "小组件配色" 设置 (v0.20.0)。
+  // 配色主题 paper/celadon/moonwhite/cinnabar/night/dai —— 跟随 app "小组件配色" 设置 (v0.21.0 六主题)。
   @LocalStorageProp('colorTheme') colorTheme: string = 'paper';
 
-  // ── 主题色 (跟 skill colors_and_type.css 对齐, 卡片自洽的 3 套) ──
+  // ── 主题色 (跟 skill colors_and_type.css 六主题对齐, 卡片自洽 6 套) ──
   private isDark(): boolean {
-    return this.colorTheme === 'night';
+    return this.colorTheme === 'night' || this.colorTheme === 'dai';
   }
 
   private bg(): string {
-    if (this.colorTheme === 'night') {
-      return '#15211a';
+    switch (this.colorTheme) {
+      case 'celadon':   return '#e1ebe4';
+      case 'moonwhite': return '#e6e8f1';
+      case 'cinnabar':  return '#f0e1d0';
+      case 'night':     return '#0e1612';
+      case 'dai':       return '#11151e';
+      default:          return '#eef0df'; // paper
     }
-    if (this.colorTheme === 'bamboo') {
-      return '#ece2c4';
-    }
-    return '#e8ead6';
   }
 
   private ink(): string {
-    if (this.colorTheme === 'night') {
-      return '#e6ebd9';
+    switch (this.colorTheme) {
+      case 'celadon':   return '#1b2b29';
+      case 'moonwhite': return '#1d2336';
+      case 'cinnabar':  return '#2e1b13';
+      case 'night':     return '#e6ebd9';
+      case 'dai':       return '#e6e9f2';
+      default:          return '#1d2a1f'; // paper
     }
-    if (this.colorTheme === 'bamboo') {
-      return '#33301c';
-    }
-    return '#1d2a1f';
   }
 
   private ink2(): string {
-    if (this.colorTheme === 'night') {
-      return '#8a9a82';
+    switch (this.colorTheme) {
+      case 'celadon':   return '#5b716c';
+      case 'moonwhite': return '#5d6783';
+      case 'cinnabar':  return '#7c5848';
+      case 'night':     return '#8a9a82';
+      case 'dai':       return '#828ba6';
+      default:          return '#5e7263'; // paper
     }
-    if (this.colorTheme === 'bamboo') {
-      return '#7a6f4a';
-    }
-    return '#5e7263';
   }
 
   private accent(): string {
-    if (this.colorTheme === 'night') {
-      return '#9ec88a';
+    switch (this.colorTheme) {
+      case 'celadon':   return '#5f968c';
+      case 'moonwhite': return '#6f84bb';
+      case 'cinnabar':  return '#c14a30';
+      case 'night':     return '#9ec88a';
+      case 'dai':       return '#88a4cc';
+      default:          return '#7ba05b'; // paper
     }
-    if (this.colorTheme === 'bamboo') {
-      return '#9a7b3a';
-    }
-    return '#7ba05b';
   }
 
   private sealBg(): string {
-    if (this.colorTheme === 'night') {
-      return '#d4c47e';
+    switch (this.colorTheme) {
+      case 'celadon':   return '#c0a05e';
+      case 'moonwhite': return '#a6a4bd';
+      case 'cinnabar':  return '#b8722e';
+      case 'night':     return '#d4c47e';
+      case 'dai':       return '#cba968';
+      default:          return '#b8a866'; // paper
     }
-    return '#b07a2e';
   }
 
   private sealFg(): string {
-    return this.isDark() ? '#15211a' : '#fbf7ec';
+    return this.isDark() ? '#11151e' : '#fbf7ec';
   }
 
   // 字号随句长自适应 (2x2 卡片空间有限, 长句缩小避免溢出)。

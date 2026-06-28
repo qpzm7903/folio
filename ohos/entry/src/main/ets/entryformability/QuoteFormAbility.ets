@@ -60,7 +60,12 @@ function readMode(store: preferences.Preferences): string {
 
 function readColor(store: preferences.Preferences): string {
   const c = store.getSync(KEY_COLOR, 'paper') as string;
-  return (c === 'night' || c === 'bamboo') ? c : 'paper';
+  // 六主题白名单 (v0.21.0), 未知值 fallback paper。
+  if (c === 'paper' || c === 'celadon' || c === 'moonwhite' ||
+      c === 'cinnabar' || c === 'night' || c === 'dai') {
+    return c;
+  }
+  return 'paper';
 }
 
 function parseTimeline(json: string): QuoteItem[] {

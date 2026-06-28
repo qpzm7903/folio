@@ -63,7 +63,7 @@ class WidgetsPreviewScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '三种尺寸 · 长按主屏 → 小组件, 拖动「小金库」到桌面。',
+                      '2×2 / 2×4 / 4×4 · 长按主屏添加「小金库」卡片。',
                       style: TextStyle(
                         fontFamily: XJKTokens.serifItalic,
                         fontStyle: FontStyle.italic,
@@ -72,11 +72,11 @@ class WidgetsPreviewScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (small != null) _SmallWidgetMock(quote: small),
+                    if (small != null) _WidgetMock2x2(quote: small),
                     const SizedBox(height: 16),
-                    if (medium != null) _MediumWidgetMock(quote: medium),
+                    if (medium != null) _WidgetMock2x4(quote: medium),
                     const SizedBox(height: 16),
-                    if (large != null) _LargeWidgetMock(quote: large),
+                    if (large != null) _WidgetMock4x4(quote: large),
                   ],
                 ),
               ),
@@ -88,8 +88,8 @@ class WidgetsPreviewScreen extends ConsumerWidget {
   }
 }
 
-class _SmallWidgetMock extends StatelessWidget {
-  const _SmallWidgetMock({required this.quote});
+class _WidgetMock2x2 extends StatelessWidget {
+  const _WidgetMock2x2({required this.quote});
   final Quote quote;
 
   @override
@@ -122,16 +122,17 @@ class _SmallWidgetMock extends StatelessWidget {
   }
 }
 
-class _MediumWidgetMock extends StatelessWidget {
-  const _MediumWidgetMock({required this.quote});
+class _WidgetMock2x4 extends StatelessWidget {
+  const _WidgetMock2x4({required this.quote});
   final Quote quote;
 
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
+    // 2×4 横长条: 宽满, 高度按 2:4 比例缩放 (卡片格 2 行高)。
     return Container(
       width: double.infinity,
-      height: 160,
+      height: 150,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: t.bgRaised,
@@ -149,7 +150,7 @@ class _MediumWidgetMock extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: XJKTokens.serifDisplay,
-                fontSize: 16,
+                fontSize: 15,
                 height: 1.7,
                 color: t.fg1,
               ),
@@ -174,24 +175,22 @@ class _MediumWidgetMock extends StatelessWidget {
   }
 }
 
-class _LargeWidgetMock extends StatelessWidget {
-  const _LargeWidgetMock({required this.quote});
+class _WidgetMock4x4 extends StatelessWidget {
+  const _WidgetMock4x4({required this.quote});
   final Quote quote;
 
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
+    // 4×4 大方块: 宽满, 高度 = 宽 (正方形, 卡片格 4 行高)。
     return Container(
       width: double.infinity,
-      height: 320,
+      height: 340,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[t.leaf700, const Color(0xFF2C3D27)],
-        ),
+        color: t.bgRaised,
         borderRadius: BorderRadius.circular(XJKTokens.radiusXl),
+        border: Border.all(color: t.border1),
         boxShadow: t.shadow3,
       ),
       child: Column(
@@ -201,13 +200,13 @@ class _LargeWidgetMock extends StatelessWidget {
             child: Center(
               child: Text(
                 quote.text,
-                maxLines: 7,
+                maxLines: 8,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: XJKTokens.serifDisplay,
                   fontSize: 18,
                   height: 1.85,
-                  color: Color(0xFFEDF2DC),
+                  color: t.fg1,
                 ),
               ),
             ),
@@ -221,7 +220,7 @@ class _LargeWidgetMock extends StatelessWidget {
               fontFamily: XJKTokens.serifItalic,
               fontStyle: FontStyle.italic,
               fontSize: 12,
-              color: const Color(0xFFEDF2DC).withValues(alpha: 0.7),
+              color: t.fg3,
             ),
           ),
         ],
