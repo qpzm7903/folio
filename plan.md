@@ -69,6 +69,12 @@
   屏保从单一版式扩成可循环多版式 (精选 5 个: 页 / 满 / 印 / 时 / 片), 引入
   黄金比竖向锚点 (0.382) + 句长分级 q-scale 自适应字号。纯 Dart UI, 全平台通用,
   以 Mate 80 Pro / HarmonyOS 6 真机验收。余下 4 版式 (竖 / 引 / 条 / 织) 留后续 PATCH。
+- [ ] L23 · 多标签系统 (设计系统标签 2.0, 一句多标签) — 规划 v0.22.1(重构铺路) +
+  v0.23.0(功能)。对齐 2026-06-29 重新同步的 `xiao-jinku-desig` skill (新增"批量操作
+  金句 + 标签"): `Quote` 从单标签 `tag` 扩成多标签 `tags: List<String>` ("一句多标签"
+  为核心), 标签筛选改 `tags.contains`, 单类目版式取首标签 (空回落"未分类"); 新增标签
+  管理 Sheet (增 + 批量删) + 编辑屏多选标签选择器 + 库筛选行末"管理"入口。v0.22.1 已先做
+  接缝收敛 (`filterQuotesByTag` / `kAllTagsLabel` / QuoteCard.tag / 版式落款) 把迁移面收窄。
 
 ---
 
@@ -100,6 +106,14 @@
   优先级落到"开发新功能")。严格对齐 `xiao-jinku-desig` skill 的 select-mode 设计
   (screens.jsx LibraryScreen + components.jsx QuoteCard.selectable + kit.css
   `.select-bar` / `.qcheck` / `.action-bar`)。
+- v0.22.1 (已完成) · 重构 PATCH: 收敛标签/选择模式接缝 (`filterQuotesByTag` 入
+  领域层 + `kAllTagsLabel` 哨兵 + `QuoteCard` source→tag / 编辑屏 _src→_tag 命名诚实
+  + 满/时 版式落款去重), 为 v0.23.0 多标签迁移铺路。行为等价, 无 UI 变化。
+- v0.23.0 (规划中) · 功能 MINOR: 多标签系统 (= L23)。兑现 2026-06-29 设计 skill
+  更新: `Quote.tag` (单) → `Quote.tags` (多, "一句多标签"为核心); 库筛选行 (含"全部"
+  虚拟标签 + 末尾"✎ 管理"入口) 改 `tags.contains`; 标签管理 Sheet (新增 + 批量删除标签,
+  删除后该标签下的句归"未分类"); 编辑屏多选标签选择器 (现有标签 pill 多选 + "＋ 新标签"
+  内联创建, 上限 8 字)。drift schema 迁移 (tag 列 → tags)。接缝已由 v0.22.1 收敛。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -158,6 +172,33 @@
 ---
 
 ## 版本日志
+
+### v0.22.1 — 重构 PATCH: 收敛标签/选择模式接缝 (为 v0.23.0 多标签迁移铺路)
+
+> 触发依据: 无开放 issue、最新 workflow 全绿、0.22.x MINOR 在 plan.md 尚无已完成的
+> 重构 PATCH (prompt.md 优先级 #3 "当前 MINOR 缺重构 PATCH 必须先补")。用户刚更新
+> 设计 skill (新增"批量操作金句 + 标签"= 多标签系统), 即将到来的 v0.23.0 要把单标签
+> `Quote.tag` 迁成多标签 `Quote.tags`。本版是该迁移前的**行为等价**铺路: 把散落各处的
+> `q.tag` 接缝收敛成"每个面一个改动点", 让 v0.23.0 迁移面更小可控。无可见 UI 变化。
+
+- [x] T1 · 抽纯函数 `filterQuotesByTag(quotes, tag)` 到 `lib/domain/tag_filter.dart`
+  (Clean Architecture: 领域纯逻辑入领域层), 去重金库**普通模式**与**多选模式**此前
+  各内联一份的 `activeTag == '全部' ? all : where(q.tag == tag)` 筛选谓词。
+  **这是 v0.23.0 把 `==` 翻成 `.contains` 的唯一改动点**, 两个调用屏自动跟上。
+- [x] T2 · `'全部'` 虚拟标签哨兵收敛为 `kAllTagsLabel` 常量 (同 tag_filter.dart),
+  替换 providers (`tagsProvider` / `activeTagProvider`) + library_screen 共 4 处字面量。
+- [x] T3 · 命名诚实化: `QuoteCard` 形参/字段 `source` → `tag` (定义 + library×3 /
+  search×1 / favorites×1 共 5 处调用); 编辑屏 `_src` → `_tag` 控制器 (6 处)。两处
+  此前都叫"source/出处"却装的是标签字段, 改名让多标签迁移面一目了然。
+- [x] T4 · 去重屏保版式落款: 满(Fullbleed)/时(Lockscreen) 两版式相同的 `'— ${q.tag}'`
+  斜体落款块抽成模块级 `_attributionLine(data, gap, fontSize)` (仅 gap/字号不同)。
+  多标签后取首标签只改这一处。页/印/片 三版式的标签作类目标签 (无破折号), 不在此列。
+- [x] T5 · 测试: 新增 `filter_quotes_by_tag_test` (哨兵不筛/精确匹配/无匹配/保序/空串
+  5 例) + `display_layout_host_test` 加落款渲染 3 例 (满/时 渲染 "— 出处"、
+  showAttribution=false 与 无标签 各不渲染)。
+- [x] T6 · `flutter analyze` 0 警告 + 行为等价 (现有 widget / select-mode 测试全过)。
+  版本号 0.22.0+68 → 0.22.1+69 (pubspec + kAppVersion 双源)。Dart 源码 8333 行
+  (< 10000; 本版以接缝收敛 / 命名诚实为主, 非 LOC 削减, 净 +18 行含领域文件注释)。
 
 ### v0.22.0 — 金库批量操作 (多选 + 批量取出)
 
