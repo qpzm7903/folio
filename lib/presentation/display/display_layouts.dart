@@ -56,6 +56,32 @@ String _roman(int n) {
 /// 由 id 稳定取一个 1..30 的小编号 (装饰用)。
 int _editionNo(String id) => (id.hashCode.abs() % 30) + 1;
 
+/// 版式底部「— 标签」落款 —— 满(Fullbleed) / 时(Lockscreen) 两版式共用。
+///
+/// 关闭"显示出处"或当前句无标签时返回空 list (不渲染); 两版式仅 [gap]/[fontSize]
+/// 不同。v0.23.0 多标签后, 这里取首标签的逻辑只改这一处。
+List<Widget> _attributionLine(
+  DisplayLayoutData data, {
+  required double gap,
+  required double fontSize,
+}) {
+  if (!data.showAttribution || data.quote.tag.isEmpty) {
+    return const <Widget>[];
+  }
+  return <Widget>[
+    SizedBox(height: gap),
+    Text(
+      '— ${data.quote.tag}',
+      style: TextStyle(
+        fontFamily: XJKTokens.serifItalic,
+        fontStyle: FontStyle.italic,
+        fontSize: fontSize,
+        color: data.subColor,
+      ),
+    ),
+  ];
+}
+
 // ─────────────────────────────────────────────────────────────
 // 页 Page — 像一页书: 页眉(版次/分隔/类目) · 黄金比正文 · 页脚
 // ─────────────────────────────────────────────────────────────
@@ -147,18 +173,7 @@ class FullbleedLayout extends DisplayLayout {
               color: data.textColor,
             ),
           ),
-          if (data.showAttribution && q.tag.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 28),
-            Text(
-              '— ${q.tag}',
-              style: TextStyle(
-                fontFamily: XJKTokens.serifItalic,
-                fontStyle: FontStyle.italic,
-                fontSize: 15,
-                color: data.subColor,
-              ),
-            ),
-          ],
+          ..._attributionLine(data, gap: 28, fontSize: 15),
         ],
       ),
     );
@@ -347,18 +362,7 @@ class _LockscreenBodyState extends State<_LockscreenBody> {
             color: data.textColor,
           ),
         ),
-        if (data.showAttribution && q.tag.isNotEmpty) ...<Widget>[
-          const SizedBox(height: 12),
-          Text(
-            '— ${q.tag}',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifItalic,
-              fontStyle: FontStyle.italic,
-              fontSize: 13,
-              color: data.subColor,
-            ),
-          ),
-        ],
+        ..._attributionLine(data, gap: 12, fontSize: 13),
         const SizedBox(height: 40),
       ],
     );

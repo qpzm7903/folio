@@ -13,6 +13,7 @@ import '../data/quote_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/wallpaper_service.dart';
 import '../data/widget_sync_service.dart';
+import '../domain/tag_filter.dart';
 import '../theme/xjk_theme_id.dart';
 
 /// SharedPreferences 由 main() 提前 await 后通过 [overrideWith] 注入。
@@ -292,7 +293,7 @@ final Provider<List<String>> tagsProvider = Provider<List<String>>((Ref ref) {
   for (final Quote q in data) {
     if (q.tag.trim().isNotEmpty) set.add(q.tag);
   }
-  return <String>['全部', ...set];
+  return <String>[kAllTagsLabel, ...set];
 });
 
 /// 派生: 每个非空标签的句数 (用于标签管理屏)。
@@ -321,7 +322,7 @@ typedef TagCount = ({String tag, int count});
 
 /// 当前选中的标签 (默认全部)。
 final StateProvider<String> activeTagProvider = StateProvider<String>(
-  (Ref ref) => '全部',
+  (Ref ref) => kAllTagsLabel,
 );
 
 /// 当前是否处于深色模式 —— 综合 settings + system。

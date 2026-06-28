@@ -15,7 +15,7 @@ import 'xjk_icon.dart';
 class QuoteCard extends StatelessWidget {
   const QuoteCard({
     required this.quote,
-    this.source,
+    this.tag,
     this.date,
     this.variant = QuoteCardVariant.normal,
     this.onTap,
@@ -27,7 +27,10 @@ class QuoteCard extends StatelessWidget {
   });
 
   final String quote;
-  final String? source;
+
+  /// 卡片副信息 (meta 行左侧) —— 当前承载金句的标签 (`Quote.tag`)。
+  /// v0.23.0 多标签后将改为渲染标签列表。
+  final String? tag;
   final String? date;
   final QuoteCardVariant variant;
   final VoidCallback? onTap;
@@ -85,9 +88,9 @@ class QuoteCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            if (source != null && source!.isNotEmpty)
+            if (tag != null && tag!.isNotEmpty)
               Text(
-                source!,
+                tag!,
                 style: TextStyle(
                   fontFamily: XJKTokens.serifItalic,
                   fontStyle: FontStyle.italic,

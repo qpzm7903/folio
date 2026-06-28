@@ -71,7 +71,7 @@ class FavoritesScreen extends ConsumerWidget {
                         for (final Quote q in favorites) ...<Widget>[
                           QuoteCard(
                             quote: q.text,
-                            source: q.tag.isEmpty ? null : q.tag,
+                            tag: q.tag.isEmpty ? null : q.tag,
                             date: DateFormat(
                               'M月 d日',
                               'zh_CN',

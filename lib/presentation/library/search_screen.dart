@@ -280,7 +280,7 @@ class _SearchResults extends ConsumerWidget {
               final Quote q = results[i];
               return QuoteCard(
                 quote: q.text,
-                source: q.tag,
+                tag: q.tag,
                 date: df.format(q.createdAt),
                 onTap: () => _openEditor(context, q),
                 onLongPress: () => _confirmDelete(context, ref, q),

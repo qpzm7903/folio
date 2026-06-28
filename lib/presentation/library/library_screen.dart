@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/router.dart';
 import '../../data/quote.dart';
 import '../../domain/quote_display.dart';
+import '../../domain/tag_filter.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
@@ -69,11 +70,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final List<Quote> quotes = async.valueOrNull ?? const <Quote>[];
 
     if (_selecting) {
-      final List<Quote> filtered = activeTag == '全部'
-          ? quotes
-          : quotes
-              .where((Quote q) => q.tag == activeTag)
-              .toList(growable: false);
+      final List<Quote> filtered = filterQuotesByTag(quotes, activeTag);
       return MaxWidthBody(child: _buildSelectMode(context, l10n, filtered));
     }
     return MaxWidthBody(
@@ -128,11 +125,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 ),
                 data: (List<Quote> all) {
                   if (all.isEmpty) return const _LibraryEmpty();
-                  final List<Quote> filtered = activeTag == '全部'
-                      ? all
-                      : all
-                          .where((Quote q) => q.tag == activeTag)
-                          .toList(growable: false);
+                  final List<Quote> filtered = filterQuotesByTag(all, activeTag);
                   if (filtered.isEmpty) {
                     return _LibraryNoMatch(tag: activeTag);
                   }
@@ -150,7 +143,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         const SizedBox(height: 12),
                         QuoteCard(
                           quote: displayQuoteText(today.text),
-                          source: today.tag,
+                          tag: today.tag,
                           date: _fmtDate(today.createdAt),
                           variant: QuoteCardVariant.featured,
                           onTap: () => context.go(FolioRoutes.display),
@@ -171,7 +164,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         for (final Quote q in rest)
                           QuoteCard(
                             quote: displayQuoteText(q.text),
-                            source: q.tag,
+                            tag: q.tag,
                             date: _fmtDate(q.createdAt),
                             onTap: () => _openEditExisting(context, q),
                             onLongPress: () => _confirmDeleteOne(context, q),
@@ -227,7 +220,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           for (final Quote q in filtered)
                             QuoteCard(
                               quote: displayQuoteText(q.text),
-                              source: q.tag,
+                              tag: q.tag,
                               date: _fmtDate(q.createdAt),
                               selectable: true,
                               selected: _picked.contains(q.id),

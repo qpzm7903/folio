@@ -21,6 +21,18 @@ DisplayLayoutData _data(String text, {bool showAttribution = true}) {
   );
 }
 
+/// 同 [_data] 但 quote 无标签 (tag 空) —— 锁 _attributionLine 的"无标签不渲染"分支。
+DisplayLayoutData _dataNoTag(String text) {
+  return DisplayLayoutData(
+    quote: Quote(id: 't1', text: text, tag: '', createdAt: DateTime(2026, 1, 1)),
+    tokens: XJKThemeId.paper.tokens,
+    textColor: const Color(0xFF1D2A1F),
+    subColor: const Color(0xFF5E7263),
+    showAttribution: true,
+    onPhoto: false,
+  );
+}
+
 void main() {
   group('屏保版式注册表', () {
     test('精选 5 版式 (页/满/印/时/片), key 不重复', () {
@@ -59,6 +71,53 @@ void main() {
         // 卸载以取消 Lockscreen 等版式的定时器, 避免 pending timer。
         await tester.pumpWidget(const SizedBox());
       }
+    });
+  });
+
+  group('版式落款 (满/时 共用 _attributionLine, v0.22.1 去重)', () {
+    DisplayLayout byKey(String k) =>
+        kDisplayLayouts.firstWhere((DisplayLayout l) => l.key == k);
+
+    testWidgets('满版式 showAttribution 渲染 "— 出处"', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: byKey('fullbleed').build(_data('内容')))),
+      );
+      expect(find.text('— 出处'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('时版式 showAttribution 渲染 "— 出处"', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: byKey('lockscreen').build(_data('内容'))),
+        ),
+      );
+      expect(find.text('— 出处'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('showAttribution=false 时不渲染落款', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: byKey('fullbleed').build(_data('内容', showAttribution: false)),
+          ),
+        ),
+      );
+      expect(find.text('— 出处'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('showAttribution=true 但无标签时不渲染落款', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: byKey('fullbleed').build(_dataNoTag('内容')),
+          ),
+        ),
+      );
+      expect(find.textContaining('—'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
     });
   });
 

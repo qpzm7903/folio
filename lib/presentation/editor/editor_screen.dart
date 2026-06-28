@@ -29,7 +29,7 @@ class EditorScreen extends ConsumerStatefulWidget {
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   late final TextEditingController _text;
-  late final TextEditingController _src;
+  late final TextEditingController _tag;
 
   bool get _isEditing => widget.editing != null;
 
@@ -37,13 +37,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   void initState() {
     super.initState();
     _text = TextEditingController(text: widget.editing?.text ?? '');
-    _src = TextEditingController(text: widget.editing?.tag ?? '');
+    _tag = TextEditingController(text: widget.editing?.tag ?? '');
   }
 
   @override
   void dispose() {
     _text.dispose();
-    _src.dispose();
+    _tag.dispose();
     super.dispose();
   }
 
@@ -134,7 +134,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextField(
-                        controller: _src,
+                        controller: _tag,
                         decoration: InputDecoration(
                           hintText: '— 出处 / 标签（可留空）',
                           hintStyle: TextStyle(
@@ -176,11 +176,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     if (_isEditing) {
       await ref
           .read(quotesProvider.notifier)
-          .update(widget.editing!.id, _text.text, _src.text);
+          .update(widget.editing!.id, _text.text, _tag.text);
       if (!mounted) return;
       messenger.showSnackBar(const SnackBar(content: Text('已经改好。')));
     } else {
-      await ref.read(quotesProvider.notifier).add(_text.text, _src.text);
+      await ref.read(quotesProvider.notifier).add(_text.text, _tag.text);
       if (!mounted) return;
       messenger.showSnackBar(const SnackBar(content: Text('已收入金库。')));
     }
