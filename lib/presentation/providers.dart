@@ -10,6 +10,7 @@ import '../data/favorites_repository.dart';
 import '../data/ohos_widget_service.dart';
 import '../data/quote.dart';
 import '../data/quote_repository.dart';
+import '../data/rotation_state_repository.dart';
 import '../data/settings_repository.dart';
 import '../data/wallpaper_service.dart';
 import '../data/widget_sync_service.dart';
@@ -54,6 +55,12 @@ final Provider<SettingsRepository> settingsRepositoryProvider =
 final Provider<FavoritesRepository> favoritesRepositoryProvider =
     Provider<FavoritesRepository>((Ref ref) {
   return FavoritesRepository(ref.watch(sharedPreferencesProvider));
+});
+
+/// 屏保轮播续位状态 (v0.26.0) —— prefs 键值, 与收藏同一套惯例。
+final Provider<RotationStateRepository> rotationStateRepositoryProvider =
+    Provider<RotationStateRepository>((Ref ref) {
+  return RotationStateRepository(ref.watch(sharedPreferencesProvider));
 });
 
 /// 收藏的 quote id 集合 —— Display 屏的 bookmark 按钮 toggle (Issue #4)。
