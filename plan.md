@@ -119,7 +119,7 @@
   tag-row 在存在无标签句时追加「未分类」pill 可筛选。无 schema 迁移。
 - v0.23.1 (已完成) · 重构 PATCH: `_mutate` 落盘失败错误处理 (state 回滚 +
   用户反馈), 出自 v0.23.0 多维审查遗留 F9。
-- v0.24.0 (开发中) · 功能 MINOR: 批量导入增强 (用户需求"导入文本批量建句",
+- v0.24.0 (已完成) · 功能 MINOR: 批量导入增强 (用户需求"导入文本批量建句",
   设计依据 HANDOFF.md 第三轮): 分句纯函数入域层 + **去重** + 勾选列表保留
   (默认全选, 点行切换, 按钮显示选中数, 只收入勾选句)。
 
@@ -181,21 +181,27 @@
 
 ## 版本日志
 
-### v0.24.0 (开发中) — 功能 MINOR: 批量导入增强 (分句去重 + 勾选保留)
+### v0.24.0 (已完成, CI 绿) — 功能 MINOR: 批量导入增强 (分句去重 + 勾选保留)
 
 > 触发依据: 无开放 issue、CI 全绿、0.23.x 已有 v0.23.1 重构 PATCH → 开发新功能。
 > 需求来源: 用户需求TODO "导入文本批量建句"; 设计依据: 设计 skill HANDOFF.md
 > 第三轮 ("自动按换行符分句, 去重, 去空白, 让他在列表里勾选保留。参考 ImportSheet"),
 > 勾选框视觉沿用 kit.css `.qcheck` (22px 圆 + accent 实底 + 13px check)。
 
-- [ ] T1 · 域层纯函数 `splitImportLines` (lib/domain/import_lines.dart):
+- [x] T1 · 域层纯函数 `splitImportLines` (lib/domain/import_lines.dart):
   分句/trim/丢空行/**去重保序**; 从 ImportSheet 内联 `_splitLines` 抽出。
   TDD 5 例 (分句/连续换行/去重保序/trim 后重复/空输入)。
-- [ ] T2 · ImportSheet 勾选列表: 识别行以行文本为键默认全选, 点行切换
+- [x] T2 · ImportSheet 勾选列表: 识别行以行文本为键默认全选, 点行切换
   (`.qcheck` 圆形勾选 + 未选行压淡), 按钮"全部收入金库/收入 N 句", 只收入
   勾选句; 全取消则按钮禁用; 内容包滚动防小屏溢出。widget 测试 4 例。
-- [ ] T3 · flutter analyze 0 警告; 版本 0.24.0+72 (pubspec + kAppVersion);
+- [x] T3 · flutter analyze 0 警告; 版本 0.24.0+72 (pubspec + kAppVersion);
   用户需求TODO.md 回填两项状态。
+
+- [x] T4 · 多维审查 (3 finder + 对抗验证; 7 个验证 agent 因子代理会话限额中断,
+  已确认项均处理): 确认 `_dropped` 跨文本编辑残留会让新批次同名行静默未选
+  (违背"默认全选"), 修复为 onChanged 整体清空 + 回归测试;
+  另修单行输入下 find.text 命中 TextField 全文的测试歧义 +
+  library_screen async gap info lint (messenger 捕获提前)。
 
 ### v0.23.1 (已完成, CI 绿) — 重构 PATCH: mutate 落盘失败回滚 + 用户反馈 (审查 F9)
 
