@@ -74,4 +74,21 @@ void main() {
       expect(hits.length, 2);
     });
   });
+
+  // 写入侧净化: 字面「全部」若存成真实标签, 会跟哨兵撞出两枚同名 pill,
+  // 且管理态误判不可删、筛选命中"不筛"分支 —— 一个既筛不出也删不掉的死标签。
+  group('sanitizeTagInput (写入侧净化)', () {
+    test('trim 后为「全部」→ 空串 (视为无标签)', () {
+      expect(sanitizeTagInput(' $kAllTagsLabel '), '');
+      expect(sanitizeTagInput(kAllTagsLabel), '');
+    });
+
+    test('普通标签只 trim', () {
+      expect(sanitizeTagInput(' 坚持 '), '坚持');
+    });
+
+    test('字面「未分类」保留原样 (自然归入未分类 pill)', () {
+      expect(sanitizeTagInput(kUntaggedLabel), kUntaggedLabel);
+    });
+  });
 }

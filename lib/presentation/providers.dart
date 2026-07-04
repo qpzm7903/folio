@@ -159,7 +159,7 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     final Quote q = Quote(
       id: _newId(),
       text: text.trim(),
-      tag: tag.trim(),
+      tag: sanitizeTagInput(tag),
       createdAt: DateTime.now(),
     );
     await _mutate(
@@ -170,6 +170,7 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
 
   Future<void> addMany(Iterable<String> texts, {String tag = ''}) async {
     final DateTime now = DateTime.now();
+    final String cleanTag = sanitizeTagInput(tag);
     int i = 0;
     final List<Quote> created = <Quote>[
       for (final String t in texts)
@@ -177,7 +178,7 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
           Quote(
             id: _newId(suffix: i++),
             text: t.trim(),
-            tag: tag.trim(),
+            tag: cleanTag,
             // 让批量导入的句子保持毫秒级间隔, 排序时不全部并列
             createdAt: now.add(Duration(milliseconds: i)),
           ),
@@ -200,7 +201,7 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     }
     final Quote updated = current[idx].copyWith(
       text: text.trim(),
-      tag: tag.trim(),
+      tag: sanitizeTagInput(tag),
     );
     await _mutate(
       log: 'updated quote id=$id',
@@ -217,7 +218,7 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   /// `newTag` trim 后为空 → 等价于 [removeTag] (从这些句子上"取下"标签)。
   Future<void> renameTag(String oldTag, String newTag) async {
     final String from = oldTag.trim();
-    final String to = newTag.trim();
+    final String to = sanitizeTagInput(newTag);
     if (from.isEmpty || from == to) return;
     await _mutate(
       log: 'renamed tag "$from" → "$to"',

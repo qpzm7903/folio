@@ -93,46 +93,49 @@ class _TagPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
+    // 对齐 kit.css 的 class 叠加语义: .removable 只改边框样式与右 padding,
+    // .active 的实底/前景色在管理态保留 (当前筛选指示不丢)。
     final Color fg = isActive ? t.fgOnAccent : t.fg2;
-    final Widget pill = AnimatedContainer(
-      duration: XJKTokens.durFast,
-      padding: EdgeInsets.fromLTRB(14, 6, removable ? 6 : 14, 6),
-      decoration: BoxDecoration(
-        color: isActive && !removable ? t.fg1 : Colors.transparent,
-        borderRadius: BorderRadius.circular(999),
-        border: removable
-            ? null
-            : Border.all(color: isActive ? t.fg1 : t.border1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            tag,
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 13,
-              color: removable ? t.fg2 : fg,
-            ),
-          ),
-          if (removable) ...<Widget>[
-            const SizedBox(width: 4),
-            Opacity(
-              opacity: 0.6,
-              child: XJKIcon('x', size: 12, color: t.fg2),
-            ),
-          ],
-        ],
-      ),
-    );
     return GestureDetector(
       onTap: onTap,
-      child: removable
-          ? CustomPaint(
-              foregroundPainter: _DashedRRectPainter(t.border1),
-              child: pill,
-            )
-          : pill,
+      // CustomPaint 恒定在树上 (painter 条件置空), 避免管理态切换时
+      // runtimeType 变化把 AnimatedContainer 整棵销毁重建, durFast 动画失效。
+      child: CustomPaint(
+        foregroundPainter: removable
+            ? _DashedRRectPainter(isActive ? t.fg1 : t.border1)
+            : null,
+        child: AnimatedContainer(
+          duration: XJKTokens.durFast,
+          padding: EdgeInsets.fromLTRB(14, 6, removable ? 6 : 14, 6),
+          decoration: BoxDecoration(
+            color: isActive ? t.fg1 : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            border: removable
+                ? null
+                : Border.all(color: isActive ? t.fg1 : t.border1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                tag,
+                style: TextStyle(
+                  fontFamily: XJKTokens.sansUi,
+                  fontSize: 12,
+                  color: fg,
+                ),
+              ),
+              if (removable) ...<Widget>[
+                const SizedBox(width: 4),
+                Opacity(
+                  opacity: 0.6,
+                  child: XJKIcon('x', size: 12, color: fg),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -165,8 +168,8 @@ class _ManagePill extends StatelessWidget {
             Text(
               managing ? l10n.tagManageDone : l10n.tagManage,
               style: TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 13,
+                fontFamily: XJKTokens.sansUi,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: t.accent,
               ),

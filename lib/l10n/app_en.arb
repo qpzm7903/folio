@@ -27,7 +27,7 @@
   "tagManage": "Manage",
   "tagManageDone": "Done",
   "deleteTagTitle": "Delete tag \"{tag}\"?",
-  "deleteTagBody": "Its quotes move to Uncategorized; nothing is deleted.",
+  "deleteTagBody": "Its quotes move to \"未分类\" (uncategorized); nothing is deleted.",
   "deleteTagConfirm": "Delete tag",
 
   "actionMultiSelect": "Select",

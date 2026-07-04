@@ -31,3 +31,13 @@ bool _isUntagged(Quote q) {
   final String t = q.tag.trim();
   return t.isEmpty || t == kUntaggedLabel;
 }
+
+/// 写入侧标签净化 —— add / update / renameTag 共用。
+///
+/// trim 之外把字面「全部」视为无标签: [kAllTagsLabel] 是"不筛选"哨兵,
+/// 若允许存成真实标签, tag-row 会出现两枚同名 pill, 且管理态把它误判为
+/// 哨兵不可删、筛选时又命中"不筛"分支 —— 一个既筛不出也删不掉的死标签。
+String sanitizeTagInput(String raw) {
+  final String t = raw.trim();
+  return t == kAllTagsLabel ? '' : t;
+}

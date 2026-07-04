@@ -83,5 +83,28 @@ void main() {
       expect(c.read(tagsProvider), <String>[kAllTagsLabel]);
       c.dispose();
     });
+
+    test('字面标签「未分类」归入未分类 pill, 不进具名集合 (不出重复 pill)', () async {
+      final ProviderContainer c = _container(<Quote>[
+        _q('1', kUntaggedLabel),
+        _q('2', ''),
+      ]);
+      await _ready(c);
+
+      expect(c.read(tagsProvider), <String>[kAllTagsLabel, kUntaggedLabel]);
+      c.dispose();
+    });
+
+    test('add 标签「全部」被写入侧净化为无标签, 不与哨兵撞名', () async {
+      final ProviderContainer c = _container(<Quote>[]);
+      await _ready(c);
+
+      await c.read(quotesProvider.notifier).add('一句话', kAllTagsLabel);
+
+      final List<Quote> got = c.read(quotesProvider).value!;
+      expect(got.single.tag, '');
+      expect(c.read(tagsProvider), <String>[kAllTagsLabel, kUntaggedLabel]);
+      c.dispose();
+    });
   });
 }

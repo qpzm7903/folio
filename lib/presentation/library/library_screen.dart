@@ -274,11 +274,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       removeLabel: l10n.deleteTagConfirm,
     );
     if (ok != true || !mounted) return;
-    await ref.read(quotesProvider.notifier).removeTag(tag);
-    if (!mounted) return;
+    // 先切回「全部」再落盘: removeTag 一写 state 当前筛选就没有匹配句了,
+    // 若还筛在被删标签上会先渲染无匹配空态 (TagRow 随整列消失);
+    // 且 saveAll 抛错时排在后面的重置永远不会执行, 用户会被困在空态里。
     if (ref.read(activeTagProvider) == tag) {
       ref.read(activeTagProvider.notifier).state = kAllTagsLabel;
     }
+    await ref.read(quotesProvider.notifier).removeTag(tag);
   }
 
   Future<void> _confirmDeleteOne(BuildContext context, Quote q) async {

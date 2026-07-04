@@ -117,6 +117,8 @@
   见长期规划 L23 条目): 库筛选行末"✎ 管理"pill → 管理态虚线可删标签 + 确认弹窗,
   删除后句子归「未分类」虚拟标签 (空 tag 的展示名, 新哨兵 `kUntaggedLabel`),
   tag-row 在存在无标签句时追加「未分类」pill 可筛选。无 schema 迁移。
+- v0.23.1 (候选) · 重构 PATCH: `_mutate` 落盘失败错误处理 (state 回滚 +
+  用户反馈), 出自 v0.23.0 多维审查遗留 F9。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -196,6 +198,16 @@
 - [ ] T5 · 测试: filter 未分类 3 例 + tagsProvider 未分类 pill + TagRow 管理模式
   widget 测试 + library 管理流集成 (删除→句子归未分类→pill 消失→active 回全部)。
 - [ ] T6 · flutter analyze 0 警告; 版本 0.23.0+70 (pubspec + kAppVersion)。
+- [ ] T7 · 多维审查 workflow (正确性/设计/性能/安全 4 finder + 逐条对抗验证,
+  14 agents) 确认 9 条, 已修 8: activeTag 重置提前到落盘前 (防空态卡死) /
+  「全部」写入侧净化 `sanitizeTagInput` (add/addMany/update/renameTag 全走) /
+  管理态保留 active 实底 (对齐 .tag.active.removable 叠加) / tag-row 字体
+  纠偏 sans-ui 12 (kit.css .tag 规范) / CustomPaint 恒定包裹保 AnimatedContainer /
+  en 弹窗文案对齐「未分类」pill / provider 侧字面未分类 + 全部净化测试补锁。
+- 遗留 (审查 F9) → v0.23.1 重构 PATCH 候选: `QuotesNotifier._mutate` 先写
+  state 再 `await saveAll` 且无 try/catch —— 落盘失败时 UI 显示成功、重启后
+  数据复活、异常无用户反馈; 系统性问题, 涉及全部 mutate 路径 (add/update/
+  remove/renameTag), 需要 state 回滚 + snackbar 反馈, 单独一版做。
 
 ### v0.22.1 — 重构 PATCH: 收敛标签/选择模式接缝 (为 v0.23.0 多标签迁移铺路)
 
