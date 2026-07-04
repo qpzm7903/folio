@@ -117,7 +117,7 @@
   见长期规划 L23 条目): 库筛选行末"✎ 管理"pill → 管理态虚线可删标签 + 确认弹窗,
   删除后句子归「未分类」虚拟标签 (空 tag 的展示名, 新哨兵 `kUntaggedLabel`),
   tag-row 在存在无标签句时追加「未分类」pill 可筛选。无 schema 迁移。
-- v0.23.1 (候选) · 重构 PATCH: `_mutate` 落盘失败错误处理 (state 回滚 +
+- v0.23.1 (开发中) · 重构 PATCH: `_mutate` 落盘失败错误处理 (state 回滚 +
   用户反馈), 出自 v0.23.0 多维审查遗留 F9。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
@@ -177,6 +177,24 @@
 ---
 
 ## 版本日志
+
+### v0.23.1 (开发中) — 重构 PATCH: mutate 落盘失败回滚 + 用户反馈 (审查 F9)
+
+> 触发依据: 无开放 issue、CI 全绿、0.23.x 尚无重构 PATCH (prompt.md 优先级 #3)。
+> 目标: 兑现 v0.23.0 多维审查遗留 F9 —— `QuotesNotifier._mutate` 此前先写
+> state 再 `await saveAll` 且无 try/catch, 落盘失败时 UI 显示成功、重启后
+> 数据复活、异常成为无用户反馈的 unhandled async error。
+
+- [ ] T1 · `_mutate` 包 try/catch: saveAll 失败 → AppLogger.handle 记日志 +
+  state 回滚到 mutate 前快照 + 返回 false; 全部 mutate 方法 (add/addMany/
+  update/renameTag/removeTag/remove/removeMany) 链式返回 `Future<bool>`
+  (no-op 路径返回 true, update not-found 返回 false)。TDD: 抛错仓储测试
+  回滚/返回值/失败后恢复 6 例。
+- [ ] T2 · UI 调用点失败反馈 (新 ARB key `snackSaveFailed`, zh/en): 编辑屏
+  保存/删除、批量导入 sheet、金库单删/批量取出/删除标签、搜索屏删除、
+  设置导入合并、标签管理屏改名/取下 —— 失败时 snackbar 提示且**不关闭**
+  当前输入面 (文本还在, 可重试), 成功路径行为不变。
+- [ ] T3 · flutter analyze 0 警告; 版本 0.23.1+71 (pubspec + kAppVersion)。
 
 ### v0.23.0 (已完成, CI 绿) — 功能 MINOR: 标签管理内联模式 (L23)
 
