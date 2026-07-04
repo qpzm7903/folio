@@ -1,3 +1,5 @@
+import 'dart:ui' show PathMetric;
+
 import 'package:flutter/material.dart';
 
 import '../../domain/tag_filter.dart';
