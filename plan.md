@@ -132,7 +132,7 @@
 - v0.25.1 (已完成) · 重构 PATCH: 版式样式去重 (`_metaStyle`/`_italicStyle`/
   `_accentInk` 三个共享 helper 收敛 9 版式重复 TextStyle/配色, 行为等价,
   display_layouts.dart 788→764 行, 缓解 800 行上限与 LOC 预算)。
-- v0.26.0 (开发中) · 功能 MINOR: 屏保轮播续位 (= L24, HANDOFF 第二轮
+- v0.26.0 (已完成) · 功能 MINOR: 屏保轮播续位 (= L24, HANDOFF 第二轮
   "下次开机接着上次的位置"): NoRepeatShuffle 快照/恢复 + id↔索引翻译纯函数 +
   RotationStateRepository (prefs) + display 屏 advance 落盘。
 
@@ -194,7 +194,7 @@
 
 ## 版本日志
 
-### v0.26.0 (开发中) — 功能 MINOR: 屏保轮播续位 (L24)
+### v0.26.0 (已完成, CI 绿) — 功能 MINOR: 屏保轮播续位 (L24)
 
 > 触发依据: 无开放 issue、CI 全绿、0.25.x 已有 v0.25.1 重构 PATCH → 开发新功能。
 > 盘点长期规划: 非鸿蒙项全部落地 (L22 勾选), 从设计 skill HANDOFF 路线图补上
@@ -202,14 +202,14 @@
 > prefs 而非 HANDOFF 提的 drift 表: 与收藏/设置同惯例, Web/鸿蒙桥同样生效,
 > 数据量仅一份 id 列表 (存储选型属工程决策, 设计 skill 权威只约束 UI)。
 
-- [ ] T1 · 域层: `NoRepeatShuffle.restore` 命名构造 + `order/position` 快照
+- [x] T1 · 域层: `NoRepeatShuffle.restore` 命名构造 + `order/position` 快照
   getter; `mapOrderToIndices` (rotation_resume.dart) 把持久化 id 序翻译回当前
   索引, 集合不一致/重复/长度不符 → null 重洗。TDD 10 例。
-- [ ] T2 · 数据层: `RotationStateRepository` (prefs key folio.display.rotation.v1,
+- [x] T2 · 数据层: `RotationStateRepository` (prefs key folio.display.rotation.v1,
   JSON {ids,pos,round}), 损坏数据返回 null 不抛。TDD 4 例。
-- [ ] T3 · 接线: RotationController 加 restore 入参 (界内校验);
+- [x] T3 · 接线: RotationController 加 restore 入参 (界内校验);
   display_screen 首建时读档翻译, 每次换句 (手动/定时) fire-and-forget 落盘。
-- [ ] T4 · analyze 0 警告; 版本 0.26.0+76 (pubspec + kAppVersion)。
+- [x] T4 · analyze 0 警告; 版本 0.26.0+76 (pubspec + kAppVersion)。
 
 ### v0.25.1 (已完成, CI 绿) — 重构 PATCH: 版式样式去重 (三共享 helper)
 
