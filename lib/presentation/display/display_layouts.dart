@@ -74,15 +74,31 @@ List<Widget> _attributionLine(
     SizedBox(height: gap),
     Text(
       '— ${data.quote.tag}',
-      style: TextStyle(
-        fontFamily: XJKTokens.serifItalic,
-        fontStyle: FontStyle.italic,
-        fontSize: fontSize,
-        color: data.subColor,
-      ),
+      style: _italicStyle(data.subColor, fontSize),
     ),
   ];
 }
+
+/// sans-ui 小号眉注/类目样式 —— kit.css `.cat` / `.ds-*-cat` 家族共用。
+TextStyle _metaStyle(Color color, {double letterSpacing = 1.5}) => TextStyle(
+      fontFamily: XJKTokens.sansUi,
+      fontSize: 11,
+      letterSpacing: letterSpacing,
+      color: color,
+    );
+
+/// serif-italic 斜体小字 —— 落款/日期/品牌签名家族共用。
+TextStyle _italicStyle(Color color, double fontSize) => TextStyle(
+      fontFamily: XJKTokens.serifItalic,
+      fontStyle: FontStyle.italic,
+      fontSize: fontSize,
+      color: color,
+    );
+
+/// 强调墨色 —— 照片背景用 leaf300 提亮, 否则主题 accent
+/// (引 的引号 / 织 的编号共用, 对应 CSS `.on-photo` 覆写)。
+Color _accentInk(DisplayLayoutData data) =>
+    data.onPhoto ? data.tokens.leaf300 : data.tokens.accent;
 
 // ─────────────────────────────────────────────────────────────
 // 页 Page — 像一页书: 页眉(版次/分隔/类目) · 黄金比正文 · 页脚
@@ -101,12 +117,7 @@ class PageLayout extends DisplayLayout {
   Widget build(DisplayLayoutData data) {
     final Quote q = data.quote;
     final Color line = data.subColor.withValues(alpha: 0.5);
-    final TextStyle meta = TextStyle(
-      fontFamily: XJKTokens.sansUi,
-      fontSize: 11,
-      letterSpacing: 1.5,
-      color: data.subColor,
-    );
+    final TextStyle meta = _metaStyle(data.subColor);
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
@@ -211,12 +222,7 @@ class StampedLayout extends DisplayLayout {
         if (q.tag.isNotEmpty)
           Text(
             q.tag,
-            style: TextStyle(
-              fontFamily: XJKTokens.sansUi,
-              fontSize: 11,
-              letterSpacing: 1.5,
-              color: data.subColor,
-            ),
+            style: _metaStyle(data.subColor),
           ),
         Expanded(
           child: Center(
@@ -259,12 +265,7 @@ class StampedLayout extends DisplayLayout {
         ),
         Text(
           _footMeta(),
-          style: TextStyle(
-            fontFamily: XJKTokens.serifItalic,
-            fontStyle: FontStyle.italic,
-            fontSize: 13,
-            color: data.subColor,
-          ),
+          style: _italicStyle(data.subColor, 13),
         ),
       ],
     );
@@ -406,12 +407,7 @@ class CardLayout extends DisplayLayout {
             if (q.tag.isNotEmpty)
               Text(
                 q.tag,
-                style: TextStyle(
-                  fontFamily: XJKTokens.sansUi,
-                  fontSize: 11,
-                  letterSpacing: 1.5,
-                  color: t.fg3,
-                ),
+                style: _metaStyle(t.fg3),
               ),
             const SizedBox(height: 16),
             Text(
@@ -429,12 +425,7 @@ class CardLayout extends DisplayLayout {
             const SizedBox(height: 12),
             Text(
               '小金库 · Folio',
-              style: TextStyle(
-                fontFamily: XJKTokens.serifItalic,
-                fontStyle: FontStyle.italic,
-                fontSize: 12,
-                color: t.fg3,
-              ),
+              style: _italicStyle(t.fg3, 12),
             ),
           ],
         ),
@@ -577,7 +568,7 @@ class PullLayout extends DisplayLayout {
   @override
   Widget build(DisplayLayoutData data) {
     final Quote q = data.quote;
-    final Color mark = data.onPhoto ? data.tokens.leaf300 : data.tokens.accent;
+    final Color mark = _accentInk(data);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -612,12 +603,7 @@ class PullLayout extends DisplayLayout {
               child: (data.showAttribution && q.tag.isNotEmpty)
                   ? Text(
                       q.tag,
-                      style: TextStyle(
-                        fontFamily: XJKTokens.serifItalic,
-                        fontStyle: FontStyle.italic,
-                        fontSize: 14,
-                        color: data.subColor,
-                      ),
+                      style: _italicStyle(data.subColor, 14),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -672,12 +658,7 @@ class RibbonLayout extends DisplayLayout {
               Text(
                 q.tag,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifItalic,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                  color: t.accent,
-                ),
+                style: _italicStyle(t.accent, 13),
               ),
               const SizedBox(height: 14),
             ],
@@ -727,7 +708,7 @@ class InterleaveLayout extends DisplayLayout {
             fontStyle: FontStyle.italic,
             fontSize: 72,
             height: 1,
-            color: data.onPhoto ? data.tokens.leaf300 : data.tokens.accent,
+            color: _accentInk(data),
           ),
         ),
         Expanded(
@@ -760,12 +741,7 @@ class InterleaveLayout extends DisplayLayout {
             alignment: Alignment.centerRight,
             child: Text(
               q.tag,
-              style: TextStyle(
-                fontFamily: XJKTokens.sansUi,
-                fontSize: 11,
-                letterSpacing: 1.8,
-                color: data.subColor,
-              ),
+              style: _metaStyle(data.subColor, letterSpacing: 1.8),
             ),
           ),
       ],
