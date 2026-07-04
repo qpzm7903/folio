@@ -69,12 +69,16 @@
   屏保从单一版式扩成可循环多版式 (精选 5 个: 页 / 满 / 印 / 时 / 片), 引入
   黄金比竖向锚点 (0.382) + 句长分级 q-scale 自适应字号。纯 Dart UI, 全平台通用,
   以 Mate 80 Pro / HarmonyOS 6 真机验收。余下 4 版式 (竖 / 引 / 条 / 织) 留后续 PATCH。
-- [ ] L23 · 多标签系统 (设计系统标签 2.0, 一句多标签) — 规划 v0.22.1(重构铺路) +
-  v0.23.0(功能)。对齐 2026-06-29 重新同步的 `xiao-jinku-desig` skill (新增"批量操作
-  金句 + 标签"): `Quote` 从单标签 `tag` 扩成多标签 `tags: List<String>` ("一句多标签"
-  为核心), 标签筛选改 `tags.contains`, 单类目版式取首标签 (空回落"未分类"); 新增标签
-  管理 Sheet (增 + 批量删) + 编辑屏多选标签选择器 + 库筛选行末"管理"入口。v0.22.1 已先做
-  接缝收敛 (`filterQuotesByTag` / `kAllTagsLabel` / QuoteCard.tag / 版式落款) 把迁移面收窄。
+- [ ] L23 · 标签管理 (设计系统标签 2.0) — 规划 v0.22.1(重构铺路) + v0.23.0(功能)。
+  **2026-07-04 范围修正**: 逐文件核实 2026-06-29 同步的 `xiao-jinku-desig` skill
+  (screens.jsx / app.jsx / kit.css / card-tags.html), 设计源数据模型仍是**单标签**
+  `q.tag`, 全库无"多标签/一句多标签"概念 —— 此前规划的 `tags: List<String>` 迁移 +
+  编辑屏多选选择器 + 标签管理 Sheet 均属对 skill 的误读, 按 prompt.md "禁止凭空设计"
+  放弃, drift schema 不动。设计源真实新增的是 **tag-row 内联管理模式** (LibraryScreen
+  `managingTags`): 行末 `.tag.manage-tag` "✎ 管理/✓ 完成" pill 切换, 管理态下具名标签
+  变虚线可删 (`.tag.removable` + x), 点删弹确认 (「删除标签会移到未分类, 句子不删」),
+  删除后句子归「未分类」(app.jsx onDeleteTag), 若正筛选该标签回「全部」。v0.22.1 的
+  接缝收敛 (`filterQuotesByTag` / `kAllTagsLabel`) 依旧是本条的落点。
 
 ---
 
@@ -109,11 +113,10 @@
 - v0.22.1 (已完成) · 重构 PATCH: 收敛标签/选择模式接缝 (`filterQuotesByTag` 入
   领域层 + `kAllTagsLabel` 哨兵 + `QuoteCard` source→tag / 编辑屏 _src→_tag 命名诚实
   + 满/时 版式落款去重), 为 v0.23.0 多标签迁移铺路。行为等价, 无 UI 变化。
-- v0.23.0 (规划中) · 功能 MINOR: 多标签系统 (= L23)。兑现 2026-06-29 设计 skill
-  更新: `Quote.tag` (单) → `Quote.tags` (多, "一句多标签"为核心); 库筛选行 (含"全部"
-  虚拟标签 + 末尾"✎ 管理"入口) 改 `tags.contains`; 标签管理 Sheet (新增 + 批量删除标签,
-  删除后该标签下的句归"未分类"); 编辑屏多选标签选择器 (现有标签 pill 多选 + "＋ 新标签"
-  内联创建, 上限 8 字)。drift schema 迁移 (tag 列 → tags)。接缝已由 v0.22.1 收敛。
+- v0.23.0 (开发中) · 功能 MINOR: 标签管理内联模式 (= L23, 范围已按设计源修正,
+  见长期规划 L23 条目): 库筛选行末"✎ 管理"pill → 管理态虚线可删标签 + 确认弹窗,
+  删除后句子归「未分类」虚拟标签 (空 tag 的展示名, 新哨兵 `kUntaggedLabel`),
+  tag-row 在存在无标签句时追加「未分类」pill 可筛选。无 schema 迁移。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -172,6 +175,27 @@
 ---
 
 ## 版本日志
+
+### v0.23.0 (开发中) — 功能 MINOR: 标签管理内联模式 (L23)
+
+> 触发依据: 无开放 issue、最新 workflow 全绿、0.22.x 已有 v0.22.1 重构 PATCH
+> (prompt.md 优先级落到"开发新功能")。**范围修正**: 核实设计源后把 L23 从
+> "多标签系统"修正为设计源真实形态"tag-row 内联标签管理" (详见长期规划 L23 条目),
+> 放弃 drift 迁移与多选选择器。视觉/文案 100% 对照 screens.jsx LibraryScreen
+> (managingTags 分支) + kit.css `.tag.removable` / `.tag.manage-tag` / ConfirmDialog。
+
+- [ ] T1 · 域层: `kUntaggedLabel = '未分类'` 哨兵入 tag_filter.dart;
+  `filterQuotesByTag` 支持未分类 (命中 trim 后空 tag 句); 测试先行。
+- [ ] T2 · `tagsProvider`: 存在无标签句时行末追加「未分类」pill (具名标签之后)。
+- [ ] T3 · TagRow: 管理模式 — 行末 "✎ 管理/✓ 完成" pill (`.tag.manage-tag`:
+  透明底 + border-2 + accent + 12px 图标), 管理态具名标签虚线边框 + x
+  (`.tag.removable`, 哨兵「全部/未分类」不可删)。
+- [ ] T4 · LibraryScreen 接线: 确认弹窗 (title 删除标签「t」？/ body 标签下的金句会
+  移到「未分类」，不会被删除。/ 确认键 删除标签) → `removeTag` (句子归空 tag);
+  正筛选被删标签时回「全部」。文案入 ARB (zh/en)。
+- [ ] T5 · 测试: filter 未分类 3 例 + tagsProvider 未分类 pill + TagRow 管理模式
+  widget 测试 + library 管理流集成 (删除→句子归未分类→pill 消失→active 回全部)。
+- [ ] T6 · flutter analyze 0 警告; 版本 0.23.0+70 (pubspec + kAppVersion)。
 
 ### v0.22.1 — 重构 PATCH: 收敛标签/选择模式接缝 (为 v0.23.0 多标签迁移铺路)
 
