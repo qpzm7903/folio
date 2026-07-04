@@ -125,6 +125,8 @@
 - v0.24.1 (已完成) · 重构 PATCH: 勾选组件收敛 —— 抽共享 `XJKSelectCheck`
   (金库多选卡片 / 导入勾选行共用, 消除 .qcheck 视觉复制), 导入勾选行加
   InkWell 按压反馈 + Semantics 复选框语义。行为等价。
+- v0.25.0 (开发中) · 功能 MINOR: 屏保版式补齐 (L22 遗留 竖/引/条/织 4 版式,
+  注册表 5→9 且顺序对照设计源 LAYOUTS; `splitClauses` 分句纯函数入域层)。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -183,6 +185,22 @@
 ---
 
 ## 版本日志
+
+### v0.25.0 (开发中) — 功能 MINOR: 屏保版式补齐 (竖/引/条/织)
+
+> 触发依据: 无开放 issue、CI 全绿、0.24.x 已有 v0.24.1 重构 PATCH → 开发新功能。
+> 兑现 L22 遗留: "余下 4 版式 (竖/引/条/织) 留后续"。视觉对照
+> display-layouts.jsx (LayoutVertical/Pull/Ribbon/Interleave) + kit.css
+> `.ds-vertical/.ds-pull/.ds-ribbon/.ds-interleave` 与主题 token 映射。
+
+- [ ] T1 · 域层 `splitClauses` (quote_clauses.dart): 中文标点分句留标点,
+  无标点/空串整句回落 —— 织版式用。TDD 5 例。
+- [ ] T2 · 4 版式实现: 竖 (Wrap 竖排逐字右起分列 + 立轴线 + 「金」印 24px
+  bamboo500) / 引 (120px 起引号 accent, photo 下 leaf300 + 底部落款/56px 收引号)
+  / 条 (通宽纸带 bgRaised + border2 上下边, photo 背景仍纸色) / 织 (罗马数字
+  72px + 分句发丝线 + 右下类目)。注册表 5→9, 顺序对照设计源。
+- [ ] T3 · 测试: 注册表断言更新 (9 款/顺序/key 唯一), 渲染遍历自动覆盖新版式;
+  analyze 0 警告; 版本 0.25.0+74。
 
 ### v0.24.1 (已完成, CI 绿) — 重构 PATCH: 勾选组件收敛 (共享 XJKSelectCheck)
 
