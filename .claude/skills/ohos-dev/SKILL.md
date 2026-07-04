@@ -20,8 +20,8 @@ source: L20 v0.17 真机适配实战
 |------|------|
 | 官方 Flutter (analyze/test/CI 对齐) | `~/sdks/flutter-stable` (3.44, Dart 3.12) |
 | 鸿蒙 fork (只用来 build hap) | `~/sdks/flutter-ohos` (3.35.8-ohos, Dart 3.9) |
-| OpenHarmony SDK (API 20) | `~/sdks/ohos-sdk/sdk` (`20/toolchains/hdc` 等) |
-| HarmonyOS SDK 伪装 (build 要 HmosSdk) | `~/sdks/hos-sdk` (符号链接到 ohos-sdk/20) |
+| OpenHarmony SDK (API 23 + 20 并存) | `~/sdks/ohos-sdk/sdk` (`23/` 编译, `20/toolchains/hdc` 等) |
+| HarmonyOS SDK 伪装 (build 要 HmosSdk) | `~/sdks/hos-sdk` (符号链接到 ohos-sdk, 20/23 分别链) |
 | ohpm | `~/sdks/oh-command-line-tools/ohpm/bin` |
 | hvigor 5.19.8 + 插件 | `~/sdks/hvigor` (核心+插件单实例, 勿换版本) |
 
@@ -88,7 +88,7 @@ hilog 准)。崩溃栈也可查 `hdc shell ls /data/log/faultlog/faultlogger/`�
 | `Cannot find module @ohos/hvigor-ohos-plugin` | pub-cache 插件 har 的 hvigorfile.ts 找不到 hvigor | build_hap.sh 已设 `NODE_PATH=~/sdks/hvigor/node_modules` |
 | `TypeError this.getInstance is not a function` | hvigor 核心/插件双实例或版本错 | 用 5.19.8, 且 hvigor node_modules 单实例 (已配好, 勿动) |
 | `fail to verify pkcs7 file` code:9568257 装机失败 | 用了 OpenHarmony 自签 | 零售机必须 AGC 调试证书 (`SIGN_MODE=agc`); 自签只能用于开发板/模拟器 |
-| `runtimeOS ... does not match` / `compileSdkVersion` / `deviceTypes phone` 构建报错 | 模板按 HarmonyOS 生成 | build-profile 用 `runtimeOS: OpenHarmony` + 整数 `compileSdkVersion/compatibleSdkVersion: 20`; module.json5 `deviceTypes: [default, tablet]` (无 phone)。已改好 |
+| `runtimeOS ... does not match` / `compileSdkVersion` / `deviceTypes phone` 构建报错 | 模板按 HarmonyOS 生成 | build-profile 用 `runtimeOS: OpenHarmony` + 整数 `compileSdkVersion: 23` + `compatibleSdkVersion: 20`; module.json5 `deviceTypes: [default, tablet]` (无 phone)。compileSdkVersion 23 是为衬线字体 (getLocalInstance 需 API 22+), 纯无衬线仍可用 20。 |
 | `screen is locked` 拉起失败 10106102 | 开发者模式下 hdc 不能自动解锁 | 手机解锁亮屏后再 `aa start` |
 
 ## 5. AGC 调试证书 (唯一要华为账号的环节)
@@ -103,5 +103,5 @@ UDID → 应用 (包名 app.folio.quotes) 加调试 Profile 拿 `.p7b`。详见
 
 - 上游 (CPF-Flutter) 修复联邦插件 bug 后: 恢复 `tool/ohos/pubspec_overrides.ohos.yaml`
   里注释的覆盖 + 删 `bootstrap.dart` 的 ohos 内存 prefs 守卫 → 恢复 drift 真持久化。
-- L21: 鸿蒙服务卡片 (ArkTS 重写 L18 timeline)。
+- L21: 鸿蒙服务卡片 已完成 (含衬线字体 Noto Serif SC, compileSdkVersion 23)。
 - "设为壁纸" 鸿蒙为系统 API, 三方大概率不可用。

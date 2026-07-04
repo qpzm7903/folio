@@ -8,7 +8,7 @@ description: >
   Flutter 可行性、排查 hvigor/ohpm/hap 构建问题时使用。
   本仓库 Folio 的具体落地见 skill `ohos-dev` + docs/wiki/ohos/。
 version: 1.0.0
-verified_with: "flutter_flutter 3.35.8-ohos-1.0.1 · OpenHarmony 6.0 SDK (API 20) · hvigor 5.19.8 · macOS arm64 · 真机 Mate 80 (HarmonyOS 6.0)"
+verified_with: "flutter_flutter 3.35.8-ohos-1.0.1 · OpenHarmony 6.1 SDK (API 23) + 6.0 SDK (API 20) 并存 · hvigor 5.19.8 · macOS arm64 · 真机 Mate 80 (HarmonyOS 6.1)"
 caveat: CPF-Flutter 在快速演进, 下方版本/坑可能随版本变化; 用前对一下当前 tag。
 ---
 
@@ -57,7 +57,7 @@ PATH; hvigor 是纯 node CLI, npm 装后手写 shim 脚本即可。
 | 文件 | 字段 | 改为 |
 |------|------|------|
 | `ohos/build-profile.json5` | products[].runtimeOS | `OpenHarmony` |
-| 同上 | compatibleSdkVersion / compileSdkVersion | **整数** `20` (HarmonyOS 才用 "5.1.0(18)" 字符串) |
+| 同上 | compatibleSdkVersion / compileSdkVersion | **整数** e.g. `23` 或 `20` (HarmonyOS 才用 "5.1.0(18)" 字符串) |
 | `ohos/entry/build-profile.json5` | targets[].runtimeOS | `OpenHarmony` |
 | `ohos/entry/src/main/module.json5` | deviceTypes | `[default, tablet]` (**无 phone**, OpenHarmony device-define 里手机是 default) |
 | `ohos/AppScope/app.json5` | bundleName | ≥3 段, 第三段不能用 **ohos/harmony/huawei/hms** 保留字 (AGC + schema 都拒) |
