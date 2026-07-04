@@ -155,20 +155,20 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     }
   }
 
-  Future<void> add(String text, String tag) async {
+  Future<bool> add(String text, String tag) {
     final Quote q = Quote(
       id: _newId(),
       text: text.trim(),
       tag: sanitizeTagInput(tag),
       createdAt: DateTime.now(),
     );
-    await _mutate(
+    return _mutate(
       log: 'added quote id=${q.id}',
       transform: (List<Quote> cur) => <Quote>[q, ...cur],
     );
   }
 
-  Future<void> addMany(Iterable<String> texts, {String tag = ''}) async {
+  Future<bool> addMany(Iterable<String> texts, {String tag = ''}) async {
     final DateTime now = DateTime.now();
     final String cleanTag = sanitizeTagInput(tag);
     int i = 0;
@@ -183,27 +183,27 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
             createdAt: now.add(Duration(milliseconds: i)),
           ),
     ];
-    if (created.isEmpty) return;
-    await _mutate(
+    if (created.isEmpty) return true;
+    return _mutate(
       log: 'bulk added ${created.length} quotes',
       transform: (List<Quote> cur) => <Quote>[...created.reversed, ...cur],
     );
   }
 
-  Future<void> update(String id, String text, String tag) async {
+  Future<bool> update(String id, String text, String tag) async {
     // 先等首次加载完成, 避免 loading 期间用空 state 误判 not-found
     await _ready;
     final List<Quote> current = state.value ?? const <Quote>[];
     final int idx = current.indexWhere((Quote q) => q.id == id);
     if (idx < 0) {
       AppLogger.instance.warning('update id=$id not found, ignoring');
-      return;
+      return false;
     }
     final Quote updated = current[idx].copyWith(
       text: text.trim(),
       tag: sanitizeTagInput(tag),
     );
-    await _mutate(
+    return _mutate(
       log: 'updated quote id=$id',
       transform: (List<Quote> cur) {
         final List<Quote> next = List<Quote>.of(cur);
@@ -216,11 +216,11 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
 
   /// 把所有用 [oldTag] 的句子改成 [newTag]; 句子本身不动。
   /// `newTag` trim 后为空 → 等价于 [removeTag] (从这些句子上"取下"标签)。
-  Future<void> renameTag(String oldTag, String newTag) async {
+  Future<bool> renameTag(String oldTag, String newTag) async {
     final String from = oldTag.trim();
     final String to = sanitizeTagInput(newTag);
-    if (from.isEmpty || from == to) return;
-    await _mutate(
+    if (from.isEmpty || from == to) return true;
+    return _mutate(
       log: 'renamed tag "$from" → "$to"',
       transform: (List<Quote> cur) => <Quote>[
         for (final Quote q in cur)
@@ -230,10 +230,10 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   }
 
   /// 从所有句子上取下这个标签 (清空 tag 字段, 句子保留)。
-  Future<void> removeTag(String tag) => renameTag(tag, '');
+  Future<bool> removeTag(String tag) => renameTag(tag, '');
 
-  Future<void> remove(String id) async {
-    await _mutate(
+  Future<bool> remove(String id) {
+    return _mutate(
       log: 'removed quote id=$id',
       transform: (List<Quote> cur) =>
           cur.where((Quote q) => q.id != id).toList(growable: false),
@@ -244,10 +244,10 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
   ///
   /// 只 saveAll + 写一次 state, 避免循环调用 [remove] 反复落盘;
   /// 空集合直接返回, 不产生空写。
-  Future<void> removeMany(Iterable<String> ids) async {
+  Future<bool> removeMany(Iterable<String> ids) async {
     final Set<String> targets = ids.toSet();
-    if (targets.isEmpty) return;
-    await _mutate(
+    if (targets.isEmpty) return true;
+    return _mutate(
       log: 'removed ${targets.length} quotes (batch)',
       transform: (List<Quote> cur) => cur
           .where((Quote q) => !targets.contains(q.id))
@@ -255,12 +255,15 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     );
   }
 
-  /// 共用的"读 current → 算 next → 落盘 + 写状态 + 记日志"流程。
+  /// 共用的"读 current → 算 next → 写状态 + 落盘 + 记日志"流程。
   /// 把所有 mutate 方法里重复的样板压成一行 transform。
   ///
-  /// 关键: 先 `await _ready` 让首次加载完成, 防止 loading 期的并发 mutate
+  /// 关键一: 先 `await _ready` 让首次加载完成, 防止 loading 期的并发 mutate
   /// 操作丢失数据。
-  Future<void> _mutate({
+  /// 关键二 (v0.23.1, 审查 F9): 落盘失败时回滚 state 到 mutate 前的快照并
+  /// 返回 false —— 否则 UI 显示成功、重启后数据复活, 异常还成为无人接的
+  /// unhandled async error。异常详情记入日志文件供定位。
+  Future<bool> _mutate({
     required String log,
     required List<Quote> Function(List<Quote>) transform,
   }) async {
@@ -268,8 +271,15 @@ class QuotesNotifier extends StateNotifier<AsyncValue<List<Quote>>> {
     final List<Quote> current = state.value ?? const <Quote>[];
     final List<Quote> next = transform(current);
     state = AsyncValue<List<Quote>>.data(next);
-    await _repo.saveAll(next);
+    try {
+      await _repo.saveAll(next);
+    } catch (e, st) {
+      AppLogger.instance.handle(e, st, 'saveAll failed, rolled back ($log)');
+      state = AsyncValue<List<Quote>>.data(current);
+      return false;
+    }
     AppLogger.instance.info(log);
+    return true;
   }
 
   String _newId({int suffix = 0}) {
