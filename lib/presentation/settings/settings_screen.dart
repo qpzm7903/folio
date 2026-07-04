@@ -19,6 +19,26 @@ import 'widget_color_picker.dart';
 /// 设置 —— 对应 screens.jsx 的 `SettingsScreen`。
 ///
 /// 5 个 section + 一个 footer。每 section 一个独立的私有 widget,
+
+/// 枚举型设置行的通用选择流程 (v0.27.1 收敛 主题/字号/播放模式 三份样板):
+/// 弹 OptionPicker → 选中即 apply。
+Future<void> _pickEnum<T>(
+  BuildContext context, {
+  required T current,
+  required List<T> values,
+  required String Function(T) label,
+  required Future<void> Function(T) apply,
+}) async {
+  final T? next = await showOptionPicker<T>(
+    context: context,
+    current: current,
+    options: <PickerOption<T>>[
+      for (final T v in values) (value: v, label: label(v)),
+    ],
+  );
+  if (next != null) await apply(next);
+}
+
 /// 加新 section (如 v0.7 "自定义背景图") 时只动一处。
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -134,30 +154,19 @@ class _RotationSection extends ConsumerWidget {
               label: '小组件播放模式',
               sub: '下一句来自整个金库',
               value: s.widgetPlayMode.displayLabel,
-              onTap: () => _pickPlayMode(context, ref, s.widgetPlayMode),
+              onTap: () => _pickEnum<WidgetPlayMode>(
+                context,
+                current: s.widgetPlayMode,
+                values: WidgetPlayMode.values,
+                label: (WidgetPlayMode m) => m.displayLabel,
+                apply: (WidgetPlayMode m) =>
+                    ref.read(settingsProvider.notifier).setWidgetPlayMode(m),
+              ),
             ),
           ],
         ),
       ],
     );
-  }
-
-  Future<void> _pickPlayMode(
-    BuildContext context,
-    WidgetRef ref,
-    WidgetPlayMode current,
-  ) async {
-    final WidgetPlayMode? next = await showOptionPicker<WidgetPlayMode>(
-      context: context,
-      current: current,
-      options: <PickerOption<WidgetPlayMode>>[
-        for (final WidgetPlayMode m in WidgetPlayMode.values)
-          (value: m, label: m.displayLabel),
-      ],
-    );
-    if (next != null) {
-      await ref.read(settingsProvider.notifier).setWidgetPlayMode(next);
-    }
   }
 
   Future<void> _pickWidgetColor(
@@ -205,12 +214,26 @@ class _AppearanceSection extends ConsumerWidget {
             SettingRow(
               label: '主题',
               value: s.themeMode.displayLabel,
-              onTap: () => _pickTheme(context, ref, s.themeMode),
+              onTap: () => _pickEnum<AppThemeMode>(
+                context,
+                current: s.themeMode,
+                values: AppThemeMode.values,
+                label: (AppThemeMode m) => m.displayLabel,
+                apply: (AppThemeMode m) =>
+                    ref.read(settingsProvider.notifier).setThemeMode(m),
+              ),
             ),
             SettingRow(
               label: '字号',
               value: s.fontScale.displayLabel,
-              onTap: () => _pickFontScale(context, ref, s.fontScale),
+              onTap: () => _pickEnum<AppFontScale>(
+                context,
+                current: s.fontScale,
+                values: AppFontScale.values,
+                label: (AppFontScale v) => v.displayLabel,
+                apply: (AppFontScale v) =>
+                    ref.read(settingsProvider.notifier).setFontScale(v),
+              ),
             ),
             const SettingRow(
               label: '字体',
@@ -223,41 +246,6 @@ class _AppearanceSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _pickTheme(
-    BuildContext context,
-    WidgetRef ref,
-    AppThemeMode current,
-  ) async {
-    final AppThemeMode? next = await showOptionPicker<AppThemeMode>(
-      context: context,
-      current: current,
-      options: <PickerOption<AppThemeMode>>[
-        for (final AppThemeMode m in AppThemeMode.values)
-          (value: m, label: m.displayLabel),
-      ],
-    );
-    if (next != null) {
-      await ref.read(settingsProvider.notifier).setThemeMode(next);
-    }
-  }
-
-  Future<void> _pickFontScale(
-    BuildContext context,
-    WidgetRef ref,
-    AppFontScale current,
-  ) async {
-    final AppFontScale? next = await showOptionPicker<AppFontScale>(
-      context: context,
-      current: current,
-      options: <PickerOption<AppFontScale>>[
-        for (final AppFontScale v in AppFontScale.values)
-          (value: v, label: v.displayLabel),
-      ],
-    );
-    if (next != null) {
-      await ref.read(settingsProvider.notifier).setFontScale(next);
-    }
-  }
 }
 
 /// 标签: 入口到 TagsScreen。

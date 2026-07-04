@@ -27,17 +27,21 @@ class SettingsRepository {
     final String? bg = _prefs.getString(_kBgImage);
     final String? layout = _prefs.getString(_kDisplayLayout);
     return AppSettings(
-      themeMode: _decodeTheme(_prefs.getString(_kTheme)),
+      themeMode: _decodeEnum(
+          AppThemeMode.values, _prefs.getString(_kTheme), AppThemeMode.system),
       shuffleNoRepeat: _prefs.getBool(_kShuffle) ?? true,
       showAttribution: _prefs.getBool(_kShowSrc) ?? true,
       cadenceMinutes: _prefs.getInt(_kCadence) ?? 30,
       backgroundImagePath: (bg != null && bg.isNotEmpty) ? bg : null,
-      widgetColorTheme: _decodeWidgetColor(_prefs.getString(_kWidgetColor)),
+      widgetColorTheme: _decodeEnum(WidgetColorTheme.values,
+          _prefs.getString(_kWidgetColor), WidgetColorTheme.paper),
       displayLayoutKey: (layout != null && layout.isNotEmpty)
           ? layout
           : AppSettings.defaultDisplayLayoutKey,
-      widgetPlayMode: _decodePlayMode(_prefs.getString(_kPlayMode)),
-      fontScale: _decodeFontScale(_prefs.getString(_kFontScale)),
+      widgetPlayMode: _decodeEnum(WidgetPlayMode.values,
+          _prefs.getString(_kPlayMode), WidgetPlayMode.random),
+      fontScale: _decodeEnum(AppFontScale.values,
+          _prefs.getString(_kFontScale), AppFontScale.standard),
     );
   }
 
@@ -59,31 +63,17 @@ class SettingsRepository {
     await OhosPrefsBridge.instance.flush(_prefs);
   }
 
-  AppThemeMode _decodeTheme(String? name) {
-    return AppThemeMode.values.firstWhere(
-      (AppThemeMode m) => m.name == name,
-      orElse: () => AppThemeMode.system,
-    );
-  }
 
-  WidgetColorTheme _decodeWidgetColor(String? name) {
-    return WidgetColorTheme.values.firstWhere(
-      (WidgetColorTheme t) => t.name == name,
-      orElse: () => WidgetColorTheme.paper,
-    );
-  }
-
-  WidgetPlayMode _decodePlayMode(String? name) {
-    return WidgetPlayMode.values.firstWhere(
-      (WidgetPlayMode m) => m.name == name,
-      orElse: () => WidgetPlayMode.random,
-    );
-  }
-
-  AppFontScale _decodeFontScale(String? name) {
-    return AppFontScale.values.firstWhere(
-      (AppFontScale v) => v.name == name,
-      orElse: () => AppFontScale.standard,
-    );
+  /// 通用枚举解码 —— 按持久化的 `name` 匹配, 未知/缺失回落 [fallback]
+  /// (v0.27.1 收敛四份同构 firstWhere 样板)。
+  static T _decodeEnum<T extends Enum>(
+    List<T> values,
+    String? name,
+    T fallback,
+  ) {
+    for (final T v in values) {
+      if (v.name == name) return v;
+    }
+    return fallback;
   }
 }
