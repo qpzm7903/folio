@@ -29,6 +29,20 @@ class NoRepeatShuffle {
         _pos = 0,
         _round = 1;
 
+  /// 从持久化快照恢复 (v0.26.0 屏保续位)。
+  /// 调用方负责保证 [order] 是 0..itemCount-1 的排列且 [pos] 在界内
+  /// (id→索引翻译见 domain/rotation_resume.dart)。
+  NoRepeatShuffle.restore({
+    required this.itemCount,
+    required List<int> order,
+    required int pos,
+    required int round,
+    Random? random,
+  })  : _rng = random ?? Random(),
+        _order = List<int>.of(order),
+        _pos = pos,
+        _round = round;
+
   final int itemCount;
   final Random _rng;
   List<int> _order;
@@ -37,6 +51,12 @@ class NoRepeatShuffle {
 
   /// 当前应该展示的 item 索引。
   int get currentIndex => _order.isEmpty ? 0 : _order[_pos % _order.length];
+
+  /// 本轮洗牌顺序快照 (持久化用, 不可变视图)。
+  List<int> get order => List<int>.unmodifiable(_order);
+
+  /// 当前在本轮中的下标 (0 起, 持久化用; UI 语义见 [posInRound])。
+  int get position => _pos;
 
   /// 当前是第几轮 (从 1 开始)。
   int get round => _round;

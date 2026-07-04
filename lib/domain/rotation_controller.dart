@@ -9,16 +9,40 @@ import 'shuffle.dart';
 ///
 /// 创建后立刻起一个 [Timer.periodic], 每过 [cadence] 自动 [advance] 一次。
 /// 用户主动 advance() 时也会重置计时器, 让"看 N 分钟"成立, 而不是"用户刚切完就又被自动切了"。
+/// 持久化恢复输入 (id 顺序已由调用方翻译成当前索引, 见 rotation_resume.dart)。
+typedef RotationRestore = ({List<int> order, int pos, int round});
+
 class RotationController {
   RotationController({
     required int itemCount,
     required Duration cadence,
     required this.onAdvance,
     Random? random,
-  })  : _shuffle = NoRepeatShuffle(itemCount: itemCount, random: random),
+    RotationRestore? restore,
+  })  : _shuffle = _buildShuffle(itemCount, random, restore),
         _itemCount = itemCount,
         _cadence = cadence {
     _startTimer();
+  }
+
+  /// 快照有效 (长度匹配 + 位置在界内) 才续位, 否则重新洗牌。
+  static NoRepeatShuffle _buildShuffle(
+    int itemCount,
+    Random? random,
+    RotationRestore? restore,
+  ) {
+    final bool valid = restore != null &&
+        restore.order.length == itemCount &&
+        restore.pos >= 0 &&
+        restore.pos < itemCount;
+    if (!valid) return NoRepeatShuffle(itemCount: itemCount, random: random);
+    return NoRepeatShuffle.restore(
+      itemCount: itemCount,
+      order: restore.order,
+      pos: restore.pos,
+      round: restore.round,
+      random: random,
+    );
   }
 
   final NoRepeatShuffle _shuffle;
@@ -31,6 +55,11 @@ class RotationController {
   int get currentIndex => _shuffle.currentIndex;
   Duration get cadence => _cadence;
   int get itemCount => _itemCount;
+
+  /// 持久化快照读数 (display_screen 在每次 advance 后落盘)。
+  List<int> get order => _shuffle.order;
+  int get position => _shuffle.position;
+  int get round => _shuffle.round;
 
   /// 用户主动切句子: 切一次, 通知外部, 重置 cadence。
   void advance() {
