@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/tokens.dart';
-import 'xjk_icon.dart';
+import 'select_check.dart';
 
 /// QuoteCard —— 对应 components.jsx 的 `QuoteCard`。
 ///
@@ -119,7 +119,10 @@ class QuoteCard extends StatelessWidget {
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _SelectCheck(on: selected),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: XJKSelectCheck(on: selected),
+              ),
               const SizedBox(width: 12),
               Expanded(child: body),
             ],
@@ -143,35 +146,6 @@ class QuoteCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// 圆形勾选框 —— 对应 kit.css 的 `.qcheck` / `.qcheck.on`。
-class _SelectCheck extends StatelessWidget {
-  const _SelectCheck({required this.on});
-  final bool on;
-
-  @override
-  Widget build(BuildContext context) {
-    final XJKTokens t = XJKTheme.of(context);
-    return AnimatedContainer(
-      duration: XJKTokens.durFast,
-      curve: XJKTokens.easePaper,
-      width: 22,
-      height: 22,
-      margin: const EdgeInsets.only(top: 2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: on ? t.accent : Colors.transparent,
-        border: Border.all(
-          color: on ? t.accent : t.border2,
-          width: 1.5,
-        ),
-      ),
-      child: on
-          ? Center(child: XJKIcon('check', size: 13, color: t.fgOnAccent))
-          : null,
     );
   }
 }

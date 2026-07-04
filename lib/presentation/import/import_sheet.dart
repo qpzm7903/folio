@@ -7,7 +7,7 @@ import '../../domain/import_lines.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
-import '../widgets/xjk_icon.dart';
+import '../widgets/select_check.dart';
 
 /// 批量导入 —— 对应 screens.jsx 的 `ImportSheet`。
 ///
@@ -229,8 +229,8 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
   }
 }
 
-/// 单行可勾选句 —— 圆形勾选框沿用 kit.css `.qcheck` 视觉
-/// (22px 圆, 选中 accent 实底 + 13px check), 未勾选行文字压淡。
+/// 单行可勾选句 —— 圆形勾选框复用 [XJKSelectCheck] (kit.css `.qcheck`),
+/// 未勾选行文字压淡; InkWell 提供按压反馈, Semantics 报为复选框。
 class _ImportLineRow extends StatelessWidget {
   const _ImportLineRow({
     required this.line,
@@ -245,45 +245,37 @@ class _ImportLineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: <Widget>[
-          AnimatedContainer(
-            duration: XJKTokens.durFast,
-            curve: XJKTokens.easePaper,
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: picked ? t.accent : Colors.transparent,
-              border: Border.all(
-                color: picked ? t.accent : t.border2,
-                width: 1.5,
-              ),
-            ),
-            child: picked
-                ? Center(
-                    child: XJKIcon('check', size: 13, color: t.fgOnAccent),
-                  )
-                : null,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              line,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 14,
-                height: 1.5,
-                color: picked ? t.fg1 : t.fg3,
-              ),
+    return Semantics(
+      checked: picked,
+      label: line,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(XJKTokens.radiusSm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+            child: Row(
+              children: <Widget>[
+                XJKSelectCheck(on: picked),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    line,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: XJKTokens.serifDisplay,
+                      fontSize: 14,
+                      height: 1.5,
+                      color: picked ? t.fg1 : t.fg3,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
