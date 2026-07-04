@@ -22,6 +22,13 @@
   "actionImport": "Bulk import",
   "actionRemove": "Remove",
   "actionKeep": "Keep",
+  "actionCancel": "Cancel",
+
+  "tagManage": "Manage",
+  "tagManageDone": "Done",
+  "deleteTagTitle": "Delete tag \"{tag}\"?",
+  "deleteTagBody": "Its quotes move to Uncategorized; nothing is deleted.",
+  "deleteTagConfirm": "Delete tag",
 
   "actionMultiSelect": "Select",
   "selectModeIdle": "Select quotes",

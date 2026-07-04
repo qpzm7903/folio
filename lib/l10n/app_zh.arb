@@ -32,6 +32,18 @@
   "actionImport": "批量导入",
   "actionRemove": "取出",
   "actionKeep": "留着",
+  "actionCancel": "取消",
+
+  "tagManage": "管理",
+  "tagManageDone": "完成",
+  "deleteTagTitle": "删除标签「{tag}」？",
+  "@deleteTagTitle": {
+    "placeholders": {
+      "tag": { "type": "String" }
+    }
+  },
+  "deleteTagBody": "标签下的金句会移到「未分类」，不会被删除。",
+  "deleteTagConfirm": "删除标签",
 
   "actionMultiSelect": "多选",
   "selectModeIdle": "选择金句",

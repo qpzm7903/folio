@@ -33,6 +33,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   bool _selecting = false;
+  bool _managingTags = false;
   Set<String> _picked = <String>{};
 
   void _enterSelect() => setState(() {
@@ -159,6 +160,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           onSelect: (String selected) => ref
                               .read(activeTagProvider.notifier)
                               .state = selected,
+                          managing: _managingTags,
+                          onToggleManaging: () => setState(
+                            () => _managingTags = !_managingTags,
+                          ),
+                          onDeleteTag: (String tag) =>
+                              _confirmDeleteTag(context, tag),
                         ),
                         const SizedBox(height: 12),
                         for (final Quote q in rest)
@@ -254,6 +261,25 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       context.push('${FolioRoutes.editorNew}/${q.id}');
 
   void _openSearch(BuildContext context) => context.push(FolioRoutes.search);
+
+  /// 管理态点具名标签 → 确认后删除标签: 句子归「未分类」(tag 清空),
+  /// 若正筛选被删标签则回「全部」。文案对齐 screens.jsx ConfirmDialog。
+  Future<void> _confirmDeleteTag(BuildContext context, String tag) async {
+    final AppL10n l10n = AppL10n.of(context);
+    final bool? ok = await showConfirmDeleteDialog(
+      context,
+      message: l10n.deleteTagTitle(tag),
+      detail: l10n.deleteTagBody,
+      keepLabel: l10n.actionCancel,
+      removeLabel: l10n.deleteTagConfirm,
+    );
+    if (ok != true || !mounted) return;
+    await ref.read(quotesProvider.notifier).removeTag(tag);
+    if (!mounted) return;
+    if (ref.read(activeTagProvider) == tag) {
+      ref.read(activeTagProvider.notifier).state = kAllTagsLabel;
+    }
+  }
 
   Future<void> _confirmDeleteOne(BuildContext context, Quote q) async {
     final bool? ok = await showConfirmDeleteDialog(context);
