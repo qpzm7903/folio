@@ -285,15 +285,21 @@ final StateNotifierProvider<QuotesNotifier, AsyncValue<List<Quote>>>
   },
 );
 
-/// 派生: 全部标签 (含"全部")。
+/// 派生: 全部标签 (首位"全部"; 存在无标签句时末位追加"未分类", v0.23.0)。
 final Provider<List<String>> tagsProvider = Provider<List<String>>((Ref ref) {
   final AsyncValue<List<Quote>> async = ref.watch(quotesProvider);
   final List<Quote> data = async.value ?? <Quote>[];
-  final Set<String> set = <String>{};
+  final Set<String> named = <String>{};
+  bool hasUntagged = false;
   for (final Quote q in data) {
-    if (q.tag.trim().isNotEmpty) set.add(q.tag);
+    final String tag = q.tag.trim();
+    if (tag.isEmpty || tag == kUntaggedLabel) {
+      hasUntagged = true;
+    } else {
+      named.add(q.tag);
+    }
   }
-  return <String>[kAllTagsLabel, ...set];
+  return <String>[kAllTagsLabel, ...named, if (hasUntagged) kUntaggedLabel];
 });
 
 /// 派生: 每个非空标签的句数 (用于标签管理屏)。

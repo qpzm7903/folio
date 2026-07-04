@@ -45,4 +45,33 @@ void main() {
       expect(hits.map((Quote q) => q.id).toList(), <String>['4']);
     });
   });
+
+  // v0.23.0 标签管理: 删除标签后句子归「未分类」(空 tag 的展示名),
+  // tag-row 的「未分类」pill 通过这里筛到它们。
+  group('kUntaggedLabel (未分类虚拟标签)', () {
+    final List<Quote> data = <Quote>[
+      _q('1', '坚持'),
+      _q('2', ''), // 无标签
+      _q('3', '  '), // 全空白 tag 也算未分类
+      _q('4', '旅程'),
+    ];
+
+    test('命中所有 trim 后为空的句子', () {
+      final List<Quote> hits = filterQuotesByTag(data, kUntaggedLabel);
+      expect(hits.map((Quote q) => q.id).toList(), <String>['2', '3']);
+    });
+
+    test('不命中具名标签句', () {
+      final List<Quote> hits = filterQuotesByTag(data, kUntaggedLabel);
+      expect(hits.any((Quote q) => q.tag.trim().isNotEmpty), isFalse);
+    });
+
+    test('句子标签字面就是「未分类」时也命中 (与虚拟 pill 行为一致)', () {
+      final List<Quote> hits = filterQuotesByTag(
+        <Quote>[_q('1', kUntaggedLabel), _q('2', '')],
+        kUntaggedLabel,
+      );
+      expect(hits.length, 2);
+    });
+  });
 }
