@@ -35,16 +35,21 @@ DisplayLayoutData _dataNoTag(String text) {
 
 void main() {
   group('屏保版式注册表', () {
-    test('精选 5 版式 (页/满/印/时/片), key 不重复', () {
-      expect(kDisplayLayouts.length, 5);
+    test('全部 9 版式, 顺序对照设计源 LAYOUTS, key 不重复', () {
+      expect(kDisplayLayouts.length, 9);
       final List<String> keys =
           kDisplayLayouts.map((DisplayLayout l) => l.key).toList();
+      // v0.25.0: 补齐 竖/引/条/织, 顺序对照 display-layouts.jsx 的 LAYOUTS。
       expect(keys, <String>[
         'page',
+        'vertical',
+        'pull',
+        'lockscreen',
         'fullbleed',
         'stamped',
-        'lockscreen',
+        'ribbon',
         'card',
+        'interleave',
       ]);
       expect(keys.toSet().length, keys.length, reason: 'key 必须唯一');
     });
