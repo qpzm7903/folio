@@ -122,6 +122,9 @@
 - v0.24.0 (已完成) · 功能 MINOR: 批量导入增强 (用户需求"导入文本批量建句",
   设计依据 HANDOFF.md 第三轮): 分句纯函数入域层 + **去重** + 勾选列表保留
   (默认全选, 点行切换, 按钮显示选中数, 只收入勾选句)。
+- v0.24.1 (开发中) · 重构 PATCH: 勾选组件收敛 —— 抽共享 `XJKSelectCheck`
+  (金库多选卡片 / 导入勾选行共用, 消除 .qcheck 视觉复制), 导入勾选行加
+  InkWell 按压反馈 + Semantics 复选框语义。行为等价。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -180,6 +183,19 @@
 ---
 
 ## 版本日志
+
+### v0.24.1 (开发中) — 重构 PATCH: 勾选组件收敛 (共享 XJKSelectCheck)
+
+> 触发依据: 无开放 issue、CI 全绿、0.24.x 尚无重构 PATCH (prompt.md 优先级 #3)。
+> 落实 v0.24.0 审查中因子代理限额未及对抗验证、但复核成立的三条整改。
+
+- [ ] T1 · 抽 `lib/presentation/widgets/select_check.dart` 的 `XJKSelectCheck`
+  (kit.css `.qcheck`): quote_card 私有 `_SelectCheck` 删除改复用 (原 top:2
+  margin 移到调用点), 导入勾选行同款 —— 一份视觉两处用, 防复制漂移。
+- [ ] T2 · 导入勾选行: GestureDetector → Material+InkWell (按压反馈, 触摸目标
+  含 padding 增高), Semantics(checked, label) 报为复选框供读屏。
+- [ ] T3 · 行为等价: 现有 import/select-mode 测试全过; analyze 0 警告;
+  版本 0.24.1+73 (pubspec + kAppVersion)。
 
 ### v0.24.0 (已完成, CI 绿) — 功能 MINOR: 批量导入增强 (分句去重 + 勾选保留)
 
