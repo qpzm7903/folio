@@ -9,9 +9,11 @@ import '../../core/logger.dart';
 import '../../core/platform_capabilities.dart';
 import '../../data/quote.dart';
 import '../../data/settings_repository.dart';
-import '../../domain/quote_display.dart';
+import '../../data/rotation_state_repository.dart';
 import '../../data/wallpaper_service.dart';
+import '../../domain/quote_display.dart';
 import '../../domain/rotation_controller.dart';
+import '../../domain/rotation_resume.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/xjk_icon.dart';
@@ -51,21 +53,54 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
     super.dispose();
   }
 
-  void _syncRotation(int itemCount, int cadenceMin) {
+  /// 当前 quotes 的 id 序 (与 controller 的索引 order 配对做持久化翻译)。
+  List<String> _quoteIds = const <String>[];
+
+  void _syncRotation(List<Quote> quotes, int cadenceMin) {
     final Duration cadence = Duration(minutes: cadenceMin.clamp(1, 60 * 24));
+    _quoteIds = <String>[for (final Quote q in quotes) q.id];
     if (_rotation == null) {
       _rotation = RotationController(
-        itemCount: itemCount,
+        itemCount: quotes.length,
         cadence: cadence,
         onAdvance: _onTick,
+        restore: _loadRestore(),
       );
       return;
     }
-    _rotation!.reconfigure(newItemCount: itemCount, newCadence: cadence);
+    _rotation!.reconfigure(newItemCount: quotes.length, newCadence: cadence);
+  }
+
+  /// 读上次的洗牌快照并翻译成当前索引; 金库内容变了续不上 → null 重洗。
+  RotationRestore? _loadRestore() {
+    final RotationSnapshot? snap =
+        ref.read(rotationStateRepositoryProvider).load();
+    if (snap == null) return null;
+    final List<int>? order = mapOrderToIndices(snap.ids, _quoteIds);
+    if (order == null) return null;
+    return (order: order, pos: snap.pos, round: snap.round);
+  }
+
+  /// 每次换句后把洗牌状态落盘 (fire-and-forget, 失败只记日志不打扰屏保)。
+  void _persistRotation() {
+    final RotationController? r = _rotation;
+    if (r == null || r.order.length != _quoteIds.length) return;
+    final List<String> ids = <String>[
+      for (final int i in r.order) _quoteIds[i],
+    ];
+    unawaited(
+      ref
+          .read(rotationStateRepositoryProvider)
+          .save((ids: ids, pos: r.position, round: r.round))
+          .catchError((Object e, StackTrace st) {
+        AppLogger.instance.handle(e, st, 'persist rotation state');
+      }),
+    );
   }
 
   void _onTick() {
     if (!mounted) return;
+    _persistRotation();
     setState(() => _fadeKey++);
   }
 
@@ -118,7 +153,7 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
         if (quotes.isEmpty) {
           return _displayEmpty(context);
         }
-        _syncRotation(quotes.length, settings.cadenceMinutes);
+        _syncRotation(quotes, settings.cadenceMinutes);
         final Quote current = quotes[_rotation!.currentIndex];
         final Color textColor = _withPhoto ? const Color(0xFFF7F8ED) : t.fg1;
         final Color subColor =
