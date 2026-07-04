@@ -68,7 +68,7 @@
   六主题 (青纸 / 天青 / 月白 / 绛霞 / 林夜 / 青黛, 2 浅绿 + 4 传统色, 2 暗),
   屏保从单一版式扩成可循环多版式 (精选 5 个: 页 / 满 / 印 / 时 / 片), 引入
   黄金比竖向锚点 (0.382) + 句长分级 q-scale 自适应字号。纯 Dart UI, 全平台通用,
-  以 Mate 80 Pro / HarmonyOS 6 真机验收。余下 4 版式 (竖 / 引 / 条 / 织) 留后续 PATCH。
+  以 Mate 80 Pro / HarmonyOS 6 真机验收。余下 4 版式 (竖 / 引 / 条 / 织) 已在 v0.25.0 补齐 (全 9 版式)。
 - [x] L23 · 标签管理 (设计系统标签 2.0) — 规划 v0.22.1(重构铺路) + v0.23.0(功能)。
   **2026-07-04 范围修正**: 逐文件核实 2026-06-29 同步的 `xiao-jinku-desig` skill
   (screens.jsx / app.jsx / kit.css / card-tags.html), 设计源数据模型仍是**单标签**
@@ -125,7 +125,7 @@
 - v0.24.1 (已完成) · 重构 PATCH: 勾选组件收敛 —— 抽共享 `XJKSelectCheck`
   (金库多选卡片 / 导入勾选行共用, 消除 .qcheck 视觉复制), 导入勾选行加
   InkWell 按压反馈 + Semantics 复选框语义。行为等价。
-- v0.25.0 (开发中) · 功能 MINOR: 屏保版式补齐 (L22 遗留 竖/引/条/织 4 版式,
+- v0.25.0 (已完成) · 功能 MINOR: 屏保版式补齐 (L22 遗留 竖/引/条/织 4 版式,
   注册表 5→9 且顺序对照设计源 LAYOUTS; `splitClauses` 分句纯函数入域层)。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
@@ -186,21 +186,24 @@
 
 ## 版本日志
 
-### v0.25.0 (开发中) — 功能 MINOR: 屏保版式补齐 (竖/引/条/织)
+### v0.25.0 (已完成, CI 绿) — 功能 MINOR: 屏保版式补齐 (竖/引/条/织)
 
 > 触发依据: 无开放 issue、CI 全绿、0.24.x 已有 v0.24.1 重构 PATCH → 开发新功能。
 > 兑现 L22 遗留: "余下 4 版式 (竖/引/条/织) 留后续"。视觉对照
 > display-layouts.jsx (LayoutVertical/Pull/Ribbon/Interleave) + kit.css
 > `.ds-vertical/.ds-pull/.ds-ribbon/.ds-interleave` 与主题 token 映射。
 
-- [ ] T1 · 域层 `splitClauses` (quote_clauses.dart): 中文标点分句留标点,
+- [x] T1 · 域层 `splitClauses` (quote_clauses.dart): 中文标点分句留标点,
   无标点/空串整句回落 —— 织版式用。TDD 5 例。
-- [ ] T2 · 4 版式实现: 竖 (Wrap 竖排逐字右起分列 + 立轴线 + 「金」印 24px
+- [x] T2 · 4 版式实现: 竖 (Wrap 竖排逐字右起分列 + 立轴线 + 「金」印 24px
   bamboo500) / 引 (120px 起引号 accent, photo 下 leaf300 + 底部落款/56px 收引号)
   / 条 (通宽纸带 bgRaised + border2 上下边, photo 背景仍纸色) / 织 (罗马数字
   72px + 分句发丝线 + 右下类目)。注册表 5→9, 顺序对照设计源。
-- [ ] T3 · 测试: 注册表断言更新 (9 款/顺序/key 唯一), 渲染遍历自动覆盖新版式;
+- [x] T3 · 测试: 注册表断言更新 (9 款/顺序/key 唯一), 渲染遍历自动覆盖新版式;
   analyze 0 警告; 版本 0.25.0+74。
+- [x] T4 · 内联审查: 设置层只存 key (默认 page) 无硬编码列表, display_screen
+  注册表循环 + 未知 key 回落 0; 首轮 CI 红定位为测试断言与竖版式逐字结构
+  不兼容 (整词子串匹配不到), 改单字匹配后绿。
 
 ### v0.24.1 (已完成, CI 绿) — 重构 PATCH: 勾选组件收敛 (共享 XJKSelectCheck)
 
