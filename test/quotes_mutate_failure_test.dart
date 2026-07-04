@@ -4,6 +4,8 @@ import 'package:folio/data/quote.dart';
 import 'package:folio/data/quote_repository.dart';
 import 'package:folio/presentation/providers.dart';
 
+import 'support/quotes_test_support.dart';
+
 /// saveAll 可控爆炸的仓储 —— 模拟磁盘满 / SQLite 写锁失败。
 class _ExplodingRepo implements QuoteRepository {
   _ExplodingRepo(this._data);
@@ -28,15 +30,6 @@ class _ExplodingRepo implements QuoteRepository {
 Quote _q(String id, String tag) =>
     Quote(id: id, text: '句 $id', tag: tag, createdAt: DateTime(2026, 6, 1));
 
-Future<List<Quote>> _ready(ProviderContainer c) async {
-  for (int i = 0; i < 50; i++) {
-    final AsyncValue<List<Quote>> state = c.read(quotesProvider);
-    if (state.hasValue) return state.value!;
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-  }
-  fail('QuotesNotifier did not finish loading within 500ms');
-}
-
 void main() {
   // v0.23.1 重构: _mutate 落盘失败时回滚 state 并返回 false (审查遗留 F9)。
   // 此前先写 state 再 await saveAll 且无 try/catch: 失败时 UI 显示成功,
@@ -52,7 +45,7 @@ void main() {
           quoteRepositoryProvider.overrideWithValue(repo),
         ],
       );
-      await _ready(c);
+      await awaitQuotesLoaded(c);
     });
 
     tearDown(() => c.dispose());

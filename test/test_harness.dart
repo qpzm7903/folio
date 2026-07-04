@@ -3,40 +3,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:folio/data/quote.dart';
-import 'package:folio/data/quote_repository.dart';
 import 'package:folio/l10n/generated/app_localizations.dart';
 import 'package:folio/presentation/providers.dart';
 import 'package:folio/theme/app_theme.dart';
 import 'package:folio/theme/tokens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 内存版 QuoteRepository —— widget 测试用, 不动文件 / prefs。
-class FakeQuoteRepository implements QuoteRepository {
-  FakeQuoteRepository([List<Quote>? seed, this.loadDelay = Duration.zero])
-      : _data = List<Quote>.of(seed ?? <Quote>[]);
+import 'support/quotes_test_support.dart';
 
-  List<Quote> _data;
-
-  /// 模拟"金库正在加载中"的延时, 让测试可以验证 mutate 调用在 _ready
-  /// 阻塞期间被排队 (v0.9.1)。默认 0, 不延时。
-  final Duration loadDelay;
-
-  /// 当前持久化的快照, 测试断言用。
-  List<Quote> get snapshot => List<Quote>.unmodifiable(_data);
-
-  @override
-  Future<List<Quote>> loadAll() async {
-    if (loadDelay > Duration.zero) {
-      await Future<void>.delayed(loadDelay);
-    }
-    return List<Quote>.of(_data);
-  }
-
-  @override
-  Future<void> saveAll(List<Quote> quotes) async {
-    _data = List<Quote>.of(quotes);
-  }
-}
+export 'support/quotes_test_support.dart' show FakeQuoteRepository;
 
 /// 把 [child] 挂到一个完整的 MaterialApp + XJKTheme + Riverpod + i18n delegate 树下。
 ///
