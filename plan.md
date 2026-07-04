@@ -127,6 +127,9 @@
   InkWell 按压反馈 + Semantics 复选框语义。行为等价。
 - v0.25.0 (已完成) · 功能 MINOR: 屏保版式补齐 (L22 遗留 竖/引/条/织 4 版式,
   注册表 5→9 且顺序对照设计源 LAYOUTS; `splitClauses` 分句纯函数入域层)。
+- v0.25.1 (开发中) · 重构 PATCH: 版式样式去重 (`_metaStyle`/`_italicStyle`/
+  `_accentInk` 三个共享 helper 收敛 9 版式重复 TextStyle/配色, 行为等价,
+  display_layouts.dart 788→764 行, 缓解 800 行上限与 LOC 预算)。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -185,6 +188,18 @@
 ---
 
 ## 版本日志
+
+### v0.25.1 (开发中) — 重构 PATCH: 版式样式去重 (三共享 helper)
+
+> 触发依据: 无开放 issue、CI 全绿、0.25.x 尚无重构 PATCH (prompt.md 优先级 #3)。
+> v0.25.0 后 display_layouts.dart 达 788 行逼近 800 上限, 总 LOC 9110/10000;
+> 本版收敛 9 版式间重复样式, 行为等价瘦身。
+
+- [ ] T1 · 抽 `_metaStyle` (sans-ui 11px 眉注/类目, 3 处) / `_italicStyle`
+  (serif-italic 斜体落款家族, 6 处含 _attributionLine) / `_accentInk`
+  (photo→leaf300 否则 accent, 引/织 2 处) 三个模块级 helper。
+- [ ] T2 · 行为等价: 现有版式渲染/落款测试全过; analyze 0 警告;
+  版本 0.25.1+75 (pubspec + kAppVersion)。
 
 ### v0.25.0 (已完成, CI 绿) — 功能 MINOR: 屏保版式补齐 (竖/引/条/织)
 
