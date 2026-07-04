@@ -63,7 +63,7 @@
   "换一句"换下一句、30min 自动换句。L21 核心功能完整可用 (后续可选: 卡片配色
   跟随主题、多尺寸、打开 app 主动推送刷新桌面卡片)。
   "设为壁纸" 在鸿蒙为系统 API 大概率三方不可用, L20 spike 顺带验证后决定是否永久放弃
-- [ ] L22 · 设计系统 2.0 (传统色六主题 + 屏保多版式) — 规划 v0.18.2(重构) + v0.19.0(功能)。
+- [x] L22 · 设计系统 2.0 (传统色六主题 + 屏保多版式, v0.25.0 全 9 版式收官) — 规划 v0.18.2(重构) + v0.19.0(功能)。
   对齐 2026-06-16 重新生成的 `xiao-jinku-desig` skill: 主题从 青纸/林夜 二元扩成
   六主题 (青纸 / 天青 / 月白 / 绛霞 / 林夜 / 青黛, 2 浅绿 + 4 传统色, 2 暗),
   屏保从单一版式扩成可循环多版式 (精选 5 个: 页 / 满 / 印 / 时 / 片), 引入
@@ -79,6 +79,8 @@
   变虚线可删 (`.tag.removable` + x), 点删弹确认 (「删除标签会移到未分类, 句子不删」),
   删除后句子归「未分类」(app.jsx onDeleteTag), 若正筛选该标签回「全部」。v0.22.1 的
   接缝收敛 (`filterQuotesByTag` / `kAllTagsLabel`) 依旧是本条的落点。
+- [x] L24 · 屏保轮播续位 (HANDOFF 第二轮收尾) — v0.26.0: 洗牌顺序以 quote-id
+  序列持久化 (prefs), 重启接着上次位置; 金库内容变更 (id 集合不一致) 自动重洗。
 
 ---
 
@@ -130,6 +132,9 @@
 - v0.25.1 (已完成) · 重构 PATCH: 版式样式去重 (`_metaStyle`/`_italicStyle`/
   `_accentInk` 三个共享 helper 收敛 9 版式重复 TextStyle/配色, 行为等价,
   display_layouts.dart 788→764 行, 缓解 800 行上限与 LOC 预算)。
+- v0.26.0 (开发中) · 功能 MINOR: 屏保轮播续位 (= L24, HANDOFF 第二轮
+  "下次开机接着上次的位置"): NoRepeatShuffle 快照/恢复 + id↔索引翻译纯函数 +
+  RotationStateRepository (prefs) + display 屏 advance 落盘。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -188,6 +193,23 @@
 ---
 
 ## 版本日志
+
+### v0.26.0 (开发中) — 功能 MINOR: 屏保轮播续位 (L24)
+
+> 触发依据: 无开放 issue、CI 全绿、0.25.x 已有 v0.25.1 重构 PATCH → 开发新功能。
+> 盘点长期规划: 非鸿蒙项全部落地 (L22 勾选), 从设计 skill HANDOFF 路线图补上
+> 第二轮唯一缺口 —— "shuffle 顺序持久化, 下次开机接着上次的位置"。存储选
+> prefs 而非 HANDOFF 提的 drift 表: 与收藏/设置同惯例, Web/鸿蒙桥同样生效,
+> 数据量仅一份 id 列表 (存储选型属工程决策, 设计 skill 权威只约束 UI)。
+
+- [ ] T1 · 域层: `NoRepeatShuffle.restore` 命名构造 + `order/position` 快照
+  getter; `mapOrderToIndices` (rotation_resume.dart) 把持久化 id 序翻译回当前
+  索引, 集合不一致/重复/长度不符 → null 重洗。TDD 10 例。
+- [ ] T2 · 数据层: `RotationStateRepository` (prefs key folio.display.rotation.v1,
+  JSON {ids,pos,round}), 损坏数据返回 null 不抛。TDD 4 例。
+- [ ] T3 · 接线: RotationController 加 restore 入参 (界内校验);
+  display_screen 首建时读档翻译, 每次换句 (手动/定时) fire-and-forget 落盘。
+- [ ] T4 · analyze 0 警告; 版本 0.26.0+76 (pubspec + kAppVersion)。
 
 ### v0.25.1 (已完成, CI 绿) — 重构 PATCH: 版式样式去重 (三共享 helper)
 
