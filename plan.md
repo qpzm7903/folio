@@ -138,6 +138,9 @@
 - v0.26.1 (已完成) · 重构 PATCH: 测试基建收敛 —— FakeQuoteRepository /
   quotesContainer / awaitQuotesLoaded 提取 test/support 共享, 消除
   test_harness 与 3 个单测文件的四份重复; 行为等价, 测试语义不变。
+- v0.27.0 (开发中) · 功能 MINOR: 字号设置 (设计源 SettingsScreen「字号」行
+  落地): AppFontScale 标准/大/特大 (1.0/1.15/1.3), MediaQuery textScaler
+  全局生效且与系统缩放叠乘, 设置屏行接 OptionPicker。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -196,6 +199,19 @@
 ---
 
 ## 版本日志
+
+### v0.27.0 (开发中) — 功能 MINOR: 字号设置 (标准/大/特大)
+
+> 触发依据: 无开放 issue、CI 全绿、0.26.x 已有 v0.26.1 重构 PATCH → 开发新功能。
+> 设计依据: screens.jsx SettingsScreen「字号」行带 chevron (可交互), 实现里一直
+> 是死的「标准」占位。三档因子 (1.0/1.15/1.3) 为设计源未指定处的工程决策,
+> 与系统无障碍缩放叠乘而非覆盖。
+
+- [ ] T1 · AppFontScale 枚举 + displayLabel/factor; AppSettings.fontScale 字段
+  (defaults 标准) + SettingsRepository 持久化 (未知值回落标准)。TDD 5 例。
+- [ ] T2 · SettingsNotifier.setFontScale; app.dart builder 里 MediaQuery
+  textScaler 叠乘; 设置屏「字号」行接 showOptionPicker。
+- [ ] T3 · analyze 0 警告; 版本 0.27.0+78 (pubspec + kAppVersion)。
 
 ### v0.26.1 (已完成, CI 绿) — 重构 PATCH: 测试基建收敛 (test/support)
 
