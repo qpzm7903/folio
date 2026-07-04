@@ -124,6 +124,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setWidgetPlayMode(WidgetPlayMode mode) =>
       _apply(state.copyWith(widgetPlayMode: mode));
 
+  /// 全局字号档位 (v0.27.0)。
+  Future<void> setFontScale(AppFontScale scale) =>
+      _apply(state.copyWith(fontScale: scale));
+
   /// 共用的"写 state + 落盘"流程, copyWith 差异收到 setter 各自一行 transform。
   Future<void> _apply(AppSettings next) async {
     state = next;

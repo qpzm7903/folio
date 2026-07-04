@@ -60,9 +60,18 @@ class FolioApp extends ConsumerWidget {
       builder: (BuildContext context, Widget? child) {
         final Brightness platform = MediaQuery.platformBrightnessOf(context);
         final bool isDark = resolveIsDark(settings.themeMode, platform);
-        return XJKTheme(
-          tokens: (isDark ? darkId : lightId).tokens,
-          child: child ?? const SizedBox.shrink(),
+        // 字号档位 (v0.27.0): 与系统缩放叠乘, 不吞掉系统无障碍设置。
+        final TextScaler system = MediaQuery.textScalerOf(context);
+        final double combined =
+            system.scale(1.0) * settings.fontScale.factor;
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(combined),
+          ),
+          child: XJKTheme(
+            tokens: (isDark ? darkId : lightId).tokens,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
       routerConfig: ref.watch(routerProvider),

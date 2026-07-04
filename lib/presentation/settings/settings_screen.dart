@@ -207,7 +207,11 @@ class _AppearanceSection extends ConsumerWidget {
               value: s.themeMode.displayLabel,
               onTap: () => _pickTheme(context, ref, s.themeMode),
             ),
-            const SettingRow(label: '字号', value: '标准', showChevron: false),
+            SettingRow(
+              label: '字号',
+              value: s.fontScale.displayLabel,
+              onTap: () => _pickFontScale(context, ref, s.fontScale),
+            ),
             const SettingRow(
               label: '字体',
               value: 'Noto Serif SC',
@@ -234,6 +238,24 @@ class _AppearanceSection extends ConsumerWidget {
     );
     if (next != null) {
       await ref.read(settingsProvider.notifier).setThemeMode(next);
+    }
+  }
+
+  Future<void> _pickFontScale(
+    BuildContext context,
+    WidgetRef ref,
+    AppFontScale current,
+  ) async {
+    final AppFontScale? next = await showOptionPicker<AppFontScale>(
+      context: context,
+      current: current,
+      options: <PickerOption<AppFontScale>>[
+        for (final AppFontScale v in AppFontScale.values)
+          (value: v, label: v.displayLabel),
+      ],
+    );
+    if (next != null) {
+      await ref.read(settingsProvider.notifier).setFontScale(next);
     }
   }
 }
