@@ -93,13 +93,13 @@ const LayoutVertical = ({ quote }) => (
 // ─────────────────────────────────────────────────────────────
 const LayoutPull = ({ quote }) => (
   <div className="ds-layout ds-pull" data-len={lengthTier(quote.q)}>
-    <div className="ds-pull-open">"</div>
+    <div className="ds-pull-open">“</div>
     <div className="ds-pull-body">
       <div className="ds-pull-line">{quote.q}</div>
     </div>
     <div className="ds-pull-foot">
       <span className="ds-pull-attr">{(quote.tags && quote.tags[0]) || quote.tag}</span>
-      <span className="ds-pull-close">"</span>
+      <span className="ds-pull-close">”</span>
     </div>
   </div>
 );
