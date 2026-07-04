@@ -3,12 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/import_lines.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../widgets/xjk_icon.dart';
 
-/// 批量导入 —— 对应 screens.jsx 的 `ImportSheet`.
-/// 用 \n 分隔, 自动 trim 空行。
+/// 批量导入 —— 对应 screens.jsx 的 `ImportSheet`。
+///
+/// v0.24.0 增强 (HANDOFF 第三轮 + 用户需求"导入文本批量建句"):
+/// 分句后**去重**, 并给出可勾选的句列表 (默认全选, 点行切换),
+/// 只把勾选的句收入金库。
 class ImportSheet extends ConsumerStatefulWidget {
   const ImportSheet({super.key});
 
@@ -18,6 +23,10 @@ class ImportSheet extends ConsumerStatefulWidget {
 
 class _ImportSheetState extends ConsumerState<ImportSheet> {
   final TextEditingController _text = TextEditingController();
+
+  /// 被用户取消勾选的句 (以去重后的行文本为键)。
+  final Set<String> _dropped = <String>{};
+
   static const String _placeholder = '你在心里种下的种子，时间会帮它找出口。\n'
       '真正的强大不是没有裂痕，而是光从裂痕里照进来。\n'
       '你不必完美，你只需要真实且完整地活着。';
@@ -28,18 +37,20 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
     super.dispose();
   }
 
-  List<String> _splitLines() {
-    return _text.text
-        .split(RegExp(r'\n+'))
-        .map((String s) => s.trim())
-        .where((String s) => s.isNotEmpty)
-        .toList(growable: false);
+  void _toggle(String line) {
+    setState(() {
+      if (!_dropped.remove(line)) _dropped.add(line);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
-    final List<String> lines = _splitLines();
+    final List<String> lines = splitImportLines(_text.text);
+    final List<String> selected = <String>[
+      for (final String l in lines)
+        if (!_dropped.contains(l)) l,
+    ];
     final MediaQueryData media = MediaQuery.of(context);
     return Padding(
       padding: EdgeInsets.only(
@@ -48,10 +59,13 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
         top: 8,
         bottom: 24 + media.viewInsets.bottom,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
+      // 勾选列表出现后内容可能超过小屏可视高度 (尤其键盘弹起时),
+      // 包一层滚动避免 RenderFlex overflow。
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
           Text(
             '批量导入',
             style: TextStyle(
@@ -146,11 +160,31 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
               ),
             ],
           ),
+          if (lines.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 4),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 168),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: lines.length,
+                separatorBuilder: (BuildContext _, int __) =>
+                    const SizedBox(height: 6),
+                itemBuilder: (BuildContext _, int i) {
+                  final String line = lines[i];
+                  return _ImportLineRow(
+                    line: line,
+                    picked: !_dropped.contains(line),
+                    onTap: () => _toggle(line),
+                  );
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Opacity(
-            opacity: lines.isEmpty ? 0.4 : 1,
+            opacity: selected.isEmpty ? 0.4 : 1,
             child: ElevatedButton(
-              onPressed: lines.isEmpty
+              onPressed: selected.isEmpty
                   ? null
                   : () async {
                       // 先把 BuildContext-依赖的对象捕获下来, 再 await,
@@ -160,10 +194,10 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
                           ScaffoldMessenger.of(context);
                       final String failText =
                           AppL10n.of(context).snackSaveFailed;
-                      final int n = lines.length;
+                      final int n = selected.length;
                       final bool ok = await ref
                           .read(quotesProvider.notifier)
-                          .addMany(lines);
+                          .addMany(selected);
                       if (!mounted) return;
                       if (!ok) {
                         // 落盘失败: 不关 sheet, 粘贴的内容还在, 可重试。
@@ -177,7 +211,72 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
                         SnackBar(content: Text('$n 句已收入金库。')),
                       );
                     },
-              child: const Text('全部收入金库'),
+              child: Text(
+                lines.isEmpty || selected.length == lines.length
+                    ? '全部收入金库'
+                    : '收入 ${selected.length} 句',
+              ),
+            ),
+          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 单行可勾选句 —— 圆形勾选框沿用 kit.css `.qcheck` 视觉
+/// (22px 圆, 选中 accent 实底 + 13px check), 未勾选行文字压淡。
+class _ImportLineRow extends StatelessWidget {
+  const _ImportLineRow({
+    required this.line,
+    required this.picked,
+    required this.onTap,
+  });
+
+  final String line;
+  final bool picked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final XJKTokens t = XJKTheme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: <Widget>[
+          AnimatedContainer(
+            duration: XJKTokens.durFast,
+            curve: XJKTokens.easePaper,
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: picked ? t.accent : Colors.transparent,
+              border: Border.all(
+                color: picked ? t.accent : t.border2,
+                width: 1.5,
+              ),
+            ),
+            child: picked
+                ? Center(
+                    child: XJKIcon('check', size: 13, color: t.fgOnAccent),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              line,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: XJKTokens.serifDisplay,
+                fontSize: 14,
+                height: 1.5,
+                color: picked ? t.fg1 : t.fg3,
+              ),
             ),
           ),
         ],
