@@ -266,6 +266,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   /// 若正筛选被删标签则回「全部」。文案对齐 screens.jsx ConfirmDialog。
   Future<void> _confirmDeleteTag(BuildContext context, String tag) async {
     final AppL10n l10n = AppL10n.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = l10n.snackSaveFailed;
     final bool? ok = await showConfirmDeleteDialog(
       context,
       message: l10n.deleteTagTitle(tag),
@@ -274,8 +276,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       removeLabel: l10n.deleteTagConfirm,
     );
     if (ok != true || !mounted) return;
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    final String failText = l10n.snackSaveFailed;
     // 先切回「全部」再落盘: removeTag 一写 state 当前筛选就没有匹配句了,
     // 若还筛在被删标签上会先渲染无匹配空态 (TagRow 随整列消失);
     // 且 saveAll 抛错时排在后面的重置永远不会执行, 用户会被困在空态里。

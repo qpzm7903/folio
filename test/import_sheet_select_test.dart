@@ -76,7 +76,9 @@ void main() {
     final FakeQuoteRepository repo = FakeQuoteRepository();
     await pumpAppWith(tester, child: const ImportSheet(), repo: repo);
 
-    await tester.enterText(find.byType(TextField), '甲');
+    // '甲\n甲' 去重成一行, 同时避免 TextField 的 EditableText 全文
+    // 恰好等于 '甲' 导致 find.text 命中两个 widget。
+    await tester.enterText(find.byType(TextField), '甲\n甲');
     await tester.pump();
     await tester.tap(find.text('甲'));
     await tester.pump();
@@ -85,5 +87,21 @@ void main() {
     await tester.tap(find.text('收入 0 句'));
     await settle(tester);
     expect(repo.snapshot, isEmpty);
+  });
+
+  testWidgets('文本变化后勾选状态重置 → 新批次默认全选', (WidgetTester tester) async {
+    final FakeQuoteRepository repo = FakeQuoteRepository();
+    await pumpAppWith(tester, child: const ImportSheet(), repo: repo);
+
+    await tester.enterText(find.byType(TextField), '甲\n乙');
+    await tester.pump();
+    await tester.tap(find.text('乙'));
+    await tester.pump();
+    expect(find.text('收入 1 句'), findsOneWidget);
+
+    // 整体替换成含同名行「乙」的新批次: 上一批的取消不应残留
+    await tester.enterText(find.byType(TextField), '乙\n丙');
+    await tester.pump();
+    expect(find.text('全部收入金库'), findsOneWidget);
   });
 }

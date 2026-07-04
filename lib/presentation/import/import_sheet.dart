@@ -25,6 +25,10 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
   final TextEditingController _text = TextEditingController();
 
   /// 被用户取消勾选的句 (以去重后的行文本为键)。
+  ///
+  /// 文本一变就整体清空 (见 onChanged): 勾选状态只属于"当前这批文本",
+  /// 否则上一批的取消会残留到重贴的新批次上 (同文本行静默未选),
+  /// 违背"默认全选"的承诺, 用户可能没察觉就丢句。
   final Set<String> _dropped = <String>{};
 
   static const String _placeholder = '你在心里种下的种子，时间会帮它找出口。\n'
@@ -94,7 +98,7 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) => setState(_dropped.clear),
               style: TextStyle(
                 fontFamily: XJKTokens.serifDisplay,
                 fontSize: 15,
