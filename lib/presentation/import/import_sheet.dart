@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 
@@ -157,9 +158,20 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
                       final NavigatorState navigator = Navigator.of(context);
                       final ScaffoldMessengerState messenger =
                           ScaffoldMessenger.of(context);
+                      final String failText =
+                          AppL10n.of(context).snackSaveFailed;
                       final int n = lines.length;
-                      await ref.read(quotesProvider.notifier).addMany(lines);
+                      final bool ok = await ref
+                          .read(quotesProvider.notifier)
+                          .addMany(lines);
                       if (!mounted) return;
+                      if (!ok) {
+                        // 落盘失败: 不关 sheet, 粘贴的内容还在, 可重试。
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(failText)),
+                        );
+                        return;
+                      }
                       unawaited(navigator.maybePop());
                       messenger.showSnackBar(
                         SnackBar(content: Text('$n 句已收入金库。')),

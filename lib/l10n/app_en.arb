@@ -50,6 +50,7 @@
 
   "snackSaved": "Added.",
   "snackUpdated": "Updated.",
+  "snackSaveFailed": "Couldn't save; the change was rolled back.",
   "snackBulkAdded": "{n} quotes added.",
 
   "confirmRemoveQuote": "Take this sentence out of the library?",

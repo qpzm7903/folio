@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../core/logger.dart';
 import '../../core/router.dart';
 import '../../data/quote.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
@@ -301,9 +302,13 @@ class _SearchResults extends ConsumerWidget {
     WidgetRef ref,
     Quote q,
   ) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = AppL10n.of(context).snackSaveFailed;
     final bool? ok = await showConfirmDeleteDialog(context);
-    if (ok == true) {
-      await ref.read(quotesProvider.notifier).remove(q.id);
+    if (ok != true) return;
+    final bool saved = await ref.read(quotesProvider.notifier).remove(q.id);
+    if (!saved && context.mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
@@ -195,8 +196,15 @@ class _TagEditSheetState extends ConsumerState<_TagEditSheet> {
       unawaited(navigator.maybePop());
       return;
     }
-    await ref.read(quotesProvider.notifier).renameTag(widget.tag, next);
+    final bool saved =
+        await ref.read(quotesProvider.notifier).renameTag(widget.tag, next);
     if (!mounted) return;
+    if (!saved) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppL10n.of(context).snackSaveFailed)),
+      );
+      return; // sheet 不关, 名字还在输入框里, 可重试
+    }
     unawaited(navigator.maybePop());
     messenger.showSnackBar(
       SnackBar(content: Text('「${widget.tag}」改成「$next」。')),
@@ -212,8 +220,15 @@ class _TagEditSheetState extends ConsumerState<_TagEditSheet> {
       removeLabel: '取下',
     );
     if (ok != true) return;
-    await ref.read(quotesProvider.notifier).removeTag(widget.tag);
+    final bool saved =
+        await ref.read(quotesProvider.notifier).removeTag(widget.tag);
     if (!mounted) return;
+    if (!saved) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppL10n.of(context).snackSaveFailed)),
+      );
+      return;
+    }
     unawaited(navigator.maybePop());
     messenger.showSnackBar(
       SnackBar(content: Text('「${widget.tag}」已从 ${widget.count} 句上取下。')),

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/logger.dart';
 import '../../data/quote.dart';
 import '../../data/quote_codec.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 
@@ -185,11 +186,16 @@ class _ImportSheetState extends ConsumerState<_ImportSheet> {
     final List<Quote>? decoded = QuoteCodec.tryDecode(_text.text.trim());
     if (decoded == null || decoded.isEmpty) return;
     // 用现有 addMany 把每句"作为新句"合并; tag/text 保留, id 重新生成
-    await ref.read(quotesProvider.notifier).addMany(<String>[
+    final String failText = AppL10n.of(context).snackSaveFailed;
+    final bool ok2 = await ref.read(quotesProvider.notifier).addMany(<String>[
       for (final Quote q in decoded) q.text,
     ]);
-    AppLogger.instance.info('imported ${decoded.length} quotes');
     if (!mounted) return;
+    if (!ok2) {
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      return; // sheet 不关, 文本还在, 可重试
+    }
+    AppLogger.instance.info('imported ${decoded.length} quotes');
     unawaited(navigator.maybePop());
     messenger.showSnackBar(
       SnackBar(content: Text('${decoded.length} 句已合并进金库。')),

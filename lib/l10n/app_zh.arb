@@ -80,6 +80,7 @@
 
   "snackSaved": "已收入金库。",
   "snackUpdated": "已经改好。",
+  "snackSaveFailed": "没能写进磁盘，这次改动已还原。",
   "snackBulkAdded": "{n} 句已收入金库。",
   "@snackBulkAdded": {
     "placeholders": {

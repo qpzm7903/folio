@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/quote.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../import/import_sheet.dart';
 import '../providers.dart';
@@ -173,26 +174,41 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   Future<void> _save() async {
     final NavigatorState navigator = Navigator.of(context);
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = AppL10n.of(context).snackSaveFailed;
+    final bool ok;
+    final String successText;
     if (_isEditing) {
-      await ref
+      ok = await ref
           .read(quotesProvider.notifier)
           .update(widget.editing!.id, _text.text, _tag.text);
-      if (!mounted) return;
-      messenger.showSnackBar(const SnackBar(content: Text('已经改好。')));
+      successText = '已经改好。';
     } else {
-      await ref.read(quotesProvider.notifier).add(_text.text, _tag.text);
-      if (!mounted) return;
-      messenger.showSnackBar(const SnackBar(content: Text('已收入金库。')));
+      ok = await ref.read(quotesProvider.notifier).add(_text.text, _tag.text);
+      successText = '已收入金库。';
     }
+    if (!mounted) return;
+    if (!ok) {
+      // 落盘失败: 不关编辑器, 文本还在输入框里, 用户可直接重试。
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(successText)));
     unawaited(navigator.maybePop());
   }
 
   Future<void> _confirmDelete() async {
     final NavigatorState navigator = Navigator.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = AppL10n.of(context).snackSaveFailed;
     final bool? ok = await showConfirmDeleteDialog(context);
     if (ok != true) return;
-    await ref.read(quotesProvider.notifier).remove(widget.editing!.id);
+    final bool saved =
+        await ref.read(quotesProvider.notifier).remove(widget.editing!.id);
     if (!mounted) return;
+    if (!saved) {
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      return;
+    }
     unawaited(navigator.maybePop());
   }
 

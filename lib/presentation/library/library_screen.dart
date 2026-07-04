@@ -274,19 +274,28 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       removeLabel: l10n.deleteTagConfirm,
     );
     if (ok != true || !mounted) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = l10n.snackSaveFailed;
     // 先切回「全部」再落盘: removeTag 一写 state 当前筛选就没有匹配句了,
     // 若还筛在被删标签上会先渲染无匹配空态 (TagRow 随整列消失);
     // 且 saveAll 抛错时排在后面的重置永远不会执行, 用户会被困在空态里。
     if (ref.read(activeTagProvider) == tag) {
       ref.read(activeTagProvider.notifier).state = kAllTagsLabel;
     }
-    await ref.read(quotesProvider.notifier).removeTag(tag);
+    final bool saved = await ref.read(quotesProvider.notifier).removeTag(tag);
+    if (!saved && mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
+    }
   }
 
   Future<void> _confirmDeleteOne(BuildContext context, Quote q) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String failText = AppL10n.of(context).snackSaveFailed;
     final bool? ok = await showConfirmDeleteDialog(context);
-    if (ok == true) {
-      await ref.read(quotesProvider.notifier).remove(q.id);
+    if (ok != true) return;
+    final bool saved = await ref.read(quotesProvider.notifier).remove(q.id);
+    if (!saved && mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(failText)));
     }
   }
 
@@ -296,14 +305,21 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   ) async {
     final int count = _picked.length;
     if (count == 0) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final bool? ok = await showConfirmDeleteDialog(
       context,
       message: l10n.confirmRemoveSelected(count),
       detail: l10n.confirmRemoveSelectedBody,
     );
     if (ok != true) return;
-    await ref.read(quotesProvider.notifier).removeMany(_picked);
-    if (mounted) _exitSelect();
+    final bool saved =
+        await ref.read(quotesProvider.notifier).removeMany(_picked);
+    if (!mounted) return;
+    if (!saved) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.snackSaveFailed)));
+      return; // 保持多选态, 让用户可以直接重试
+    }
+    _exitSelect();
   }
 
   String _fmtDate(DateTime t) {
