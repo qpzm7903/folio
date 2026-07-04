@@ -141,6 +141,9 @@
 - v0.27.0 (已完成) · 功能 MINOR: 字号设置 (设计源 SettingsScreen「字号」行
   落地): AppFontScale 标准/大/特大 (1.0/1.15/1.3), MediaQuery textScaler
   全局生效且与系统缩放叠乘, 设置屏行接 OptionPicker。
+- v0.27.1 (开发中) · 重构 PATCH: 设置层样板收敛 —— 仓储 4 份同构枚举
+  decoder → 泛型 `_decodeEnum`; 设置屏 主题/字号/播放模式 3 份同构
+  OptionPicker 方法 → 顶层泛型 `_pickEnum`。行为等价。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -199,6 +202,20 @@
 ---
 
 ## 版本日志
+
+### v0.27.1 (开发中) — 重构 PATCH: 设置层样板收敛 (泛型 decoder/picker)
+
+> 触发依据: 无开放 issue、CI 全绿、0.27.x 尚无重构 PATCH (prompt.md 优先级 #3)。
+> v0.27.0 加字号档后, 仓储枚举解码翻到第 4 份同构副本、设置屏 OptionPicker
+> 方法翻到第 3 份 —— 重复已"真实存在"而非猜测, 按 DRY 收敛。
+
+- [ ] T1 · SettingsRepository: `_decodeEnum<T extends Enum>(values, name,
+  fallback)` 替换 _decodeTheme/_decodeWidgetColor/_decodePlayMode/
+  _decodeFontScale 四份样板 (语义不变: 按 name 匹配, 未知回落)。
+- [ ] T2 · settings_screen: 顶层 `_pickEnum<T>` (OptionPicker → apply) 替换
+  _pickTheme/_pickFontScale/_pickPlayMode; 定制 sheet 的配色/频率两行不动。
+- [ ] T3 · 行为等价 (font_scale/settings_notifier/option_picker 测试全过);
+  analyze 0 警告; 版本 0.27.1+79。
 
 ### v0.27.0 (已完成, CI 绿) — 功能 MINOR: 字号设置 (标准/大/特大)
 
