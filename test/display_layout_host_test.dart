@@ -68,8 +68,10 @@ void main() {
             home: Scaffold(body: l.build(_data('测试金句内容'))),
           ),
         );
+        // 用单字断言: 竖 (Vertical) 版式逐字成列渲染, 整词子串匹配不到,
+        // 单字 '容' 对整句 Text 与逐字 Text 两种结构都命中。
         expect(
-          find.textContaining('内容'),
+          find.textContaining('容'),
           findsWidgets,
           reason: '${l.key} 应渲染出金句内容',
         );
