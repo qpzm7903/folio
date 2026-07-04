@@ -21,6 +21,7 @@ class SettingsRepository {
   static const String _kWidgetColor = 'folio.settings.widgetColorTheme';
   static const String _kDisplayLayout = 'folio.settings.displayLayoutKey';
   static const String _kPlayMode = 'folio.settings.widgetPlayMode';
+  static const String _kFontScale = 'folio.settings.fontScale';
 
   AppSettings load() {
     final String? bg = _prefs.getString(_kBgImage);
@@ -36,6 +37,7 @@ class SettingsRepository {
           ? layout
           : AppSettings.defaultDisplayLayoutKey,
       widgetPlayMode: _decodePlayMode(_prefs.getString(_kPlayMode)),
+      fontScale: _decodeFontScale(_prefs.getString(_kFontScale)),
     );
   }
 
@@ -52,6 +54,7 @@ class SettingsRepository {
     await _prefs.setString(_kWidgetColor, s.widgetColorTheme.name);
     await _prefs.setString(_kDisplayLayout, s.displayLayoutKey);
     await _prefs.setString(_kPlayMode, s.widgetPlayMode.name);
+    await _prefs.setString(_kFontScale, s.fontScale.name);
     // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
     await OhosPrefsBridge.instance.flush(_prefs);
   }
@@ -74,6 +77,13 @@ class SettingsRepository {
     return WidgetPlayMode.values.firstWhere(
       (WidgetPlayMode m) => m.name == name,
       orElse: () => WidgetPlayMode.random,
+    );
+  }
+
+  AppFontScale _decodeFontScale(String? name) {
+    return AppFontScale.values.firstWhere(
+      (AppFontScale v) => v.name == name,
+      orElse: () => AppFontScale.standard,
     );
   }
 }

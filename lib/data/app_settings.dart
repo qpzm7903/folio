@@ -45,6 +45,35 @@ extension AppThemeModeThemeId on AppThemeMode {
   }
 }
 
+/// 字号档位 (v0.27.0) —— 设计源 SettingsScreen「字号」行的落地,
+/// 经 MediaQuery textScaler 全局生效 (与系统缩放叠乘)。
+enum AppFontScale { standard, large, xlarge }
+
+extension AppFontScaleLabel on AppFontScale {
+  String get displayLabel {
+    switch (this) {
+      case AppFontScale.standard:
+        return '标准';
+      case AppFontScale.large:
+        return '大';
+      case AppFontScale.xlarge:
+        return '特大';
+    }
+  }
+
+  /// 文本缩放因子。
+  double get factor {
+    switch (this) {
+      case AppFontScale.standard:
+        return 1.0;
+      case AppFontScale.large:
+        return 1.15;
+      case AppFontScale.xlarge:
+        return 1.3;
+    }
+  }
+}
+
 class AppSettings {
   const AppSettings({
     required this.themeMode,
@@ -55,6 +84,7 @@ class AppSettings {
     required this.widgetColorTheme,
     required this.displayLayoutKey,
     required this.widgetPlayMode,
+    required this.fontScale,
   });
 
   /// 屏保版式默认 key (= skill 精选 5 版式的首项 页 Page)。放在 data 层常量
@@ -78,6 +108,9 @@ class AppSettings {
   /// 桌面小组件 / 鸿蒙卡片"下一句"播放模式 (v0.19.1, Issue #11)。
   final WidgetPlayMode widgetPlayMode;
 
+  /// 全局字号档位 (v0.27.0)。
+  final AppFontScale fontScale;
+
   AppSettings copyWith({
     AppThemeMode? themeMode,
     bool? shuffleNoRepeat,
@@ -88,6 +121,7 @@ class AppSettings {
     WidgetColorTheme? widgetColorTheme,
     String? displayLayoutKey,
     WidgetPlayMode? widgetPlayMode,
+    AppFontScale? fontScale,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -100,6 +134,7 @@ class AppSettings {
       widgetColorTheme: widgetColorTheme ?? this.widgetColorTheme,
       displayLayoutKey: displayLayoutKey ?? this.displayLayoutKey,
       widgetPlayMode: widgetPlayMode ?? this.widgetPlayMode,
+      fontScale: fontScale ?? this.fontScale,
     );
   }
 
@@ -112,6 +147,7 @@ class AppSettings {
     widgetColorTheme: WidgetColorTheme.paper,
     displayLayoutKey: defaultDisplayLayoutKey,
     widgetPlayMode: WidgetPlayMode.random,
+    fontScale: AppFontScale.standard,
   );
 
   @override
@@ -125,7 +161,8 @@ class AppSettings {
           other.backgroundImagePath == backgroundImagePath &&
           other.widgetColorTheme == widgetColorTheme &&
           other.displayLayoutKey == displayLayoutKey &&
-          other.widgetPlayMode == widgetPlayMode);
+          other.widgetPlayMode == widgetPlayMode &&
+          other.fontScale == fontScale);
 
   @override
   int get hashCode => Object.hash(
@@ -137,5 +174,6 @@ class AppSettings {
         widgetColorTheme,
         displayLayoutKey,
         widgetPlayMode,
+        fontScale,
       );
 }
