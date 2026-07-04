@@ -135,7 +135,7 @@
 - v0.26.0 (已完成) · 功能 MINOR: 屏保轮播续位 (= L24, HANDOFF 第二轮
   "下次开机接着上次的位置"): NoRepeatShuffle 快照/恢复 + id↔索引翻译纯函数 +
   RotationStateRepository (prefs) + display 屏 advance 落盘。
-- v0.26.1 (开发中) · 重构 PATCH: 测试基建收敛 —— FakeQuoteRepository /
+- v0.26.1 (已完成) · 重构 PATCH: 测试基建收敛 —— FakeQuoteRepository /
   quotesContainer / awaitQuotesLoaded 提取 test/support 共享, 消除
   test_harness 与 3 个单测文件的四份重复; 行为等价, 测试语义不变。
 
@@ -197,19 +197,19 @@
 
 ## 版本日志
 
-### v0.26.1 (开发中) — 重构 PATCH: 测试基建收敛 (test/support)
+### v0.26.1 (已完成, CI 绿) — 重构 PATCH: 测试基建收敛 (test/support)
 
 > 触发依据: 无开放 issue、CI 全绿、0.26.x 尚无重构 PATCH (prompt.md 优先级 #3)。
 > lib 侧 analyze 已零 info/warning、文件均 <800 行, 本版把重复最重的测试基建
 > 收敛: FakeQuoteRepository 与"等首次加载"轮询在 4 个文件里各有一份副本。
 
-- [ ] T1 · 新建 test/support/quotes_test_support.dart: FakeQuoteRepository
+- [x] T1 · 新建 test/support/quotes_test_support.dart: FakeQuoteRepository
   (从 test_harness 迁出, harness re-export 保持既有 import 兼容) +
   quotesContainer(seed) + awaitQuotesLoaded(c)。
-- [ ] T2 · rename_tag / tags_provider_untagged / quotes_mutate_failure 三个
+- [x] T2 · rename_tag / tags_provider_untagged / quotes_mutate_failure 三个
   测试改用共享 helper, 删除各自的 _FakeRepo/_container/_ready 副本
   (_ExplodingRepo 因 explode 语义特殊保留)。
-- [ ] T3 · 全部测试语义不变通过; analyze 0 警告; 版本 0.26.1+77。
+- [x] T3 · 全部测试语义不变通过; analyze 0 警告; 版本 0.26.1+77。
 
 ### v0.26.0 (已完成, CI 绿) — 功能 MINOR: 屏保轮播续位 (L24)
 
