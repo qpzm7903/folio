@@ -144,6 +144,9 @@
 - v0.27.1 (已完成) · 重构 PATCH: 设置层样板收敛 —— 仓储 4 份同构枚举
   decoder → 泛型 `_decodeEnum`; 设置屏 主题/字号/播放模式 3 份同构
   OptionPicker 方法 → 顶层泛型 `_pickEnum`。行为等价。
+- v0.28.0 (开发中) · 功能 MINOR: 纯文本导出 (设计源 SettingsScreen 导出行
+  sub「备份为 .txt」落地): 导出 sheet 双格式切换 —— 完整备份 JSON /
+  纯文本每行一句 (可读, 可被批量导入吃回, 不含标签日期)。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -202,6 +205,18 @@
 ---
 
 ## 版本日志
+
+### v0.28.0 (开发中) — 功能 MINOR: 纯文本导出 (备份为 .txt)
+
+> 触发依据: 无开放 issue、CI 全绿、0.27.x 已有 v0.27.1 重构 PATCH → 开发新功能。
+> 设计依据: screens.jsx SettingsScreen 导出行 sub 明确写「备份为 .txt」,
+> 实现一直只有 JSON。纯文本与 v0.24.0 批量导入 (按行分句) 天然对称。
+
+- [ ] T1 · `QuoteCodec.encodePlainText`: 每行一句只含句子内容 (有损但可读)。
+  TDD 3 例 (顺序/不带元数据/空)。
+- [ ] T2 · 导出 sheet 改双格式: TextButton 切换 JSON/纯文本 (预览 + 复制内容
+  + 帮助文案联动); 设置行 sub 改「备份为 JSON / 纯文本」。
+- [ ] T3 · analyze 0 警告; 版本 0.28.0+80 (pubspec + kAppVersion)。
 
 ### v0.27.1 (已完成, CI 绿) — 重构 PATCH: 设置层样板收敛 (泛型 decoder/picker)
 
