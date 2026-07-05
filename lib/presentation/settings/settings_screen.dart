@@ -293,7 +293,7 @@ class _ImportExportSection extends ConsumerWidget {
           children: <Widget>[
             SettingRow(
               label: '导出金库',
-              sub: '复制 JSON 到剪贴板, $quoteCount 句',
+              sub: '备份为 JSON / 纯文本, $quoteCount 句',
               onTap: () => showExportSheet(context, ref),
             ),
             SettingRow(

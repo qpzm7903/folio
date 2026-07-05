@@ -17,14 +17,17 @@ import '../providers.dart';
 Future<void> showExportSheet(BuildContext context, WidgetRef ref) async {
   final List<Quote> quotes =
       ref.read(quotesProvider).asData?.value ?? const <Quote>[];
-  final String raw = QuoteCodec.encode(quotes);
   AppLogger.instance.info('export sheet opened, ${quotes.length} quotes');
 
   await showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (BuildContext ctx) => _ExportSheet(raw: raw, count: quotes.length),
+    builder: (BuildContext ctx) => _ExportSheet(
+      rawJson: QuoteCodec.encode(quotes),
+      rawText: QuoteCodec.encodePlainText(quotes),
+      count: quotes.length,
+    ),
   );
 }
 
@@ -40,11 +43,33 @@ Future<void> showImportSheet(BuildContext context, WidgetRef ref) async {
   );
 }
 
-class _ExportSheet extends StatelessWidget {
-  const _ExportSheet({required this.raw, required this.count});
+class _ExportSheet extends StatefulWidget {
+  const _ExportSheet({
+    required this.rawJson,
+    required this.rawText,
+    required this.count,
+  });
 
-  final String raw;
+  final String rawJson;
+  final String rawText;
   final int count;
+
+  @override
+  State<_ExportSheet> createState() => _ExportSheetState();
+}
+
+/// v0.28.0: 完整备份 (JSON, 可无损还原) / 纯文本 (.txt 风格, 每行一句,
+/// 可读、可被批量导入吃回, 不含标签与日期) 双格式切换。
+class _ExportSheetState extends State<_ExportSheet> {
+  bool _plainText = false;
+
+  int get count => widget.count;
+
+  String get _raw => _plainText ? widget.rawText : widget.rawJson;
+
+  String get _help => _plainText
+      ? '纯文本每行一句, 直接可读; 也能用「批量导入」粘回 (不含标签与日期)。'
+      : '把这 $count 句原样抄出来, 粘到笔记里或另一台设备。';
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +92,7 @@ class _ExportSheet extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '把这 $count 句原样抄出来, 粘到笔记里或另一台设备。',
+            _help,
             style: TextStyle(
               fontFamily: XJKTokens.serifDisplay,
               fontSize: 14,
@@ -86,7 +111,7 @@ class _ExportSheet extends StatelessWidget {
             ),
             child: SingleChildScrollView(
               child: SelectableText(
-                raw,
+                _raw,
                 style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 11,
@@ -99,8 +124,19 @@ class _ExportSheet extends StatelessWidget {
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed:
-                count == 0 ? null : () => _copyAndClose(context, raw, count),
+                count == 0 ? null : () => _copyAndClose(context, _raw, count),
             child: const Text('复制到剪贴板'),
+          ),
+          TextButton(
+            onPressed: () => setState(() => _plainText = !_plainText),
+            child: Text(
+              _plainText ? '改用完整备份 (JSON)' : '改用纯文本 (.txt)',
+              style: TextStyle(
+                fontFamily: XJKTokens.sansUi,
+                fontSize: 14,
+                color: t.accent,
+              ),
+            ),
           ),
         ],
       ),
