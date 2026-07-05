@@ -17,6 +17,12 @@ class QuoteCodec {
     ]);
   }
 
+  /// 纯文本导出 (v0.28.0, 设计源「备份为 .txt」): 每行一句, 只含句子内容
+  /// (不带标签/日期, 有损但可读), 可直接被批量导入按行吃回。
+  static String encodePlainText(List<Quote> quotes) {
+    return <String>[for (final Quote q in quotes) q.text].join('\n');
+  }
+
   /// 解码失败时记日志并返回 `null`, 上层据此走 fallback (例如重新种子化)。
   static List<Quote>? tryDecode(String raw, {String? context}) {
     try {

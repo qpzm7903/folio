@@ -39,4 +39,37 @@ void main() {
       expect(QuoteCodec.tryDecode(raw), isEmpty);
     });
   });
+
+  // v0.28.0 纯文本导出 (设计源「备份为 .txt」)。
+  group('QuoteCodec.encodePlainText', () {
+    Quote q(String id, String text) => Quote(
+          id: id,
+          text: text,
+          tag: '',
+          createdAt: DateTime.utc(2026, 7, 1),
+        );
+
+    test('每行一句, 保持顺序', () {
+      expect(
+        QuoteCodec.encodePlainText(<Quote>[q('1', '甲句。'), q('2', '乙句。')]),
+        '甲句。\n乙句。',
+      );
+    });
+
+    test('只含句子内容, 不带标签/日期', () {
+      final String out = QuoteCodec.encodePlainText(<Quote>[
+        Quote(
+          id: '1',
+          text: '光。',
+          tag: '完整',
+          createdAt: DateTime.utc(2026, 5, 23),
+        ),
+      ]);
+      expect(out, '光。');
+    });
+
+    test('空金库 → 空串', () {
+      expect(QuoteCodec.encodePlainText(const <Quote>[]), '');
+    });
+  });
 }
