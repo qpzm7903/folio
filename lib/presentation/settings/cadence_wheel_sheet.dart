@@ -22,7 +22,8 @@ Future<int?> showCadenceWheelSheet({
   );
 }
 
-const int _kMaxHours = 12;
+// v0.29.0: 12→24, 让设计源 CADENCES 的 1440「每日一句」可达。
+const int _kMaxHours = 24;
 const int _kMaxTotalMinutes = _kMaxHours * 60;
 
 class _CadenceWheelSheet extends StatefulWidget {
@@ -344,6 +345,7 @@ class _SaveButton extends StatelessWidget {
 /// - 混合 → "每 X 小时 Y 分钟换一句"
 String formatCadenceText(int minutes) {
   if (minutes <= 0) return '请选择';
+  if (minutes == 1440) return '每日一句'; // 设计源 CADENCES (v0.29.0)
   if (minutes < 60) return '每 $minutes 分钟换一句';
   final int h = minutes ~/ 60;
   final int m = minutes % 60;
@@ -353,6 +355,7 @@ String formatCadenceText(int minutes) {
 
 /// 设置屏 SettingRow 的 value 列显示文案 (短版本)。
 String formatCadenceShort(int minutes) {
+  if (minutes == 1440) return '每日';
   if (minutes < 60) return '$minutes 分钟';
   final int h = minutes ~/ 60;
   final int m = minutes % 60;
