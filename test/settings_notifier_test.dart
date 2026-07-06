@@ -68,6 +68,28 @@ void main() {
       c2.dispose();
     });
 
+    test('widgetSourceTag round-trip + 置 null 真清空 (v0.29.0 来源标签)',
+        () async {
+      final ProviderContainer c = await makeContainer();
+      expect(c.read(settingsProvider).widgetSourceTag, isNull);
+
+      await c.read(settingsProvider.notifier).setWidgetSourceTag('坚持');
+      expect(c.read(settingsProvider).widgetSourceTag, '坚持');
+
+      // 落盘验证
+      c.dispose();
+      final ProviderContainer c2 = await makeContainer();
+      expect(c2.read(settingsProvider).widgetSourceTag, '坚持');
+
+      // 选回「全部」→ 存 null 并真清空
+      await c2.read(settingsProvider.notifier).setWidgetSourceTag(null);
+      expect(c2.read(settingsProvider).widgetSourceTag, isNull);
+      c2.dispose();
+      final ProviderContainer c3 = await makeContainer();
+      expect(c3.read(settingsProvider).widgetSourceTag, isNull);
+      c3.dispose();
+    });
+
     test('WidgetColorTheme 六主题 round-trip + 旧值 bamboo fallback paper',
         () async {
       // 六主题都能 round-trip

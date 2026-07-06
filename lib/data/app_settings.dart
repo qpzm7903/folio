@@ -85,6 +85,7 @@ class AppSettings {
     required this.displayLayoutKey,
     required this.widgetPlayMode,
     required this.fontScale,
+    required this.widgetSourceTag,
   });
 
   /// 屏保版式默认 key (= skill 精选 5 版式的首项 页 Page)。放在 data 层常量
@@ -111,6 +112,10 @@ class AppSettings {
   /// 全局字号档位 (v0.27.0)。
   final AppFontScale fontScale;
 
+  /// 小组件来源标签 (v0.29.0, 设计源「来自哪个标签」); `null` 表示整库。
+  /// 不存「全部」哨兵是有意的: data 层不依赖 domain 层的哨兵常量。
+  final String? widgetSourceTag;
+
   AppSettings copyWith({
     AppThemeMode? themeMode,
     bool? shuffleNoRepeat,
@@ -122,6 +127,8 @@ class AppSettings {
     String? displayLayoutKey,
     WidgetPlayMode? widgetPlayMode,
     AppFontScale? fontScale,
+    String? widgetSourceTag,
+    bool clearWidgetSourceTag = false,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -135,6 +142,9 @@ class AppSettings {
       displayLayoutKey: displayLayoutKey ?? this.displayLayoutKey,
       widgetPlayMode: widgetPlayMode ?? this.widgetPlayMode,
       fontScale: fontScale ?? this.fontScale,
+      widgetSourceTag: clearWidgetSourceTag
+          ? null
+          : (widgetSourceTag ?? this.widgetSourceTag),
     );
   }
 
@@ -148,6 +158,7 @@ class AppSettings {
     displayLayoutKey: defaultDisplayLayoutKey,
     widgetPlayMode: WidgetPlayMode.random,
     fontScale: AppFontScale.standard,
+    widgetSourceTag: null,
   );
 
   @override
@@ -162,7 +173,8 @@ class AppSettings {
           other.widgetColorTheme == widgetColorTheme &&
           other.displayLayoutKey == displayLayoutKey &&
           other.widgetPlayMode == widgetPlayMode &&
-          other.fontScale == fontScale);
+          other.fontScale == fontScale &&
+          other.widgetSourceTag == widgetSourceTag);
 
   @override
   int get hashCode => Object.hash(
@@ -175,5 +187,6 @@ class AppSettings {
         displayLayoutKey,
         widgetPlayMode,
         fontScale,
+        widgetSourceTag,
       );
 }

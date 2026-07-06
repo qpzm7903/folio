@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/app_version.dart';
 import '../../core/router.dart';
 import '../../data/settings_repository.dart';
+import '../../domain/tag_filter.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/max_width_body.dart';
@@ -152,7 +153,7 @@ class _RotationSection extends ConsumerWidget {
             ),
             SettingRow(
               label: '小组件播放模式',
-              sub: '下一句来自整个金库',
+              sub: '随机或按顺序换句',
               value: s.widgetPlayMode.displayLabel,
               onTap: () => _pickEnum<WidgetPlayMode>(
                 context,
@@ -163,10 +164,38 @@ class _RotationSection extends ConsumerWidget {
                     ref.read(settingsProvider.notifier).setWidgetPlayMode(m),
               ),
             ),
+            SettingRow(
+              label: '来源标签',
+              sub: '来自哪个标签',
+              value: s.widgetSourceTag ?? kAllTagsLabel,
+              onTap: () => _pickSourceTag(context, ref, s.widgetSourceTag),
+            ),
           ],
         ),
       ],
     );
+  }
+
+  /// v0.29.0 来源标签 (设计源 widget-editor.jsx「来自哪个标签」ChipRow):
+  /// 选项就是金库现有标签 (含「全部」「未分类」哨兵), 选「全部」存 null。
+  Future<void> _pickSourceTag(
+    BuildContext context,
+    WidgetRef ref,
+    String? current,
+  ) async {
+    final List<String> tags = ref.read(tagsProvider);
+    final String? next = await showOptionPicker<String>(
+      context: context,
+      current: current ?? kAllTagsLabel,
+      options: <PickerOption<String>>[
+        for (final String t in tags) (value: t, label: t),
+      ],
+    );
+    if (next != null) {
+      await ref
+          .read(settingsProvider.notifier)
+          .setWidgetSourceTag(next == kAllTagsLabel ? null : next);
+    }
   }
 
   Future<void> _pickWidgetColor(

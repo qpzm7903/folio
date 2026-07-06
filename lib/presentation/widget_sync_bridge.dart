@@ -8,6 +8,7 @@ import '../core/logger.dart';
 import '../core/router.dart';
 import '../data/quote.dart';
 import '../data/settings_repository.dart';
+import '../domain/widget_source.dart';
 import 'providers.dart';
 
 /// 无 UI 的桥接器: 启动时 configure home widget, 之后监听 quotes / cadence /
@@ -85,10 +86,13 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
     final AppSettings settings = ref.read(settingsProvider);
     final WidgetColorTheme? color =
         includeColor ? settings.widgetColorTheme : null;
+    // v0.29.0 来源标签: timeline 只取指定标签的句子 (失配回退整库)。
+    final List<Quote> source =
+        widgetSourceQuotes(quotes, settings.widgetSourceTag);
     // Android / iOS: home_widget + AlarmManager (cadence 走这条)。
     unawaited(
       ref.read(widgetSyncServiceProvider).syncTimeline(
-            quotes,
+            source,
             cadenceMinutes: settings.cadenceMinutes,
             colorTheme: color,
             mode: settings.widgetPlayMode,
@@ -98,7 +102,7 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
     // 能力守卫, 当前平台只会有一个真正干活, 另一个 no-op。
     unawaited(
       ref.read(ohosWidgetServiceProvider).syncTimeline(
-            quotes,
+            source,
             colorTheme: color,
             mode: settings.widgetPlayMode,
           ),
@@ -121,7 +125,13 @@ class _WidgetSyncBridgeState extends ConsumerState<WidgetSyncBridge> {
     ) {
       final bool colorChanged = prev?.widgetColorTheme != next.widgetColorTheme;
       final bool cadenceChanged = prev?.cadenceMinutes != next.cadenceMinutes;
-      if (!colorChanged && !cadenceChanged) return;
+      // v0.29.0: 来源标签变化要重生成 timeline; 播放模式此前漏在监听外
+      // (改了要等下次 quotes/cadence 变化才生效), 一并补上。
+      final bool sourceChanged = prev?.widgetSourceTag != next.widgetSourceTag;
+      final bool modeChanged = prev?.widgetPlayMode != next.widgetPlayMode;
+      if (!colorChanged && !cadenceChanged && !sourceChanged && !modeChanged) {
+        return;
+      }
       _sync(includeColor: colorChanged);
     });
     return widget.child;

@@ -22,10 +22,12 @@ class SettingsRepository {
   static const String _kDisplayLayout = 'folio.settings.displayLayoutKey';
   static const String _kPlayMode = 'folio.settings.widgetPlayMode';
   static const String _kFontScale = 'folio.settings.fontScale';
+  static const String _kWidgetSource = 'folio.settings.widgetSourceTag';
 
   AppSettings load() {
     final String? bg = _prefs.getString(_kBgImage);
     final String? layout = _prefs.getString(_kDisplayLayout);
+    final String? source = _prefs.getString(_kWidgetSource);
     return AppSettings(
       themeMode: _decodeEnum(
           AppThemeMode.values, _prefs.getString(_kTheme), AppThemeMode.system),
@@ -42,6 +44,8 @@ class SettingsRepository {
           _prefs.getString(_kPlayMode), WidgetPlayMode.random),
       fontScale: _decodeEnum(AppFontScale.values,
           _prefs.getString(_kFontScale), AppFontScale.standard),
+      widgetSourceTag:
+          (source != null && source.isNotEmpty) ? source : null,
     );
   }
 
@@ -59,6 +63,11 @@ class SettingsRepository {
     await _prefs.setString(_kDisplayLayout, s.displayLayoutKey);
     await _prefs.setString(_kPlayMode, s.widgetPlayMode.name);
     await _prefs.setString(_kFontScale, s.fontScale.name);
+    if (s.widgetSourceTag == null) {
+      await _prefs.remove(_kWidgetSource);
+    } else {
+      await _prefs.setString(_kWidgetSource, s.widgetSourceTag!);
+    }
     // 鸿蒙: 落盘到 ArkTS preferences (非鸿蒙平台 no-op)。
     await OhosPrefsBridge.instance.flush(_prefs);
   }

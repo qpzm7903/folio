@@ -128,6 +128,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setFontScale(AppFontScale scale) =>
       _apply(state.copyWith(fontScale: scale));
 
+  /// 小组件来源标签 (v0.29.0); `null` = 整库。
+  Future<void> setWidgetSourceTag(String? tag) => _apply(
+        state.copyWith(
+          widgetSourceTag: tag,
+          clearWidgetSourceTag: tag == null,
+        ),
+      );
+
   /// 共用的"写 state + 落盘"流程, copyWith 差异收到 setter 各自一行 transform。
   Future<void> _apply(AppSettings next) async {
     state = next;
