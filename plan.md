@@ -151,6 +151,10 @@
   4 个 BottomSheet 逐字节相同的头部 (padding/标题/副标题/间距) 抽成
   `XJKSheetBody`; 全仓 ~14 处 `showSnackBar(SnackBar(content: Text(x)))`
   收敛为 `messenger.showText(x)` 扩展。行为与视觉不变, 净减行。
+- v0.29.0 (开发中) · 功能 MINOR: 小组件来源标签 + 每日一句 (设计源
+  widget-editor.jsx「来自哪个标签」ChipRow + CADENCES 1440「每日一句」+
+  设置行 sub「尺寸、频率、来源、字号」的「来源」承诺落地): 小组件 timeline
+  只取指定标签的句子 (失配回退整库), 频率滚轮上限 12h→24h。
 
 ### v0.18.2 (已完成, CI 绿) · 重构 PATCH — 主题系统注册表化 + 屏保版式宿主抽象 (L22 铺路)
 
@@ -209,6 +213,30 @@
 ---
 
 ## 版本日志
+
+### v0.29.0 (开发中) — 功能 MINOR: 小组件来源标签 + 每日一句
+
+> 触发依据: 无开放 issue、CI 全绿、0.28.x 已有 v0.28.1 重构 PATCH → 开发新功能。
+> 设计依据: widget-editor.jsx:202-203「来自哪个标签」ChipRow (source 过滤
+> 组件取句范围) + :9-16 CADENCES 含 1440「每日一句」; screens.jsx:311 设置行
+> sub 明写「尺寸、频率、来源、字号」四项承诺, 其中「来源」一直未落地。
+
+- [ ] T1 · data: `AppSettings.widgetSourceTag` (String?, null=整库) +
+  copyWith(clearWidgetSourceTag, 仿 backgroundImagePath 先例) + 持久化
+  (空串→null) + `setWidgetSourceTag`。TDD 序列化/回读。
+- [ ] T2 · domain: `widgetSourceQuotes(all, sourceTag)` 纯函数 —— null 整库;
+  命中按 `filterQuotesByTag` 筛; 失配 (标签被删/改名遗留) **回退整库**,
+  防桌面组件变死卡。TDD 4 例 (null/命中/失配回退/未分类)。
+- [ ] T3 · bridge: `_sync` 过滤后再喂两个 widget service; settings 监听补
+  sourceTag 变化触发重同步, **顺带修** widgetPlayMode 变化不触发重同步的
+  既有缺口。
+- [ ] T4 · UI: 设置屏「小组件」组新增「来源标签」行 (sub「来自哪个标签」,
+  value 当前标签或 全部), OptionPicker 选项取 tagsProvider (全部/具名/
+  未分类), 选「全部」存 null; 播放模式行 sub 改「随机或按顺序换句」
+  (原「下一句来自整个金库」在筛选后不再为真)。
+- [ ] T5 · cadence: `_kMaxHours` 12→24 (1440「每日一句」可达);
+  `formatCadenceText/Short` 特例 1440 →「每日一句」/「每日」。TDD。
+- [ ] T6 · analyze 0 警告; 版本 0.29.0+82 (pubspec + kAppVersion)。
 
 ### v0.28.1 (已完成, CI 绿) — 重构 PATCH: sheet 骨架 + SnackBar 样板收敛
 
