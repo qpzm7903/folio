@@ -10,6 +10,8 @@ import '../../data/quote_codec.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../widgets/sheet_body.dart';
+import '../widgets/snack_text.dart';
 
 /// 导出金库 —— 打开 BottomSheet 显示 JSON, 顶部一键复制到剪贴板。
 ///
@@ -74,72 +76,48 @@ class _ExportSheetState extends State<_ExportSheet> {
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
-    final MediaQueryData media = MediaQuery.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + media.viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            '导出金库',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: t.fg1,
-            ),
+    return XJKSheetBody(
+      title: '导出金库',
+      subtitle: _help,
+      children: <Widget>[
+        Container(
+          constraints: const BoxConstraints(maxHeight: 240),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: t.bgPage,
+            border: Border.all(color: t.border1),
+            borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
           ),
-          const SizedBox(height: 4),
-          Text(
-            _help,
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 14,
-              color: t.fg3,
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 240),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: t.bgPage,
-              border: Border.all(color: t.border1),
-              borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-            ),
-            child: SingleChildScrollView(
-              child: SelectableText(
-                _raw,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  height: 1.5,
-                  color: t.fg2,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed:
-                count == 0 ? null : () => _copyAndClose(context, _raw, count),
-            child: const Text('复制到剪贴板'),
-          ),
-          TextButton(
-            onPressed: () => setState(() => _plainText = !_plainText),
-            child: Text(
-              _plainText ? '改用完整备份 (JSON)' : '改用纯文本 (.txt)',
+          child: SingleChildScrollView(
+            child: SelectableText(
+              _raw,
               style: TextStyle(
-                fontFamily: XJKTokens.sansUi,
-                fontSize: 14,
-                color: t.accent,
+                fontFamily: 'monospace',
+                fontSize: 11,
+                height: 1.5,
+                color: t.fg2,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed:
+              count == 0 ? null : () => _copyAndClose(context, _raw, count),
+          child: const Text('复制到剪贴板'),
+        ),
+        TextButton(
+          onPressed: () => setState(() => _plainText = !_plainText),
+          child: Text(
+            _plainText ? '改用完整备份 (JSON)' : '改用纯文本 (.txt)',
+            style: TextStyle(
+              fontFamily: XJKTokens.sansUi,
+              fontSize: 14,
+              color: t.accent,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -154,7 +132,7 @@ class _ExportSheetState extends State<_ExportSheet> {
     AppLogger.instance.info('exported $count quotes to clipboard');
     if (!context.mounted) return;
     unawaited(navigator.maybePop());
-    messenger.showSnackBar(SnackBar(content: Text('已复制 $count 句到剪贴板。')));
+    messenger.showText('已复制 $count 句到剪贴板。');
   }
 }
 
@@ -228,102 +206,76 @@ class _ImportSheetState extends ConsumerState<_ImportSheet> {
     ]);
     if (!mounted) return;
     if (!ok2) {
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
       return; // sheet 不关, 文本还在, 可重试
     }
     AppLogger.instance.info('imported ${decoded.length} quotes');
     unawaited(navigator.maybePop());
-    messenger.showSnackBar(
-      SnackBar(content: Text('${decoded.length} 句已合并进金库。')),
-    );
+    messenger.showText('${decoded.length} 句已合并进金库。');
   }
 
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
-    final MediaQueryData media = MediaQuery.of(context);
     final bool canImport = _previewCount > 0 && _error == null;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + media.viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            '从剪贴板导入',
+    return XJKSheetBody(
+      title: '从剪贴板导入',
+      subtitle: '粘贴之前导出的金库内容, 会合并进现有金库 (不会覆盖)。',
+      children: <Widget>[
+        SizedBox(
+          height: 200,
+          child: TextField(
+            controller: _text,
+            maxLines: null,
+            expands: true,
+            onChanged: _onChanged,
+            textAlignVertical: TextAlignVertical.top,
             style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
+              fontFamily: 'monospace',
+              fontSize: 12,
+              height: 1.5,
               color: t.fg1,
             ),
+            decoration: InputDecoration(
+              hintText:
+                  '[{"id":...,"text":"...","tag":"...","createdAt":...}]',
+              hintStyle: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 11,
+                color: t.fgMuted,
+              ),
+            ),
           ),
-          const SizedBox(height: 4),
+        ),
+        const SizedBox(height: 12),
+        if (_error != null)
           Text(
-            '粘贴之前导出的金库内容, 会合并进现有金库 (不会覆盖)。',
+            _error!,
             style: TextStyle(
               fontFamily: XJKTokens.serifDisplay,
-              fontSize: 14,
+              fontSize: 13,
+              color: t.danger,
+            ),
+          )
+        else if (_previewCount > 0)
+          Text(
+            '识别到 $_previewCount 句。',
+            style: TextStyle(
+              fontFamily: XJKTokens.serifItalic,
+              fontStyle: FontStyle.italic,
+              fontSize: 13,
               color: t.fg3,
-              height: 1.6,
             ),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 200,
-            child: TextField(
-              controller: _text,
-              maxLines: null,
-              expands: true,
-              onChanged: _onChanged,
-              textAlignVertical: TextAlignVertical.top,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12,
-                height: 1.5,
-                color: t.fg1,
-              ),
-              decoration: InputDecoration(
-                hintText:
-                    '[{"id":...,"text":"...","tag":"...","createdAt":...}]',
-                hintStyle: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  color: t.fgMuted,
-                ),
-              ),
-            ),
+        const SizedBox(height: 12),
+        Opacity(
+          opacity: canImport ? 1 : 0.4,
+          child: ElevatedButton(
+            onPressed: canImport ? _import : null,
+            child: const Text('合并进金库'),
           ),
-          const SizedBox(height: 12),
-          if (_error != null)
-            Text(
-              _error!,
-              style: TextStyle(
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 13,
-                color: t.danger,
-              ),
-            )
-          else if (_previewCount > 0)
-            Text(
-              '识别到 $_previewCount 句。',
-              style: TextStyle(
-                fontFamily: XJKTokens.serifItalic,
-                fontStyle: FontStyle.italic,
-                fontSize: 13,
-                color: t.fg3,
-              ),
-            ),
-          const SizedBox(height: 12),
-          Opacity(
-            opacity: canImport ? 1 : 0.4,
-            child: ElevatedButton(
-              onPressed: canImport ? _import : null,
-              child: const Text('合并进金库'),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

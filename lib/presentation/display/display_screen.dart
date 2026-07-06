@@ -16,6 +16,7 @@ import '../../domain/rotation_controller.dart';
 import '../../domain/rotation_resume.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../widgets/snack_text.dart';
 import '../widgets/xjk_icon.dart';
 import 'display_layout.dart';
 import 'display_layouts.dart';
@@ -120,19 +121,17 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
       }
       await service.setWallpaperFromBoundary(ro);
       if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(
-          duration: Duration(milliseconds: 1800),
-          content: Text('已设为系统主屏 + 锁屏壁纸。'),
-        ),
+      messenger.showText(
+        '已设为系统主屏 + 锁屏壁纸。',
+        duration: const Duration(milliseconds: 1800),
       );
     } on WallpaperUnsupportedException catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+      messenger.showText(e.toString());
     } catch (e, st) {
       AppLogger.instance.handle(e, st, 'setAsWallpaper');
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('设置壁纸失败: $e')));
+      messenger.showText('设置壁纸失败: $e');
     } finally {
       if (mounted) setState(() => _settingWallpaper = false);
     }
@@ -360,11 +359,9 @@ class _DisplayScreenState extends ConsumerState<DisplayScreen> {
                                   .read(favoritesProvider.notifier)
                                   .toggle(current.id);
                               if (!mounted) return;
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  duration: const Duration(milliseconds: 1200),
-                                  content: Text(isFav ? '已取消收藏。' : '已收藏这一句。'),
-                                ),
+                              messenger.showText(
+                                isFav ? '已取消收藏。' : '已收藏这一句。',
+                                duration: const Duration(milliseconds: 1200),
                               );
                             },
                           );

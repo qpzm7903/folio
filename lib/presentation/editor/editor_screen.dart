@@ -10,6 +10,7 @@ import '../import/import_sheet.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/max_width_body.dart';
+import '../widgets/snack_text.dart';
 import '../widgets/top_bar.dart';
 
 /// 金句编辑屏 —— 对应 screens.jsx 的 `EditorScreen`。
@@ -189,10 +190,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     if (!mounted) return;
     if (!ok) {
       // 落盘失败: 不关编辑器, 文本还在输入框里, 用户可直接重试。
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
       return;
     }
-    messenger.showSnackBar(SnackBar(content: Text(successText)));
+    messenger.showText(successText);
     unawaited(navigator.maybePop());
   }
 
@@ -206,7 +207,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         await ref.read(quotesProvider.notifier).remove(widget.editing!.id);
     if (!mounted) return;
     if (!saved) {
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
       return;
     }
     unawaited(navigator.maybePop());

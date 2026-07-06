@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/background_image_service.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
+import '../widgets/snack_text.dart';
 
 /// 弹"换背景 / 取消"操作表 —— 用户选完直接落到 SettingsRepository。
 ///
@@ -31,11 +32,11 @@ Future<void> showBackgroundPicker(
       final String? path = await svc.pickAndStore();
       if (path == null) return;
       await ref.read(settingsProvider.notifier).setBackgroundImagePath(path);
-      messenger.showSnackBar(const SnackBar(content: Text('背景图已换上。')));
+      messenger.showText('背景图已换上。');
     case _BgAction.clear:
       await svc.clearStored(current);
       await ref.read(settingsProvider.notifier).setBackgroundImagePath(null);
-      messenger.showSnackBar(const SnackBar(content: Text('已经回到默认背景。')));
+      messenger.showText('已经回到默认背景。');
   }
 }
 

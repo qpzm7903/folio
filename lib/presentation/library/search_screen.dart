@@ -13,6 +13,7 @@ import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/quote_card.dart';
+import '../widgets/snack_text.dart';
 import '../widgets/xjk_icon.dart';
 
 /// 全文搜索屏 —— L11 第一刀。
@@ -308,7 +309,7 @@ class _SearchResults extends ConsumerWidget {
     if (ok != true) return;
     final bool saved = await ref.read(quotesProvider.notifier).remove(q.id);
     if (!saved && context.mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
     }
   }
 }

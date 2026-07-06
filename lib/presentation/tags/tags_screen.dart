@@ -9,6 +9,8 @@ import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/max_width_body.dart';
+import '../widgets/sheet_body.dart';
+import '../widgets/snack_text.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/xjk_icon.dart';
 
@@ -200,15 +202,11 @@ class _TagEditSheetState extends ConsumerState<_TagEditSheet> {
         await ref.read(quotesProvider.notifier).renameTag(widget.tag, next);
     if (!mounted) return;
     if (!saved) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(AppL10n.of(context).snackSaveFailed)),
-      );
+      messenger.showText(AppL10n.of(context).snackSaveFailed);
       return; // sheet 不关, 名字还在输入框里, 可重试
     }
     unawaited(navigator.maybePop());
-    messenger.showSnackBar(
-      SnackBar(content: Text('「${widget.tag}」改成「$next」。')),
-    );
+    messenger.showText('「${widget.tag}」改成「$next」。');
   }
 
   Future<void> _remove() async {
@@ -224,73 +222,45 @@ class _TagEditSheetState extends ConsumerState<_TagEditSheet> {
         await ref.read(quotesProvider.notifier).removeTag(widget.tag);
     if (!mounted) return;
     if (!saved) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(AppL10n.of(context).snackSaveFailed)),
-      );
+      messenger.showText(AppL10n.of(context).snackSaveFailed);
       return;
     }
     unawaited(navigator.maybePop());
-    messenger.showSnackBar(
-      SnackBar(content: Text('「${widget.tag}」已从 ${widget.count} 句上取下。')),
-    );
+    messenger.showText('「${widget.tag}」已从 ${widget.count} 句上取下。');
   }
 
   @override
   Widget build(BuildContext context) {
     final XJKTokens t = XJKTheme.of(context);
-    final MediaQueryData media = MediaQuery.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + media.viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            '改个名字',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: t.fg1,
-            ),
+    return XJKSheetBody(
+      title: '改个名字',
+      subtitle: '会改写「${widget.tag}」标在的 ${widget.count} 句。',
+      children: <Widget>[
+        TextField(
+          controller: _name,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '新标签…'),
+          style: TextStyle(
+            fontFamily: XJKTokens.serifDisplay,
+            fontSize: 16,
+            color: t.fg1,
           ),
-          const SizedBox(height: 4),
-          Text(
-            '会改写「${widget.tag}」标在的 ${widget.count} 句。',
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(onPressed: _save, child: const Text('改好')),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: _remove,
+          child: Text(
+            '从所有句子上取下',
             style: TextStyle(
+              color: t.danger,
               fontFamily: XJKTokens.serifDisplay,
               fontSize: 14,
-              color: t.fg3,
-              height: 1.6,
             ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _name,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: '新标签…'),
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 16,
-              color: t.fg1,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _save, child: const Text('改好')),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: _remove,
-            child: Text(
-              '从所有句子上取下',
-              style: TextStyle(
-                color: t.danger,
-                fontFamily: XJKTokens.serifDisplay,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

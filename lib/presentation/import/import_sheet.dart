@@ -8,6 +8,8 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../theme/tokens.dart';
 import '../providers.dart';
 import '../widgets/select_check.dart';
+import '../widgets/sheet_body.dart';
+import '../widgets/snack_text.dart';
 
 /// 批量导入 —— 对应 screens.jsx 的 `ImportSheet`。
 ///
@@ -55,176 +57,142 @@ class _ImportSheetState extends ConsumerState<ImportSheet> {
       for (final String l in lines)
         if (!_dropped.contains(l)) l,
     ];
-    final MediaQueryData media = MediaQuery.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 8,
-        bottom: 24 + media.viewInsets.bottom,
-      ),
+    return XJKSheetBody(
+      title: '批量导入',
+      subtitle: '把一整段话粘进来，会自动分行。',
       // 勾选列表出现后内容可能超过小屏可视高度 (尤其键盘弹起时),
       // 包一层滚动避免 RenderFlex overflow。
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-          Text(
-            '批量导入',
+      scrollable: true,
+      children: <Widget>[
+        SizedBox(
+          height: 240,
+          child: TextField(
+            controller: _text,
+            autofocus: true,
+            maxLines: null,
+            expands: true,
+            textAlignVertical: TextAlignVertical.top,
+            onChanged: (_) => setState(_dropped.clear),
             style: TextStyle(
               fontFamily: XJKTokens.serifDisplay,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
+              fontSize: 15,
+              height: 1.7,
               color: t.fg1,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '把一整段话粘进来，会自动分行。',
-            style: TextStyle(
-              fontFamily: XJKTokens.serifDisplay,
-              fontSize: 14,
-              color: t.fg3,
-              height: 1.6,
+            decoration: InputDecoration(
+              hintText: _placeholder,
+              hintStyle: TextStyle(
+                fontFamily: XJKTokens.serifDisplay,
+                fontSize: 14,
+                height: 1.7,
+                color: t.fgMuted,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
+                borderSide: BorderSide(color: t.border1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
+                borderSide: BorderSide(color: t.border1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
+                borderSide: BorderSide(color: t.accent, width: 1.5),
+              ),
+              filled: true,
+              fillColor: t.bgRaised,
             ),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 240,
-            child: TextField(
-              controller: _text,
-              autofocus: true,
-              maxLines: null,
-              expands: true,
-              textAlignVertical: TextAlignVertical.top,
-              onChanged: (_) => setState(_dropped.clear),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: <Widget>[
+            Text(
+              '识别到',
               style: TextStyle(
                 fontFamily: XJKTokens.serifDisplay,
-                fontSize: 15,
-                height: 1.7,
+                color: t.fg3,
+                fontSize: 13,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${lines.length}',
+              style: TextStyle(
+                fontFamily: XJKTokens.serifDisplay,
+                fontSize: 24,
                 color: t.fg1,
               ),
-              decoration: InputDecoration(
-                hintText: _placeholder,
-                hintStyle: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 14,
-                  height: 1.7,
-                  color: t.fgMuted,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-                  borderSide: BorderSide(color: t.border1),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-                  borderSide: BorderSide(color: t.border1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(XJKTokens.radiusLg),
-                  borderSide: BorderSide(color: t.accent, width: 1.5),
-                ),
-                filled: true,
-                fillColor: t.bgRaised,
-              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: <Widget>[
-              Text(
-                '识别到',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  color: t.fg3,
-                  fontSize: 13,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${lines.length}',
-                style: TextStyle(
-                  fontFamily: XJKTokens.serifDisplay,
-                  fontSize: 24,
-                  color: t.fg1,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '句',
-                  style: TextStyle(
-                    fontFamily: XJKTokens.serifDisplay,
-                    fontSize: 13,
-                    color: t.fg3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (lines.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 4),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 168),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: lines.length,
-                separatorBuilder: (BuildContext _, int __) =>
-                    const SizedBox(height: 6),
-                itemBuilder: (BuildContext _, int i) {
-                  final String line = lines[i];
-                  return _ImportLineRow(
-                    line: line,
-                    picked: !_dropped.contains(line),
-                    onTap: () => _toggle(line),
-                  );
-                },
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Opacity(
-            opacity: selected.isEmpty ? 0.4 : 1,
-            child: ElevatedButton(
-              onPressed: selected.isEmpty
-                  ? null
-                  : () async {
-                      // 先把 BuildContext-依赖的对象捕获下来, 再 await,
-                      // 避免在 async gap 后再去用 context。
-                      final NavigatorState navigator = Navigator.of(context);
-                      final ScaffoldMessengerState messenger =
-                          ScaffoldMessenger.of(context);
-                      final String failText =
-                          AppL10n.of(context).snackSaveFailed;
-                      final int n = selected.length;
-                      final bool ok = await ref
-                          .read(quotesProvider.notifier)
-                          .addMany(selected);
-                      if (!mounted) return;
-                      if (!ok) {
-                        // 落盘失败: 不关 sheet, 粘贴的内容还在, 可重试。
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(failText)),
-                        );
-                        return;
-                      }
-                      unawaited(navigator.maybePop());
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('$n 句已收入金库。')),
-                      );
-                    },
+            const SizedBox(width: 4),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                lines.isEmpty || selected.length == lines.length
-                    ? '全部收入金库'
-                    : '收入 ${selected.length} 句',
+                '句',
+                style: TextStyle(
+                  fontFamily: XJKTokens.serifDisplay,
+                  fontSize: 13,
+                  color: t.fg3,
+                ),
               ),
             ),
-          ),
           ],
         ),
-      ),
+        if (lines.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 168),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: lines.length,
+              separatorBuilder: (BuildContext _, int __) =>
+                  const SizedBox(height: 6),
+              itemBuilder: (BuildContext _, int i) {
+                final String line = lines[i];
+                return _ImportLineRow(
+                  line: line,
+                  picked: !_dropped.contains(line),
+                  onTap: () => _toggle(line),
+                );
+              },
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Opacity(
+          opacity: selected.isEmpty ? 0.4 : 1,
+          child: ElevatedButton(
+            onPressed: selected.isEmpty
+                ? null
+                : () async {
+                    // 先把 BuildContext-依赖的对象捕获下来, 再 await,
+                    // 避免在 async gap 后再去用 context。
+                    final NavigatorState navigator = Navigator.of(context);
+                    final ScaffoldMessengerState messenger =
+                        ScaffoldMessenger.of(context);
+                    final String failText =
+                        AppL10n.of(context).snackSaveFailed;
+                    final int n = selected.length;
+                    final bool ok = await ref
+                        .read(quotesProvider.notifier)
+                        .addMany(selected);
+                    if (!mounted) return;
+                    if (!ok) {
+                      // 落盘失败: 不关 sheet, 粘贴的内容还在, 可重试。
+                      messenger.showText(failText);
+                      return;
+                    }
+                    unawaited(navigator.maybePop());
+                    messenger.showText('$n 句已收入金库。');
+                  },
+            child: Text(
+              lines.isEmpty || selected.length == lines.length
+                  ? '全部收入金库'
+                  : '收入 ${selected.length} 句',
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

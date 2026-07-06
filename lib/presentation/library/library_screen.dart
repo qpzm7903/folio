@@ -15,6 +15,7 @@ import '../widgets/fab.dart';
 import '../widgets/max_width_body.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/section_header.dart';
+import '../widgets/snack_text.dart';
 import '../widgets/tag_row.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/xjk_icon.dart';
@@ -284,7 +285,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     }
     final bool saved = await ref.read(quotesProvider.notifier).removeTag(tag);
     if (!saved && mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
     }
   }
 
@@ -295,7 +296,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (ok != true) return;
     final bool saved = await ref.read(quotesProvider.notifier).remove(q.id);
     if (!saved && mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(failText)));
+      messenger.showText(failText);
     }
   }
 
@@ -316,7 +317,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         await ref.read(quotesProvider.notifier).removeMany(_picked);
     if (!mounted) return;
     if (!saved) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.snackSaveFailed)));
+      messenger.showText(l10n.snackSaveFailed);
       return; // 保持多选态, 让用户可以直接重试
     }
     _exitSelect();
