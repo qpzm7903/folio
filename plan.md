@@ -147,7 +147,7 @@
 - v0.28.0 (已完成) · 功能 MINOR: 纯文本导出 (设计源 SettingsScreen 导出行
   sub「备份为 .txt」落地): 导出 sheet 双格式切换 —— 完整备份 JSON /
   纯文本每行一句 (可读, 可被批量导入吃回, 不含标签日期)。
-- v0.28.1 (开发中) · 重构 PATCH: sheet 骨架 + SnackBar 样板收敛 ——
+- v0.28.1 (已完成) · 重构 PATCH: sheet 骨架 + SnackBar 样板收敛 ——
   4 个 BottomSheet 逐字节相同的头部 (padding/标题/副标题/间距) 抽成
   `XJKSheetBody`; 全仓 ~14 处 `showSnackBar(SnackBar(content: Text(x)))`
   收敛为 `messenger.showText(x)` 扩展。行为与视觉不变, 净减行。
@@ -210,7 +210,7 @@
 
 ## 版本日志
 
-### v0.28.1 (开发中) — 重构 PATCH: sheet 骨架 + SnackBar 样板收敛
+### v0.28.1 (已完成, CI 绿) — 重构 PATCH: sheet 骨架 + SnackBar 样板收敛
 
 > 触发依据: 无开放 issue、CI 全绿、0.28.x 尚无重构 PATCH (prompt.md 优先级 #3)。
 > v0.28.0 双格式导出后, 导出/JSON导入/批量导入/标签改名 4 个 sheet 的头部
@@ -220,15 +220,15 @@
 > 注: cadence 滚轮 sheet 是设计源指定的视觉变体 (透明背景+自绘 grabber),
 > 有意不纳入收敛范围。
 
-- [ ] T1 · `XJKSheetBody(title, subtitle, children, scrollable)`: 封装
+- [x] T1 · `XJKSheetBody(title, subtitle, children, scrollable)`: 封装
   viewInsets padding + 标题/副标题/间距骨架; 4 个 sheet 头部改用之。
   TDD: 标题副标题内容渲染 / scrollable 包裹 / 键盘 viewInsets 底部让位。
-- [ ] T2 · `ScaffoldMessengerState.showText(String)` 扩展替换全仓
-  `showSnackBar(SnackBar(content: Text(x)))` 样板 (失败与成功提示都收敛,
-  只动提示这一行, 各调用点的捕获/挂载检查/pop 流程不动)。
-- [ ] T3 · 行为等价 (import_sheet_select/tag_row_manage/library_manage_tags/
+- [x] T2 · `ScaffoldMessengerState.showText(String, {duration})` 扩展替换
+  全仓 14 处 `showSnackBar(SnackBar(content: Text(x)))` 样板 (失败与成功
+  提示都收敛, 各调用点的捕获/挂载检查/pop 流程不动)。
+- [x] T3 · 行为等价 (import_sheet_select/tag_row_manage/library_manage_tags/
   quotes_mutate_failure/editor_save_flow 测试全过); analyze 0 警告;
-  版本 0.28.1+81 (pubspec + kAppVersion)。
+  版本 0.28.1+81 (pubspec + kAppVersion)。手写 lib 9346 → 9318 行。
 
 ### v0.28.0 (已完成, CI 绿) — 功能 MINOR: 纯文本导出 (备份为 .txt)
 
