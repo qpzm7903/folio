@@ -4,14 +4,11 @@ import 'package:folio/presentation/widgets/sheet_body.dart';
 import 'package:folio/presentation/widgets/snack_text.dart';
 import 'package:folio/theme/tokens.dart';
 
-Widget _wrap(Widget child, {EdgeInsets viewInsets = EdgeInsets.zero}) {
+Widget _wrap(Widget child) {
   return MaterialApp(
     builder: (BuildContext _, Widget? c) => XJKTheme(
       tokens: XJKTokens.paper(),
-      child: MediaQuery(
-        data: MediaQueryData(viewInsets: viewInsets),
-        child: c ?? const SizedBox.shrink(),
-      ),
+      child: c ?? const SizedBox.shrink(),
     ),
     home: Scaffold(body: Builder(builder: (_) => child)),
   );
@@ -35,14 +32,18 @@ void main() {
     });
 
     testWidgets('键盘弹起时底部 padding 让位 viewInsets', (WidgetTester tester) async {
+      // MediaQuery 覆盖直接包在组件外层: 生产环境 sheet 在 navigator overlay
+      // 中能看到 viewInsets, 但测试里 Scaffold body 会把它消费掉。
       await tester.pumpWidget(
         _wrap(
-          const XJKSheetBody(
-            title: 't',
-            subtitle: 's',
-            children: <Widget>[SizedBox.shrink()],
+          const MediaQuery(
+            data: MediaQueryData(viewInsets: EdgeInsets.only(bottom: 100)),
+            child: XJKSheetBody(
+              title: 't',
+              subtitle: 's',
+              children: <Widget>[SizedBox.shrink()],
+            ),
           ),
-          viewInsets: const EdgeInsets.only(bottom: 100),
         ),
       );
       final Padding padding = tester.widget<Padding>(
